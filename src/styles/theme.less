@@ -1,0 +1,165 @@
+/* ElementPlus 全局样式配置 */
+:root {
+  /* 主色调 */
+  --el-color-primary: #409EFF;
+  --el-color-primary-light-1: #53a8ff;
+  --el-color-primary-light-2: #66b1ff;
+  --el-color-primary-light-3: #79bbff;
+  --el-color-primary-light-4: #8cc5ff;
+  --el-color-primary-light-5: #a0cfff;
+  --el-color-primary-light-6: #b3d8ff;
+  --el-color-primary-light-7: #c6e2ff;
+  --el-color-primary-light-8: #d9ecff;
+  --el-color-primary-light-9: #ecf5ff;
+  --el-color-primary-dark: #2c6fdb;
+
+  /* 成功、警告、危险、信息 */
+  --el-color-success: #67C23A;
+  --el-color-warning: #E6A23C;
+  --el-color-danger: #F56C6C;
+  --el-color-info: #909399;
+
+  /* 文字颜色 */
+  --el-text-color-primary: #303133;
+  --el-text-color-regular: #606266;
+  --el-text-color-secondary: #909399;
+  --el-text-color-placeholder: #C0C4CC;
+
+  /* 边框颜色 */
+  --el-border-color-base: #DCDFE6;
+  --el-border-color-light: #E4E7ED;
+  --el-border-color-lighter: #EBEEF5;
+  --el-border-color-extra-light: #F2F6FC;
+
+  /* 填充/背景色 */
+  --el-fill-color-base: #F0F2F5;
+  --el-fill-color-light: #F5F7FA;
+  --el-fill-color-lighter: #FAFAFA;
+  --el-fill-color-extra-light: #FAFCFF;
+  --el-fill-color-blank: #FFFFFF;
+
+  /* 字体大小 */
+  --el-font-size-extra-large: 20px;
+  --el-font-size-large: 18px;
+  --el-font-size-medium: 16px;
+  --el-font-size-base: 14px;
+  --el-font-size-small: 13px;
+  --el-font-size-extra-small: 12px;
+
+  /* 圆角 */
+  --el-border-radius-base: 4px;
+  --el-border-radius-small: 2px;
+  --el-border-radius-round: 20px;
+  --el-border-radius-circle: 100%;
+
+  /* 阴影 */
+  --el-box-shadow-base: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+  --el-box-shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  --el-box-shadow-dark: 0 4px 12px 0 rgba(0, 0, 0, 0.2);
+
+  /* 过渡时间 */
+  --el-transition-duration: 0.3s;
+  --el-transition-duration-fast: 0.2s;
+  --el-transition-function-fast-bezier: cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+
+
+/* ===== 菜单主题样式 ===== */
+:root {
+  /* 菜单背景色 */
+  --el-menu-bg-color: #FFFFFF;
+  --el-menu-hover-bg-color: #F2F5FF;
+  --el-menu-active-bg-color: #F2F5FF;
+
+  /* 菜单文字色 */
+  --el-menu-text-color: #000000;
+  --el-menu-hover-text-color: #16215B;
+  --el-menu-active-text-color: #16215B;
+
+  /* 菜单边框与分割线 */
+  --el-menu-border-color: #e4e7ed;
+  --el-menu-level-padding: 20px;
+
+  /* 子菜单缩进 */
+  --el-menu-sub-item-indent: 24px;
+
+  /* 菜单项高度 */
+  --el-menu-item-height: 56px;
+  --el-menu-sub-item-height: 50px;
+
+  /* 菜单圆角 */
+  --el-menu-border-radius: var(--el-border-radius-base);
+
+  /* 菜单阴影 */
+  --el-menu-box-shadow: var(--el-box-shadow-light);
+}
+
+/* 侧边栏菜单暗色主题 */
+[data-theme='dark'] {
+  --el-menu-bg-color: #191a20;
+  --el-menu-hover-bg-color: #1d1e23;
+  --el-menu-active-bg-color: #2c6fdb;
+
+  --el-menu-text-color: #cfd3dc;
+  --el-menu-hover-text-color: #ffffff;
+  --el-menu-active-text-color: #ffffff;
+
+  --el-menu-border-color: #2e2f36;
+}
+
+/* 顶部导航菜单暗色主题 */
+[data-theme='dark'][data-menu-mode='top'] {
+  --el-menu-bg-color: #0f0f11;
+  --el-menu-hover-bg-color: #1a1a1d;
+  --el-menu-active-bg-color: #2c6fdb;
+}
+
+/* 折叠菜单宽度 */
+:root {
+  --el-menu-collapsed-width: 64px;
+  --el-menu-default-width: 240px;
+}
+
+/* 菜单过渡 */
+.el-menu {
+  transition: width var(--el-transition-duration) var(--el-transition-function-fast-bezier);
+}
+
+.el-input {
+  /* 统一边框颜色与圆角 */
+  --el-input-border-color: var(--el-border-color-base);
+  --el-input-hover-border-color: var(--el-color-primary-light-3);
+  --el-input-focus-border-color: var(--el-color-primary);
+
+  --el-input-border-radius: 25px;
+  --el-input-height: 40px;
+
+  /* 字体与字号 */
+  --el-input-font-size: var(--el-font-size-base);
+  --el-input-text-color: var(--el-text-color-regular);
+
+  /* 背景与占位符 */
+  --el-input-bg-color: var(--el-fill-color-blank);
+  --el-input-placeholder-color: var(--el-text-color-placeholder);
+
+  /* 禁用状态 */
+  --el-input-disabled-bg-color: var(--el-fill-color-light);
+  --el-input-disabled-text-color: var(--el-text-color-placeholder);
+  --el-input-disabled-border-color: var(--el-border-color-lighter);
+
+  /* 过渡 */
+  transition: border-color var(--el-transition-duration-fast) var(--el-transition-function-fast-bezier);
+}
+
+/* 暗色主题下输入框样式 */
+[data-theme='dark'] .el-input {
+  --el-input-bg-color: #1d1e23;
+  --el-input-border-color: #2e2f36;
+  --el-input-hover-border-color: #53a8ff;
+  --el-input-focus-border-color: #409EFF;
+  --el-input-text-color: #cfd3dc;
+  --el-input-placeholder-color: #909399;
+  --el-input-disabled-bg-color: #191a20;
+  --el-input-disabled-border-color: #2e2f36;
+}
