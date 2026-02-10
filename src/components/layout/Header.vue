@@ -109,10 +109,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import {
-  Expand,
   Bell,
   CaretBottom,
   Search,
@@ -122,15 +121,10 @@ import {
 } from "@element-plus/icons-vue";
 import messageAll from "./messageAll.vue";
 
-const route = useRoute();
 const router = useRouter();
 const searchText = ref("");
 
 const drawerVisible = ref(false);
-
-const pageTitle = computed(() => {
-  return route.meta.title || route.name?.toString() || "Dashboard";
-});
 
 const handleCommand = (command: string) => {
   if (command === "logout") {

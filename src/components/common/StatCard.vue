@@ -1,3 +1,11 @@
+<!--
+ * @Author: huanghuanrong
+ * @Date: 2026-02-10 22:34:50
+ * @LastEditTime: 2026-02-10 22:39:43
+ * @LastEditors: huanghuanrong
+ * @Description: 文件描述
+ * @FilePath: \flowa-vue\src\components\common\StatCard.vue
+-->
 <template>
   <div class="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-shadow duration-300 border border-gray-100 flex flex-col justify-between h-full group">
     <div class="flex justify-between items-start">
@@ -29,7 +37,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Top, Bottom, Minus, Money, ShoppingCart, User, Timer } from '@element-plus/icons-vue'
+import { Top, Bottom, Minus, Money } from '@element-plus/icons-vue'
 
 interface Props {
   title: string

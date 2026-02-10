@@ -53,7 +53,7 @@ const searchForm = reactive({
   status: ''
 })
 
-const searchItems = [
+const searchItems: any[] = [
   { label: 'Order ID', prop: 'id', type: 'input', placeholder: 'Order ID' },
   { label: 'Customer', prop: 'customer', type: 'input', placeholder: 'Customer Name' },
   { 
@@ -68,7 +68,7 @@ const searchItems = [
       { label: 'Cancelled', value: 'Cancelled' }
     ]
   }
-] as const
+]
 
 // Table Configuration
 const columns = [

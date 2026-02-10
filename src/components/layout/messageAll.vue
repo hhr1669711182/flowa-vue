@@ -116,7 +116,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Bell, Message, Warning, InfoFilled, Check } from '@element-plus/icons-vue'
+import { Bell, Message, Warning, InfoFilled } from '@element-plus/icons-vue'
 
 const props = defineProps<{
   show: boolean

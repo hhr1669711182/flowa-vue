@@ -42,7 +42,7 @@ const searchForm = reactive({
   category: ''
 })
 
-const searchItems = [
+const searchItems: any[] = [
   { label: 'Product Name', prop: 'name', type: 'input', placeholder: 'Product Name' },
   { 
     label: 'Category', 
@@ -56,7 +56,7 @@ const searchItems = [
       { label: 'Books', value: 'Books' }
     ]
   }
-] as const
+]
 
 // Table Configuration
 const columns = [
