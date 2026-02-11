@@ -42,8 +42,8 @@
           </el-scrollbar>
         </el-aside>
 
-        <el-main class="bg-gray-50/50 p-2 sm:p-2 overflow-hidden max-h-full">
-          <div class="max-w-7xl mx-auto w-full overflow-y-scroll h-full">
+        <el-main class="bg-gray-50/50 p-2 sm:p-2 overflow-hidden overflow-y-scroll max-h-full">
+          <div class="max-w-7xl mx-auto w-full h-full">
             <router-view v-slot="{ Component }">
               <transition
                 enter-active-class="animate__animated animate__fadeIn animate__faster"
