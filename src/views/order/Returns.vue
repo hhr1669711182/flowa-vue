@@ -5,12 +5,27 @@
       <el-empty description="Page Under Construction" />
       <el-button type="primary" class="mt-4">Go Back Home</el-button>
     </div>
+    
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
 import { useRoute } from "vue-router"
+import webPrintPdf from 'web-print-pdf';
+
+
+// 简单打印
+
+await webPrintPdf.printHtml({
+
+    content: '<h1>Hello World</h1>',
+
+    pdfOptions: { paperFormat: 'A4' },
+
+    printOptions: { copies: 1 }
+
+});
 
 const route = useRoute()
 const title = computed(() => route.meta.title || "Page")
