@@ -3,5 +3,13 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  // "include": [
+  //   "src",
+  //   "types/**/*.d.ts",
+  //   "mock/**/*.ts",
+  //   "auto-imports.d.ts",
+  //   "components.d.ts"
+  // ],
+ 
 }

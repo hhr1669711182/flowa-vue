@@ -94,7 +94,7 @@
             <el-input
               v-model="form.username"
               placeholder="Enter your username"
-              :prefix-icon="User"
+              prefix-icon="User"
             />
           </el-form-item>
 
@@ -105,7 +105,7 @@
               type="password"
               placeholder="Enter your password"
               show-password
-              :prefix-icon="Lock"
+              prefix-icon="Lock"
             />
           </el-form-item>
 
@@ -148,7 +148,6 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { User, Lock, ElementPlus } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 
 const router = useRouter();

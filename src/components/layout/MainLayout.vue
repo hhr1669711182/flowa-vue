@@ -8,10 +8,9 @@
 -->
 <template>
   <div class="common-layout h-full bg-gray-50/50">
-    <el-container class="h-full flex flex-col min-h-screen relative">
+    <div class="h-full flex flex-col min-h-screen relative">
       <Header @toggle-drawer="drawer = true" />
 
-      <!-- Mobile Drawer Sidebar -->
       <!-- <el-drawer
         v-model="drawer"
         :with-header="false"
@@ -64,14 +63,13 @@
           </div>
         </el-main>
       </el-container>
-    </el-container>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import SidebarMenu from "./SidebarMenu.vue";
-import Header from "./Header.vue";
+// import SidebarMenu from "./SidebarMenu.vue";
+// import Header from "./Header.vue";
 
 const drawer = ref(false);
 </script>

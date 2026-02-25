@@ -1,17 +1,17 @@
 /* ElementPlus 全局样式配置 */
 :root {
   /* 主色调 */
-  --el-color-primary: #409EFF;
-  --el-color-primary-light-1: #53a8ff;
-  --el-color-primary-light-2: #66b1ff;
-  --el-color-primary-light-3: #79bbff;
-  --el-color-primary-light-4: #8cc5ff;
-  --el-color-primary-light-5: #a0cfff;
-  --el-color-primary-light-6: #b3d8ff;
-  --el-color-primary-light-7: #c6e2ff;
-  --el-color-primary-light-8: #d9ecff;
-  --el-color-primary-light-9: #ecf5ff;
-  --el-color-primary-dark: #2c6fdb;
+  --el-color-primary: #16215B !important;
+  --el-color-primary-light-1: #2b3a7a;
+  --el-color-primary-light-2: #415399;
+  --el-color-primary-light-3: #566cb8;
+  --el-color-primary-light-4: #6b85d7;
+  --el-color-primary-light-5: #819ef6;
+  --el-color-primary-light-6: #9ab2f7;
+  --el-color-primary-light-7: #b3c6f9;
+  --el-color-primary-light-8: #ccd9fa;
+  --el-color-primary-light-9: #e5edfc;
+  --el-color-primary-dark: #0f1644;
 
   /* 成功、警告、危险、信息 */
   --el-color-success: #67C23A;
@@ -154,6 +154,15 @@
 
   /* 过渡 */
   transition: border-color var(--el-transition-duration-fast) var(--el-transition-function-fast-bezier);
+}
+
+.el-button {
+  --el-button-border-radius: 8px;
+}
+.el-button--primary {
+  --el-button-bg-color: var(--el-color-primary);
+  --el-button-text-color: #fff;
+  --el-button-border-color: var(--el-color-primary);
 }
 
 /* 暗色主题下输入框样式 */

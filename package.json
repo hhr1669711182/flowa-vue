@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
+    "@iconify/iconify": "^3.1.1",
+    "@iconify/vue": "^5.0.0",
+    "@vitejs/plugin-vue-jsx": "^5.1.4",
     "animate.css": "^4.1.1",
     "axios": "^1.13.5",
     "echarts": "^6.0.0",
@@ -18,10 +21,12 @@
     "pinia": "^3.0.4",
     "vue": "^3.5.25",
     "vue-router": "^5.0.2",
+    "vue-types": "^6.0.0",
     "web-print-pdf": "^2.1.4"
   },
   "devDependencies": {
     "@iconify-json/ep": "^1.2.4",
+    "@iconify/json": "^2.2.443",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/mockjs": "^1.0.10",
     "@types/node": "^24.10.1",
@@ -35,6 +40,9 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "unocss": "^66.6.0",
+    "unplugin-auto-import": "^21.0.0",
+    "unplugin-icons": "^23.0.1",
+    "unplugin-vue-components": "^31.0.0",
     "vite": "^8.0.0-beta.13",
     "vite-plugin-mock": "^3.0.2",
     "vue-tsc": "^3.1.5"
