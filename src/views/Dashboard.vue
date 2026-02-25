@@ -1,13 +1,13 @@
 <template>
-  <div class="dashboard flex flex-col gap-6">
+  <div class="dashboard flex flex-col gap-4">
     <!-- Header Section -->
     <div class="mb-2 flex flex-col gap-2">
-      <div class="flex justify-between w-full items-center">
+      <div class="flex justify-between w-full h-17 items-center">
         <div>
-          <h1 class="text-2xl font-bold text-gray-800 tracking-tight">
+          <h1 class="text-2xl font-700 font-bold text-gray-800 tracking-tight">
             Welcome Evan
           </h1>
-          <p class="text-gray-500 mt-1 text-sm">
+          <p class="text-gray-500 mt-1 text-sm font-500">
             View and manage all your individual products and their stock status.
           </p>
         </div>
@@ -16,30 +16,13 @@
         >
       </div>
 
-      <div class="flex justify-end space-x-3">
+      <div class="flex justify-end space-x-3 px-3">
         <el-link type="primary" class="!rounded-lg text-[#16215B]">
           <el-icon class="mr-2"><Edit /></el-icon>
           Edit Data
         </el-link>
       </div>
     </div>
-
-    <!-- <el-row :gutter="16">
-      <el-col :xs="24" :sm="12" :lg="7">
-        <img
-          class="h-full w-full object-contain"
-          src="./icon/zhu.png"
-          alt="Statistics"
-        />
-      </el-col>
-      <el-col :xs="24" :sm="12" :lg="16">
-        <img
-          class="h-full w-full object-contain"
-          src="./icon/echart.png"
-          alt="Charts"
-        />
-      </el-col>
-    </el-row> -->
 
     <el-row :gutter="16">
       <el-col :xs="24" :lg="16" class="mb-6 lg:mb-0">
@@ -54,11 +37,6 @@
                 Overview of your sales performance
               </p>
             </div>
-            <!-- <el-select v-model="timeRange" size="small" class="w-32">
-              <el-option label="Weekly" value="week" />
-              <el-option label="Monthly" value="month" />
-              <el-option label="Yearly" value="year" />
-            </el-select> -->
           </div>
           <div class="flex-1 w-full min-h-0">
             <SalesChart />

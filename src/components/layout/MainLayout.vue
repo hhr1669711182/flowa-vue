@@ -1,3 +1,11 @@
+<!--
+ * @Author: huanghuanrong
+ * @Date: 2026-02-10 22:34:50
+ * @LastEditTime: 2026-02-25 11:34:23
+ * @LastEditors: huanghuanrong
+ * @Description: 文件描述
+ * @FilePath: \flowa-vue\src\components\layout\MainLayout.vue
+-->
 <template>
   <div class="common-layout h-full bg-gray-50/50">
     <el-container class="h-full flex flex-col min-h-screen relative">
@@ -42,7 +50,7 @@
           </el-scrollbar>
         </el-aside>
 
-        <el-main class="bg-gray-50/50 p-2 sm:p-2 overflow-hidden overflow-y-scroll max-h-full">
+        <el-main class="bg-gray-50/50 p-2 sm:p-6 overflow-hidden overflow-y-scroll max-h-full">
           <div class="max-w-7xl mx-auto w-full h-full">
             <router-view v-slot="{ Component }">
               <transition
