@@ -10,7 +10,7 @@
       <el-skeleton v-if="loading" :rows="3" animated />
       <div v-else class="search-list">
         <div v-for="item in items" :key="item.id" class="search-item">
-          <Icon icon="svg-icon:yf" class="search-image" />
+          <Icon icon="svg-icon:yf" class="search-image" :size="44" />
           <!-- <img :src="item.image" class="search-image" /> -->
           <div class="search-info">
             <div class="search-title">{{ item.name }}</div>
