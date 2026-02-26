@@ -23,13 +23,21 @@
       </div>
 
       <div class="hidden md:block w-141 ml-10">
-        <el-input
-          v-model="searchText"
-          placeholder="Search orders, products..."
-          :prefix-icon="Search"
-          clearable
-          class="w-full"
-        />
+        <SearchPopover 
+          v-model="searchVisible" 
+          :items="searchResults" 
+          :loading="searchLoading"
+        >
+          <el-input
+            v-model="searchText"
+            placeholder="Search orders, products..."
+            :prefix-icon="Search"
+            clearable
+            class="w-full"
+            @input="handleSearch"
+            @focus="handleFocus"
+          />
+        </SearchPopover>
       </div>
 
       <!-- Divider -->
@@ -120,11 +128,43 @@ import {
   SwitchButton,
 } from "@element-plus/icons-vue";
 import messageAll from "./messageAll.vue";
+import SearchPopover from "../common/searchPopover.vue";
+import { getSearchResults, type SearchResult } from "@/api/comnon";
 
 const router = useRouter();
 const searchText = ref("");
+const searchVisible = ref(false);
+const searchResults = ref<SearchResult[]>([]);
+const searchLoading = ref(false);
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
 const drawerVisible = ref(false);
+
+const handleSearch = (val: string) => {
+  if (!val) {
+    searchVisible.value = false;
+    searchResults.value = [];
+    return;
+  }
+  
+  searchVisible.value = true;
+  searchLoading.value = true;
+  
+  if (searchTimer) clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    try {
+      searchResults.value = await getSearchResults(val);
+    } finally {
+      searchLoading.value = false;
+    }
+  }, 300);
+};
+
+const handleFocus = () => {
+  if (searchText.value) {
+    searchVisible.value = true;
+  }
+};
 
 const handleCommand = (command: string) => {
   if (command === "logout") {

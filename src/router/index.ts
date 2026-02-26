@@ -9,7 +9,7 @@ import {
   Setting 
 } from '@element-plus/icons-vue'
 
-export const routes: Array<RouteRecordRaw> = [
+export const routes: Array<any> = [
   {
     path: '/login',
     name: 'Login',
@@ -24,10 +24,10 @@ export const routes: Array<RouteRecordRaw> = [
       {
         path: 'dashboard',
         name: 'Dashboard',
-        component: () => import('../views/Dashboard.vue'),
+        component: () => import('../views/dashboard/index.vue'),
         meta: { 
           title: 'Dashboard', 
-          icon: Odometer 
+          icon: Odometer
         }
       },
       // Inventory (was Product)
