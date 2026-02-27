@@ -237,9 +237,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, markRaw } from "vue";
 import EditPopover from "./components/editPopover.vue";
-// import CategoryChart from "../components/dashboard/CategoryChart.vue";
 import {
   Plus,
   Edit,
@@ -346,7 +345,7 @@ const notifications = ref([
     id: 1,
     title: "Order #X12345 Requires Your Action",
     time: "5 hours ago",
-    icon: ShoppingCart,
+    icon: markRaw(ShoppingCart),
     bg: "#EEF2FF",
     unread: true,
   },
@@ -354,7 +353,7 @@ const notifications = ref([
     id: 2,
     title: "SKU #X12345 is Running Low",
     time: "2 hours ago",
-    icon: Box,
+    icon: markRaw(Box),
     bg: "#EEF2FF",
     unread: true,
   },
@@ -362,7 +361,7 @@ const notifications = ref([
     id: 3,
     title: "Your Flowa Credit is Running Low",
     time: "8 hours ago",
-    icon: CreditCard,
+    icon: markRaw(CreditCard),
     bg: "#EEF2FF",
     unread: true,
   },
@@ -370,7 +369,7 @@ const notifications = ref([
     id: 4,
     title: "Payment has been successfully received.",
     time: "12 hours ago",
-    icon: Document,
+    icon: markRaw(Document),
     bg: "#F5F7FF",
     unread: true,
   },
@@ -378,7 +377,7 @@ const notifications = ref([
     id: 5,
     title: "New Reply on Ticket #SUP-1023",
     time: "24 hours ago",
-    icon: Message,
+    icon: markRaw(Message),
     bg: "#F5F7FF",
     unread: true,
   },
@@ -386,7 +385,7 @@ const notifications = ref([
     id: 6,
     title: "Your Password was Updated",
     time: "32 hours ago",
-    icon: Lock,
+    icon: markRaw(Lock),
     bg: "#F5F7FF",
     unread: false,
   },

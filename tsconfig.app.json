@@ -6,7 +6,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["vite/client", "vite-plugin-svg-icons/client"],
+    "types": ["vite/client"],
 
     /* Linting */
     "strict": true,

@@ -37,7 +37,7 @@ const generateMenuFromRoutes = (routes: RouteRecordRaw[], basePath = ''): MenuIt
     const item: MenuItem = {
       title: (route.meta?.title as string) || '',
       path: fullPath,
-      icon: route.meta?.icon as Component
+      icon: route.meta?.icon as unknown as Component
     }
 
     // Recursively process children

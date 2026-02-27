@@ -57,7 +57,9 @@
                 leave-active-class="animate__animated animate__fadeOut animate__faster"
                 mode="out-in"
               >
-                <component :is="Component" />
+                <keep-alive>
+                  <component :is="Component" />
+                </keep-alive>
               </transition>
             </router-view>
           </div>

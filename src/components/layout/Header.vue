@@ -167,10 +167,16 @@ const handleFocus = () => {
 };
 
 const handleCommand = (command: string) => {
-  if (command === "logout") {
-    logout();
-  } else if (command === "profile") {
-    // router.push('/profile')
+  switch (command) {
+    case "logout":
+      logout();
+      break;
+    case "profile":
+      // router.push('profile')
+      break;
+    case "settings":
+      router.push('settings')
+      break;
   }
 };
 
