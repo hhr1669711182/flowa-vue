@@ -1,4 +1,5 @@
-import { i18n } from '@/plugins/vueI18n'
+// import { i18n } from '@/plugins/vueI18n'
+const i18n: any = undefined
 
 type I18nGlobalTranslation = {
   (key: string): string

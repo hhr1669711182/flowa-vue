@@ -1,6 +1,12 @@
-import { i18n } from '@/plugins/vueI18n'
-import { useLocaleStoreWithOut } from '@/store/modules/locale'
-import { setHtmlPageLang } from '@/plugins/vueI18n/helper'
+// import { i18n } from '@/plugins/vueI18n'
+// import { useLocaleStoreWithOut } from '@/store/modules/locale'
+// import { setHtmlPageLang } from '@/plugins/vueI18n/helper'
+
+const i18n: any = undefined
+const useLocaleStoreWithOut: any = () => ({ setCurrentLocale: () => {} })
+const setHtmlPageLang: any = () => {}
+
+type LocaleType = string
 
 const setI18nLanguage = (locale: LocaleType) => {
   const localeStore = useLocaleStoreWithOut()

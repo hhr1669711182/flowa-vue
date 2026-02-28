@@ -6,7 +6,8 @@
  * @Description: 文件描述
  * @FilePath: \pc\src\hooks\web\usePageLoading.ts
  */
-import { useAppStoreWithOut } from '@/store/modules/app'
+// import { useAppStoreWithOut } from '@/store/modules/app'
+const useAppStoreWithOut: any = () => ({ setPageLoading: () => {} })
 
 export const usePageLoading = () => {
   const loadStart = () => {

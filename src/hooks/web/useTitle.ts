@@ -1,6 +1,7 @@
 import { watch, ref } from 'vue'
 import { isString } from '@/utils/is'
-import { useAppStoreWithOut } from '@/store/modules/app'
+// import { useAppStoreWithOut } from '@/store/modules/app'
+const useAppStoreWithOut: any = () => ({ getTitle: '' })
 import { useI18n } from '@/hooks/web/useI18n'
 
 export const useTitle = (newTitle?: string) => {

@@ -56,10 +56,11 @@ export const generateRoutesByFrontEnd = (
 
     let onlyOneChild: Nullable<string> = null
     if (route.children && route.children.length === 1 && !meta.alwaysShow) {
+      const child = route.children[0] as any
       onlyOneChild = (
-        isUrl(route.children[0].path)
-          ? route.children[0].path
-          : pathResolve(pathResolve(basePath, route.path), route.children[0].path)
+        isUrl(child.path)
+          ? child.path
+          : pathResolve(pathResolve(basePath, route.path), child.path)
       ) as string
     }
 
@@ -132,7 +133,7 @@ export const pathResolve = (parentPath: string, path: string) => {
 export const flatMultiLevelRoutes = (routes: AppRouteRecordRaw[]) => {
   const modules: AppRouteRecordRaw[] = cloneDeep(routes)
   for (let index = 0; index < modules.length; index++) {
-    const route = modules[index]
+    const route = modules[index] as AppRouteRecordRaw
     if (!isMultipleRoute(route)) {
       continue
     }
@@ -152,6 +153,7 @@ const isMultipleRoute = (route: AppRouteRecordRaw) => {
   let flag = false
   for (let index = 0; index < children.length; index++) {
     const child = children[index]
+    if (!child) continue
     if (child.children?.length) {
       flag = true
       break
@@ -182,6 +184,7 @@ const addToChildren = (
 ) => {
   for (let index = 0; index < children.length; index++) {
     const child = children[index]
+    if (!child) continue
     const route = routes.find((item) => item.name === child.name)
     if (!route) {
       continue

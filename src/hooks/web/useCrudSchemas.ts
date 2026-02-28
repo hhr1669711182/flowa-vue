@@ -1,8 +1,12 @@
 import { reactive } from 'vue'
 import { eachTree, treeMap, filter } from '@/utils/tree'
-import { FormSchema } from '@/components/Form'
-import { TableColumn } from '@/components/Table'
-import { DescriptionsSchema } from '@/components/Descriptions'
+// import { FormSchema } from '@/components/Form'
+// import { TableColumn } from '@/components/Table'
+// import { DescriptionsSchema } from '@/components/Descriptions'
+
+type FormSchema = any
+type TableColumn = any
+type DescriptionsSchema = any
 
 export type CrudSchema = Omit<TableColumn, 'children'> & {
   search?: CrudSearchParams
@@ -80,7 +84,7 @@ const filterSearchSchema = (crudSchema: CrudSchema[]): FormSchema[] => {
 
   for (let i = 0; i < length; i++) {
     const schemaItem = crudSchema[i]
-    if (schemaItem.search?.hidden === true) {
+    if (!schemaItem || schemaItem.search?.hidden === true) {
       continue
     }
     // 判断是否隐藏
@@ -126,6 +130,7 @@ const filterFormSchema = (crudSchema: CrudSchema[]): FormSchema[] => {
 
   for (let i = 0; i < length; i++) {
     const formItem = crudSchema[i]
+    if (!formItem) continue
     const formSchemaItem = {
       component: formItem?.form?.component || 'Input',
       ...formItem.form,

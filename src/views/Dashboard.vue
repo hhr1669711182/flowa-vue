@@ -202,7 +202,7 @@
               </template>
             </el-table-column>
             <el-table-column width="180">
-              <template #default="{ row }">
+              <template #default>
                 <div class="flex items-center justify-end gap-2">
                   <el-button size="small" plain class="!rounded-full !px-3">
                     <el-icon class="mr-1"><CircleCheck /></el-icon>
@@ -233,8 +233,8 @@ import {
   Document,
   Message,
   Lock,
-  Check,
-  ArrowRight,
+  // Check,
+  // ArrowRight,
   CircleCheck,
   View,
 } from "@element-plus/icons-vue";

@@ -1,12 +1,18 @@
-import type { Form, FormExpose } from '@/components/Form'
+// import type { Form, FormExpose } from '@/components/Form'
 import type { ElForm, ElFormItem } from 'element-plus'
 import { ref, unref, nextTick } from 'vue'
-import { FormSchema, FormSetProps, FormProps } from '@/components/Form'
+// import { FormSchema, FormSetProps, FormProps } from '@/components/Form'
 import { isEmptyVal, isObject } from '@/utils/is'
+
+type Form = any
+type FormExpose = any
+type FormSchema = any
+type FormSetProps = any
+type FormProps = any
 
 export const useForm = () => {
   // From实例
-  const formRef = ref<typeof Form & FormExpose>()
+  const formRef = ref<Form & FormExpose>()
 
   // ElForm实例
   const elFormRef = ref<ComponentRef<typeof ElForm>>()
@@ -15,7 +21,7 @@ export const useForm = () => {
    * @param ref Form实例
    * @param elRef ElForm实例
    */
-  const register = (ref: typeof Form & FormExpose, elRef: ComponentRef<typeof ElForm>) => {
+  const register = (ref: Form & FormExpose, elRef: ComponentRef<typeof ElForm>) => {
     formRef.value = ref
     elFormRef.value = elRef
   }
@@ -94,10 +100,10 @@ export const useForm = () => {
           if (!isEmptyVal(value)) {
             if (isObject(value)) {
               if (Object.keys(value).length > 0) {
-                prev[next] = value
+                ;(prev as any)[next] = value
               }
             } else {
-              prev[next] = value
+              ;(prev as any)[next] = value
             }
           }
           return prev

@@ -1,8 +1,14 @@
 import { useI18n } from '@/hooks/web/useI18n'
-import { Table, TableExpose, TableProps, TableSetProps, TableColumn } from '@/components/Table'
+// import { Table, TableExpose, TableProps, TableSetProps, TableColumn } from '@/components/Table'
 import { ElTable, ElMessageBox, ElMessage } from 'element-plus'
 import { ref, watch, unref, nextTick, onMounted } from 'vue'
 import { axiosResponseStructData, attachIndexToList, parseNestedPageData } from '@/utils/common'
+
+type Table = any
+type TableExpose = any
+type TableProps = any
+type TableSetProps = any
+type TableColumn = any
 
 const { t } = useI18n()
 
@@ -62,14 +68,14 @@ export const useTable = (config: UseTableConfig) => {
   })
 
   // Table实例
-  const tableRef = ref<typeof Table & TableExpose>()
+  const tableRef = ref<Table & TableExpose>()
 
   // ElTable实例
   const elTableRef = ref<ComponentRef<typeof ElTable>>()
 
   const queryParams = ref<Record<string, any>>({ ...config.queryParams || {} })
 
-  const register = (ref: typeof Table & TableExpose, elRef: ComponentRef<typeof ElTable>) => {
+  const register = (ref: Table & TableExpose, elRef: ComponentRef<typeof ElTable>) => {
     tableRef.value = ref
     elTableRef.value = unref(elRef)
   }

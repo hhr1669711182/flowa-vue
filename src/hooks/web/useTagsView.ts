@@ -1,4 +1,5 @@
-import { useTagsViewStoreWithOut } from '@/store/modules/tagsView'
+// import { useTagsViewStoreWithOut } from '@/store/modules/tagsView'
+const useTagsViewStoreWithOut: any = () => ({ getSelectedTag: {}, delAllViews: () => {}, delLeftViews: () => {}, delRightViews: () => {}, delOthersViews: () => {}, delView: () => {}, delCachedView: () => {}, setTitle: () => {} })
 import { RouteLocationNormalizedLoaded, useRouter } from 'vue-router'
 import { computed, nextTick, unref } from 'vue'
 

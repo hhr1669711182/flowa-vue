@@ -1,6 +1,11 @@
 import { ref, unref, nextTick } from 'vue'
-import { FormSchema, FormSetProps } from '@/components/Form'
-import { SearchExpose, SearchProps } from '@/components/Search'
+// import { FormSchema, FormSetProps } from '@/components/Form'
+// import { SearchExpose, SearchProps } from '@/components/Search'
+
+type FormSchema = any
+type FormSetProps = any
+type SearchExpose = any
+type SearchProps = any
 
 export const useSearch = () => {
   // Search实例

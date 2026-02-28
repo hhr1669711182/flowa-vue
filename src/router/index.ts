@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { 
   Odometer, 
   Goods, 
@@ -30,7 +30,6 @@ export const routes: Array<any> = [
           icon: Odometer
         }
       },
-      // Inventory (was Product)
       {
         path: 'inventory',
         name: 'Inventory',

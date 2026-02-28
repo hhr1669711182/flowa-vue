@@ -57,6 +57,7 @@ export const colorIsDark = (color: string) => {
     .replace(/(?:\(|\)|rgb|RGB)*/g, '')
     .split(',')
     .map((item) => Number(item))
+  if (r === undefined || g === undefined || b === undefined) return false
   return r * 0.299 + g * 0.578 + b * 0.114 < 192
 }
 
@@ -114,7 +115,7 @@ const luminanace = (r: number, g: number, b: number) => {
     v /= 255
     return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
   })
-  return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722
+  return (a[0] || 0) * 0.2126 + (a[1] || 0) * 0.7152 + (a[2] || 0) * 0.0722
 }
 
 /**
@@ -124,8 +125,8 @@ const luminanace = (r: number, g: number, b: number) => {
  */
 const contrast = (rgb1: string[], rgb2: number[]) => {
   return (
-    (luminanace(~~rgb1[0], ~~rgb1[1], ~~rgb1[2]) + 0.05) /
-    (luminanace(rgb2[0], rgb2[1], rgb2[2]) + 0.05)
+    (luminanace(~~(rgb1[0] || 0), ~~(rgb1[1] || 0), ~~(rgb1[2] || 0)) + 0.05) /
+    (luminanace(rgb2[0] || 0, rgb2[1] || 0, rgb2[2] || 0) + 0.05)
   )
 }
 
