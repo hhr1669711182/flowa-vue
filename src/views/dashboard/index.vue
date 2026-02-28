@@ -238,6 +238,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, markRaw } from "vue";
+import CategoryChart from "@/components/dashboard/CategoryChart.vue";
 import EditPopover from "./components/editPopover.vue";
 import {
   Plus,
