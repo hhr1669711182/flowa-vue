@@ -22,7 +22,7 @@
             <div class="search-qty-label">Total Available</div>
           </div>
         </div>
-        <div v-if="items.length === 0" class="search-empty">No results</div>
+        <div v-if="items?.length === 0" class="search-empty">No results</div>
       </div>
     </div>
     <template #reference>

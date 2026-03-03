@@ -101,7 +101,7 @@ export const routes: Array<any> = [
           }
         ]
       },
-      // Billing (was Customer)
+      // Billing (was Billing)
       {
         path: 'billing',
         name: 'Billing',
@@ -114,34 +114,33 @@ export const routes: Array<any> = [
           {
             path: 'outbound',
             name: 'Outbound',
-            component: () => import('../views/customer/CustomerList.vue'),
+            component: () => import('../views/Billing/outbound.vue'),
             meta: { title: 'Outbound' }
           },
           {
             path: 'inbound',
             name: 'Inbound',
-            component: () => import('../views/customer/Segments.vue'),
+            component: () => import('../views/Billing/Segments.vue'),
             meta: { title: 'Inbound' }
           },
           {
             path: 'services',
             name: 'Services',
-            component: () => import('../views/customer/Services.vue'),
+            component: () => import('../views/Billing/Services.vue'),
             meta: { title: 'Services' }
           },
           {
             path: 'storage',
             name: 'Storage',
-            component: () => import('../views/customer/Storage.vue'),
+            component: () => import('../views/Billing/Storage.vue'),
             meta: { title: 'Storage' }
           }
         ]
       },
-      // Invoices (was Analytics/Sales)
       {
         path: 'invoices',
         name: 'Invoices',
-        component: () => import('../views/analytics/Sales.vue'),
+        component: () => import('../views/Invoices/index.vue'),
         meta: { 
           title: 'Invoices', 
           icon: TrendCharts 

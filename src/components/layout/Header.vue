@@ -129,7 +129,7 @@ import {
 } from "@element-plus/icons-vue";
 import messageAll from "./messageAll.vue";
 import SearchPopover from "../common/searchPopover.vue";
-import { getSearchResults, type SearchResult } from "@/api/comnon";
+import { getSearchResults, type SearchResult } from "@/api/common";
 
 const router = useRouter();
 const searchText = ref("");
