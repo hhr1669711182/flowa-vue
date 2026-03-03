@@ -46,6 +46,7 @@
           placeholder="Search"
           :prefix-icon="Search"
           clearable
+          @clear="handleSearch"
           @input="handleSearch"
         />
       </div>

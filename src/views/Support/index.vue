@@ -263,7 +263,7 @@
 
               <el-dropdown
                 trigger="click"
-                @command="(cmd) => handleRowCommand(cmd, row)"
+                @command="(cmd: any) => handleRowCommand(cmd, row)"
                 popper-class="support-actions-menu"
               >
                 <el-button plain size="small" class="!rounded-lg !w-9 !h-9 !p-0">

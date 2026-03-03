@@ -75,10 +75,46 @@
       <el-table
         v-loading="loading"
         :data="listData"
+        row-key="id"
         class="invoice-table"
         :header-cell-style="{ background: '#F1F1F1', color: '#000000', fontWeight: '600' }"
+        @expand-change="handleExpandChange"
       >
-        <el-table-column type="selection" width="44" />
+        <el-table-column type="expand" width="44">
+          <template #default="{ row }">
+            <div v-loading="!!expandLoadingMap[row.id]" class="bg-[#FAFAFA] rounded-lg border border-[#ECECEC] m-4 p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-[#6B6B6B]">
+                  {{ getExpandedDetail(row).periodStart }} - {{ getExpandedDetail(row).periodEnd }}
+                </div>
+                <div class="text-sm font-semibold text-black">
+                  {{ getExpandedDetail(row).status }}
+                </div>
+              </div>
+              <el-table
+                :data="getExpandedDetail(row).lineItems || []"
+                size="small"
+                :header-cell-style="{ background: '#F7F7F7', color: '#000000' }"
+              >
+                <el-table-column prop="description" label="Description" min-width="220" />
+                <el-table-column prop="quantity" label="Qty" width="80" align="center" />
+                <el-table-column label="Unit Price" width="120" align="right">
+                  <template #default="{ row: detailRow }">
+                    {{ formatMoney(detailRow.unitPrice) }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="Amount" width="120" align="right">
+                  <template #default="{ row: detailRow }">
+                    {{ formatMoney(detailRow.amount) }}
+                  </template>
+                </el-table-column>
+              </el-table>
+              <div class="flex items-center justify-end text-sm font-semibold text-black">
+                Total: {{ formatMoney(getExpandedDetail(row).total) }}
+              </div>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="Invoice ID" min-width="240">
           <template #default="{ row }">
             <div class="font-semibold text-black">{{ row.invoiceId }}</div>
@@ -228,6 +264,8 @@ const filters = reactive<{
 const selectedInvoice = ref<InvoiceRecord | null>(null)
 const detailVisible = ref(false)
 const supportVisible = ref(false)
+const expandLoadingMap = reactive<Record<string, boolean>>({})
+const expandDetailMap = reactive<Record<string, InvoiceRecord>>({})
 
 const supportForm = reactive({
   category: 'Invoice Issue',
@@ -311,6 +349,14 @@ const statusTagType = (status: InvoiceStatus) => {
   return 'danger'
 }
 
+const formatMoney = (value: number) => {
+  return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+const getExpandedDetail = (row: InvoiceRecord) => {
+  return expandDetailMap[row.id] || row
+}
+
 const handleDownloadAll = async () => {
   const result = await sendDownloadAll()
   ElMessage.success(`Download ready: ${result.fileName}`)
@@ -345,6 +391,22 @@ const handleRowCommand = async (command: string, row: InvoiceRecord) => {
 const handleTopCommand = (command: string) => {
   if (command === 'support') {
     supportVisible.value = true
+  }
+}
+
+const handleExpandChange = async (row: InvoiceRecord, expandedRows: InvoiceRecord[]) => {
+  const expanded = expandedRows.some((item) => item.id === row.id)
+  if (!expanded || expandDetailMap[row.id] || expandLoadingMap[row.id]) {
+    return
+  }
+  expandLoadingMap[row.id] = true
+  try {
+    const detail = await fetchInvoiceDetail(row.id)
+    if (detail) {
+      expandDetailMap[row.id] = detail
+    }
+  } finally {
+    expandLoadingMap[row.id] = false
   }
 }
 

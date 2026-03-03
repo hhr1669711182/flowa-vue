@@ -42,13 +42,13 @@ export const routes: Array<any> = [
           {
             path: 'products',
             name: 'AllProducts',
-            component: () => import('../views/product/ProductList.vue'),
+            component: () => import('../views/Inventory/ProductList.vue'),
             meta: { title: 'All Products' }
           },
           {
             path: 'bundles',
             name: 'Bundles',
-            component: () => import('../views/product/Bundles.vue'),
+            component: () => import('../views/Inventory/Bundles.vue'),
             meta: { title: 'Bundles' }
           }
         ]
@@ -69,34 +69,40 @@ export const routes: Array<any> = [
             component: () => import('../views/order/OrderList.vue'),
             meta: { title: 'All Orders' }
           },
+          // {
+          //   path: 'to-approve',
+          //   name: 'ToApprove',
+          //   component: () => import('../views/order/Returns.vue'),
+          //   meta: { title: 'To Approve' }
+          // },
           {
-            path: 'to-approve',
-            name: 'ToApprove',
-            component: () => import('../views/order/Returns.vue'),
-            meta: { title: 'To Approve' }
+            path: 'Required',
+            name: 'Required',
+            component: () => import('../views/order/Required.vue'),
+            meta: { title: 'Action Required' }
           },
           {
-            path: 'needs-attention',
-            name: 'NeedsAttention',
-            component: () => import('../views/order/Returns.vue'),
-            meta: { title: 'Needs Attention' }
-          },
-          {
-            path: 'in-progress',
-            name: 'InProgress',
-            component: () => import('../views/order/Returns.vue'),
+            path: 'inProgress',
+            name: 'inProgress',
+            component: () => import('../views/order/inProgress.vue'),
             meta: { title: 'In Progress' }
           },
           {
-            path: 'delivered',
+            path: 'Delivered',
             name: 'Delivered',
-            component: () => import('../views/order/Returns.vue'),
+            component: () => import('../views/order/Delivered.vue'),
             meta: { title: 'Delivered' }
+          },
+          {
+            path: 'Blocked',
+            name: 'Blocked',
+            component: () => import('../views/order/Blocked.vue'),
+            meta: { title: 'Blocked' }
           },
           {
             path: 'cancelled',
             name: 'Cancelled',
-            component: () => import('../views/order/Returns.vue'),
+            component: () => import('../views/order/Cancelled.vue'),
             meta: { title: 'Cancelled' }
           }
         ]

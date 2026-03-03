@@ -175,7 +175,7 @@ const handleCommand = (command: string) => {
       // router.push('profile')
       break;
     case "settings":
-      router.push('settings')
+      router.push('/settings')
       break;
   }
 };

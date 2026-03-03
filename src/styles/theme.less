@@ -1,42 +1,63 @@
 /* ElementPlus 全局样式配置 */
 :root {
+  --flowa-brand-primary: #16215B;
+  --flowa-brand-primary-dark: #0A123C;
+  --flowa-brand-gradient-start: #0B2E6F;
+  --flowa-brand-gradient-end: #1E5EFF;
+  --flowa-brand-secondary-medium-blue: #0211A3;
+  --flowa-brand-secondary-vista-blue: #979EF0;
+  --flowa-brand-accent-tangelo: #F6540C;
+  --flowa-brand-accent-pumpkin: #FF7214;
+  --flowa-bg-app: #F7F7F7;
+  --flowa-bg-cards: #FFFFFF;
+  --flowa-bg-soft: #F1F1F1;
+  --flowa-border-soft: #ECECEC;
+  --flowa-text-strong: #000000;
+  --flowa-text-muted: #6B6B6B;
+  --flowa-text-subtle: #A1A1A1;
+  --flowa-primary-gradient: linear-gradient(
+    90deg,
+    var(--flowa-brand-gradient-start) 0%,
+    var(--flowa-brand-gradient-end) 100%
+  );
+
   /* 主色调 */
-  --el-color-primary: #16215B !important;
-  --el-color-primary-light-1: #2b3a7a;
-  --el-color-primary-light-2: #415399;
-  --el-color-primary-light-3: #566cb8;
-  --el-color-primary-light-4: #6b85d7;
-  --el-color-primary-light-5: #819ef6;
-  --el-color-primary-light-6: #9ab2f7;
-  --el-color-primary-light-7: #b3c6f9;
-  --el-color-primary-light-8: #ccd9fa;
-  --el-color-primary-light-9: #e5edfc;
-  --el-color-primary-dark: #0f1644;
+  --el-color-primary: var(--flowa-brand-primary) !important;
+  --el-color-primary-light-1: #2c3974;
+  --el-color-primary-light-2: #43508B;
+  --el-color-primary-light-3: #5A67A2;
+  --el-color-primary-light-4: #707EB9;
+  --el-color-primary-light-5: #8795D1;
+  --el-color-primary-light-6: #9EADE8;
+  --el-color-primary-light-7: #B6C5F1;
+  --el-color-primary-light-8: #CDDCF9;
+  --el-color-primary-light-9: #E4F2FF;
+  --el-color-primary-dark: var(--flowa-brand-primary-dark);
 
   /* 成功、警告、危险、信息 */
-  --el-color-success: #67C23A;
-  --el-color-warning: #E6A23C;
-  --el-color-danger: #F56C6C;
+  --el-color-success: #36A269;
+  --el-color-warning: var(--flowa-brand-accent-pumpkin);
+  --el-color-danger: var(--flowa-brand-accent-tangelo);
   --el-color-info: #909399;
 
   /* 文字颜色 */
-  --el-text-color-primary: #303133;
-  --el-text-color-regular: #606266;
-  --el-text-color-secondary: #909399;
-  --el-text-color-placeholder: #C0C4CC;
+  --el-text-color-primary: var(--flowa-text-strong);
+  --el-text-color-regular: #2B2B2B;
+  --el-text-color-secondary: var(--flowa-text-muted);
+  --el-text-color-placeholder: var(--flowa-text-subtle);
 
   /* 边框颜色 */
-  --el-border-color-base: #DCDFE6;
-  --el-border-color-light: #E4E7ED;
-  --el-border-color-lighter: #EBEEF5;
-  --el-border-color-extra-light: #F2F6FC;
+  --el-border-color-base: var(--flowa-border-soft);
+  --el-border-color-light: #E5E5E5;
+  --el-border-color-lighter: #F0F0F0;
+  --el-border-color-extra-light: #F7F7F7;
 
   /* 填充/背景色 */
-  --el-fill-color-base: #F0F2F5;
-  --el-fill-color-light: #F5F7FA;
+  --el-fill-color-base: var(--flowa-bg-soft);
+  --el-fill-color-light: #F6F6F6;
   --el-fill-color-lighter: #FAFAFA;
-  --el-fill-color-extra-light: #FAFCFF;
-  --el-fill-color-blank: #FFFFFF;
+  --el-fill-color-extra-light: #FCFCFC;
+  --el-fill-color-blank: var(--flowa-bg-cards);
 
   /* 字体大小 */
   --el-font-size-extra-large: 20px;
@@ -68,17 +89,17 @@
 /* ===== 菜单主题样式 ===== */
 :root {
   /* 菜单背景色 */
-  --el-menu-bg-color: #FFFFFF;
+  --el-menu-bg-color: var(--flowa-bg-cards);
   --el-menu-hover-bg-color: #F2F5FF;
   --el-menu-active-bg-color: #F2F5FF;
 
   /* 菜单文字色 */
-  --el-menu-text-color: #000000;
-  --el-menu-hover-text-color: #16215B;
-  --el-menu-active-text-color: #16215B;
+  --el-menu-text-color: var(--flowa-text-strong);
+  --el-menu-hover-text-color: var(--flowa-brand-primary);
+  --el-menu-active-text-color: var(--flowa-brand-primary);
 
   /* 菜单边框与分割线 */
-  --el-menu-border-color: #e4e7ed;
+  --el-menu-border-color: var(--flowa-border-soft);
   --el-menu-level-padding: 20px;
 
   /* 子菜单缩进 */
