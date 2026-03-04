@@ -1,4 +1,4 @@
-﻿﻿<template>
+﻿﻿﻿<template>
   <div class="p-6 space-y-6">
     <div class="space-y-1">
       <h2 class="text-[28px] leading-9 font-bold text-black">Invoices</h2>

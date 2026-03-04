@@ -1,4 +1,4 @@
-﻿<template>
+﻿﻿<template>
   <div class="p-6 space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div class="space-y-1">
