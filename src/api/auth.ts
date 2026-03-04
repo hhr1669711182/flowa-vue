@@ -51,7 +51,7 @@ export interface RegisterResponse {
 }
 
 export const login = (data: LoginPayload) => {
-  return alovaInstance.Post<LoginResponse>('/api/auth/login', data)
+  return alovaInstance.Post<LoginResponse | { ok: false; message: string }>('/api/auth/login', data)
 }
 
 export const requestPasswordReset = (data: ResetPayload) => {

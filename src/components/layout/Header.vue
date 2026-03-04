@@ -207,6 +207,7 @@ defineEmits(["toggle-drawer"]);
   background-color: #f9fafb;
   box-shadow: none !important;
   border: 1px solid #e5e7eb;
+  border-radius: 16px !important;
   transition: all 0.2s;
 }
 

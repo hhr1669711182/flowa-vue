@@ -6,15 +6,18 @@
     </div>
     <el-form-item prop="email" class="mb-4">
       <div class="label">Email</div>
-      <el-input v-model="form.email" :prefix-icon="User" placeholder="Enter your email" class="input" />
+      <el-input v-model="form.email" :prefix-icon="User" placeholder="Enter your email" class="input" @input="clearError" />
     </el-form-item>
     <el-form-item prop="password" class="mb-6">
       <div class="label">Password</div>
-      <el-input v-model="form.password" :prefix-icon="Lock" type="password" placeholder="Enter your password" show-password class="input" />
+      <el-input v-model="form.password" :prefix-icon="Lock" type="password" placeholder="Enter your password" show-password class="input" @input="clearError" />
     </el-form-item>
     <div class="flex items-center justify-between mb-6">
       <el-checkbox v-model="form.remember" custom-class="text-[#6B6B6B]">Remember for 30 Days</el-checkbox>
       <a class="link" @click="$emit('forgot')">Forgot password?</a>
+    </div>
+    <div v-if="errorTip" class="error-tip mb-4">
+      {{ errorTip }}
     </div>
     <el-button type="primary" class="primary-btn" :loading="loading" @click="submit">Sign In</el-button>
     <div class="mt-5 text-center text-sm text-[#6B6B6B]">
@@ -28,11 +31,17 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import { login } from '@/api/auth'
 import { useRequest } from 'alova/client'
+import {
+  saveRememberCredentials,
+  loadRememberCredentials,
+  clearRememberCredentials
+} from '@/utils/storage'
+import { tryBrowserCredentialStore } from '@/utils/storage'
 
 const emit = defineEmits<{
   (e: 'forgot'): void
@@ -48,6 +57,7 @@ const form = reactive({
   password: '',
   remember: false
 })
+const errorTip = ref('')
 const rules = {
   email: [{ required: true, message: 'Please enter email', trigger: 'blur' }],
   password: [{ required: true, message: 'Please enter password', trigger: 'blur' }]
@@ -58,13 +68,41 @@ const submit = async () => {
     if (!valid) return
     try {
       const res = await sendLogin({ email: form.email, password: form.password, remember: form.remember })
-      localStorage.setItem('token', res.token)
-      ElMessage.success('Login successfully')
-      window.location.href = '#/'
+      if ('token' in res) {
+        localStorage.setItem('token', res.token)
+        if (form.remember) {
+          await saveRememberCredentials({ email: form.email, password: form.password })
+          await tryBrowserCredentialStore(form.email, form.password)
+        } else {
+          await clearRememberCredentials()
+        }
+        errorTip.value = ''
+        ElMessage.success('Login successfully')
+        window.location.href = '#/'
+      } else {
+        errorTip.value =
+          res.message ||
+          'Incorrect email or password. Try again, or contact the Flowa Support Team.'
+      }
     } catch (e: any) {
-      ElMessage.error(e?.message || 'Login failed')
+      errorTip.value =
+        e?.message ||
+        'Login failed due to a network or system issue. Please try again later.'
     }
   })
+}
+
+onMounted(async () => {
+  const remembered = await loadRememberCredentials()
+  if (remembered) {
+    form.email = remembered.email
+    form.password = remembered.password
+    form.remember = true
+  }
+})
+
+const clearError = () => {
+  errorTip.value = ''
 }
 </script>
 
@@ -105,6 +143,15 @@ const submit = async () => {
   color: #16215b;
   font-weight: 600;
   cursor: pointer;
+}
+.error-tip {
+  background: #fff2f2;
+  border: 1px solid #ffbdbd;
+  color: #d32f2f;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.4;
 }
 .copyright {
   font-size: 12px;
