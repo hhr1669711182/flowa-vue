@@ -1,6 +1,6 @@
 <template>
   <el-header
-    class="w-full bg-white h-16 flex items-center justify-between px-4 sm:px-6 z-10 sticky top-0 shadow-sm border-b border-gray-100"
+    class="app-header w-full bg-white h-16 flex items-center justify-between px-4 sm:px-6 z-10 sticky top-0 shadow-sm border-b border-gray-100"
   >
     <div class="flex items-center gap-4">
       <!-- Mobile Toggle -->
@@ -193,6 +193,10 @@ defineEmits(["toggle-drawer"]);
 </script>
 
 <style scoped>
+.app-header {
+  border-bottom: 1px solid #F1F1F1 !important;
+}
+
 :deep(.el-breadcrumb__inner) {
   font-weight: 500 !important;
   color: #6b7280 !important;

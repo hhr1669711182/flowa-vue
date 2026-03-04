@@ -117,7 +117,7 @@
     </div>
     <el-row
       :gutter="16"
-      class="rounded-xl shadow-sm border border-gray-100 overflow-hidden animate__animated animate__fadeInUp"
+      class="rounded-xl overflow-hidden animate__animated animate__fadeInUp"
       style="animation-delay: 0.6s"
     >
       <el-col :xs="24" :sm="12" :lg="9">

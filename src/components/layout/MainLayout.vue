@@ -44,7 +44,7 @@
        
 
           <!-- Menu -->
-          <el-scrollbar class="flex-1">
+          <el-scrollbar class="flex-1 bg-white">
             <SidebarMenu />
           </el-scrollbar>
         </el-aside>
