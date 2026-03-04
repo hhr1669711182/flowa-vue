@@ -3,7 +3,7 @@
     :model-value="modelValue"
     width="760px"
     destroy-on-close
-    @update:model-value="(val) => emit('update:modelValue', val)"
+    @update:model-value="(val: boolean) => emit('update:modelValue', val)"
   >
     <template #header>
       <div class="pr-8">

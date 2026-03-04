@@ -159,7 +159,7 @@
               <el-button size="small" type="primary" :disabled="!row.reopenable" @click="openReactivateDialog(row)">
                 Reactivate
               </el-button>
-              <el-dropdown trigger="click" @command="(command) => handleRowCommand(command, row)">
+              <el-dropdown trigger="click" @command="(command: string) => handleRowCommand(command, row)">
                 <el-button class="!h-8 !w-8 !p-0 !border-[#16215B1A]">
                   <el-icon><MoreFilled /></el-icon>
                 </el-button>

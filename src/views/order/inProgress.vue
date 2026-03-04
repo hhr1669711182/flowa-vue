@@ -56,7 +56,7 @@
         </el-select>
       </div>
 
-      <el-table
+      <el-table 
         v-loading="loading"
         :data="listData"
         row-key="id"
@@ -131,7 +131,7 @@
           <template #default="{ row }">
             <div class="flex items-center justify-end gap-2">
               <el-button size="small" @click="openReviewDialog(row)">Review & Fix</el-button>
-              <el-dropdown trigger="click" @command="(command) => handleRowCommand(command, row)">
+              <el-dropdown trigger="click" @command="(command: string) => handleRowCommand(command, row)">
                 <el-button class="!h-8 !w-8 !p-0 !border-[#16215B1A]">
                   <el-icon><MoreFilled /></el-icon>
                 </el-button>

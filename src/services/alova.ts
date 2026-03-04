@@ -24,7 +24,7 @@ Object.values(mockFiles).forEach((module: any) => {
 const mockAdapter = createAlovaMockAdapter(mockGroups, {
   delay: 500,
   httpAdapter: adapterFetch(),
-  enable: import.meta.env.DEV
+  enable: true
 });
 
 export const alovaInstance = createAlova({

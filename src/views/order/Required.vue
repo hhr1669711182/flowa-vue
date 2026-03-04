@@ -154,7 +154,7 @@
           <template #default="{ row }">
             <div class="flex items-center justify-end gap-2">
               <el-button size="small" type="primary" @click="openReviewDialog(row)">Review & Fix</el-button>
-              <el-dropdown trigger="click" @command="handleRowCommand">
+              <el-dropdown trigger="click" @command="(command: any) => handleRowCommand(command)">
                 <el-button class="!h-8 !w-8 !p-0 !border-[#16215B1A]">
                   <el-icon><MoreFilled /></el-icon>
                 </el-button>

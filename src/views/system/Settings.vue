@@ -250,9 +250,7 @@
               </div>
               <el-switch
                 v-model="setting.value"
-                @change="
-                  (val) => handleSettingChange(setting.key, val as boolean)
-                "
+                @change="(val: any) => handleSettingChange(setting.key, val)"
                 style="--el-switch-on-color: #1e3a8a"
               />
             </div>

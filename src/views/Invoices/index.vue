@@ -1,4 +1,4 @@
-﻿<template>
+﻿﻿<template>
   <div class="p-6 space-y-6">
     <div class="space-y-1">
       <h2 class="text-[28px] leading-9 font-bold text-black">Invoices</h2>
@@ -143,7 +143,7 @@
         </el-table-column>
         <el-table-column label="Actions" width="100" align="right">
           <template #default="{ row }">
-            <el-dropdown trigger="click" @command="(command) => handleRowCommand(command, row)">
+            <el-dropdown trigger="click" @command="(command: string) => handleRowCommand(command, row)">
               <el-button class="!h-8 !w-8 !p-0 !border-[#16215B1A]">
                 <el-icon><MoreFilled /></el-icon>
               </el-button>
