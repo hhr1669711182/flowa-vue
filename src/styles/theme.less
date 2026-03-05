@@ -1,5 +1,36 @@
+/* 
+  @font-face：
+  1. 将字体文件放在 src/assets/fonts/ 下
+  2. 取消注释后即可启用自定义字体并应用到全局
+
+  @font-face {
+    font-family: 'FlowaInter';
+    src: url('../assets/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --flowa-font-family: 'FlowaInter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  可选：使用 Google Fonts（同样暂不启用）
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*/
+
+@font-face {
+  font-family: 'FlowaInter';
+  src: url('@/assets/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ElementPlus 全局样式配置 */
 :root {
+    // --flowa-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --flowa-font-family: 'FlowaInter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --flowa-brand-primary: #16215B;
   --flowa-brand-primary-dark: #0A123C;
   --flowa-brand-gradient-start: #0B2E6F;
@@ -15,11 +46,9 @@
   --flowa-text-strong: #000000;
   --flowa-text-muted: #6B6B6B;
   --flowa-text-subtle: #A1A1A1;
-  --flowa-primary-gradient: linear-gradient(
-    90deg,
-    var(--flowa-brand-gradient-start) 0%,
-    var(--flowa-brand-gradient-end) 100%
-  );
+  --flowa-primary-gradient: linear-gradient(90deg,
+      var(--flowa-brand-gradient-start) 0%,
+      var(--flowa-brand-gradient-end) 100%);
 
   /* 主色调 */
   --el-color-primary: var(--flowa-brand-primary) !important;
@@ -83,8 +112,6 @@
   --el-transition-duration-fast: 0.2s;
   --el-transition-function-fast-bezier: cubic-bezier(0.645, 0.045, 0.355, 1);
 }
-
-
 
 /* ===== 菜单主题样式 ===== */
 :root {
@@ -180,6 +207,7 @@
 .el-button {
   --el-button-border-radius: 8px;
 }
+
 .el-button--primary {
   --el-button-bg-color: var(--el-color-primary);
   --el-button-text-color: #fff;
