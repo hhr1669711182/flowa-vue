@@ -5,6 +5,7 @@
         <p>Inventory</p>
         <p class="text-#9A9A9A font-size-5">/All Products</p>
       </h2>
+
       <div class="flex items-center gap-3">
         <el-button type="primary" class="!px-4">
           <span class="flex items-center gap-2">
@@ -21,28 +22,46 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-      <div class="bg-white rounded-xl border border-gray-100 shadow-card p-4">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 box">
+      <div class="bg-white rounded-xl border border-gray-100 shadow-card p-6">
         <div class="flex items-center justify-between mb-2">
-          <div class="text-sm font-semibold text-gray-700">Total Inventory</div>
+          <div class="font-semibold">
+            <div>Total Inventory</div>
+            <div class="flex items-center gap-1">
+              <Icon icon="svg-icon:circle-arrow-down" color="#0211A3" />
+              <div class="text-#0211A3">45%</div>
+            </div>
+          </div>
           <div class="flex items-center gap-2">
-            <el-tag size="small" type="info" effect="plain">45%</el-tag>
-            <span class="text-xl font-bold text-indigo-700">{{ totalInventory }}</span>
+            <span class="text-28px font-bold text-#0211A3 line-height-36px">{{
+              totalInventory
+            }}</span>
           </div>
         </div>
-        <div ref="invChartRef" class="w-full h-44"></div>
+        <div ref="invChartRef" class="w-full h-41"></div>
       </div>
-      <div class="bg-white rounded-xl border border-gray-100 shadow-card p-4">
-        <div class="flex items-center justify-between mb-2">
-          <div class="text-sm font-semibold text-gray-700">Total Storage</div>
-          <el-tag size="small" type="info" effect="plain">30%</el-tag>
+      <div class="bg-white rounded-xl border border-gray-100 shadow-card p-6 flex">
+        <div class="font-semibold">
+          <div class="whitespace-nowrap">Total Storage</div>
+          <div class="flex items-center gap-1">
+            <Icon icon="svg-icon:circle-check" color="#0211A3" />
+            <div class="text-#0211A3">30%</div>
+          </div>
         </div>
-        <div ref="storageChartRef" class="w-full h-44"></div>
+
+        <div ref="storageChartRef" class="w-full h-44 py-4"></div>
       </div>
       <div class="rounded-xl shadow-card p-4 bg-[#0F1A3A] text-white">
         <div class="flex items-center justify-between mb-2">
-          <div class="text-sm font-semibold opacity-80">Total Inventory Value</div>
-          <el-tag size="small" effect="dark" class="!bg-white/10 !border-white/20 !text-white">15%</el-tag>
+          <div class="text-sm font-semibold opacity-80">
+            Total Inventory Value
+          </div>
+          <el-tag
+            size="small"
+            effect="dark"
+            class="!bg-white/10 !border-white/20 !text-white"
+            >15%</el-tag
+          >
         </div>
         <div class="flex items-center justify-end mb-1">
           <span class="text-2xl font-bold">$9k</span>
@@ -51,7 +70,9 @@
       </div>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-100 shadow-card p-3 mb-3 flex flex-wrap items-center gap-3">
+    <div
+      class="bg-white rounded-xl border border-gray-100 shadow-card p-3 mb-3 flex items-center gap-3"
+    >
       <el-input
         v-model="searchForm.sku"
         placeholder="Search by SKU..."
@@ -62,7 +83,11 @@
           <img src="./Icons/search.svg" class="w-4 h-4" alt="search" />
         </template>
       </el-input>
-      <el-select v-model="filters.lastDays" class="w-36" placeholder="Last 7 days">
+      <el-select
+        v-model="filters.lastDays"
+        class="w-36"
+        placeholder="Last 7 days"
+      >
         <el-option label="Last 7 days" value="7" />
         <el-option label="Last 30 days" value="30" />
         <el-option label="Last 90 days" value="90" />
@@ -115,28 +140,43 @@
         <div class="flex items-center gap-3">
           <el-avatar :size="32" class="bg-gray-100 text-gray-700">P</el-avatar>
           <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-800">{{ row.name }}</span>
+            <span class="text-sm font-medium text-gray-800">{{
+              row.name
+            }}</span>
             <span class="text-xs text-gray-500">SKU {{ row.id }}</span>
           </div>
         </div>
       </template>
       <template #details="{ row }">
-        <span class="text-xs text-gray-500">{{ row.name }} · {{ row.category }}</span>
+        <span class="text-xs text-gray-500"
+          >{{ row.name }} · {{ row.category }}</span
+        >
       </template>
       <template #incoming>
         <span>50</span>
       </template>
       <template #reserved="{ row }">
-        <span>{{ Math.floor((typeof row.stock === 'number' ? row.stock : Number(row.stock || 0)) / 10) }}</span>
+        <span>{{
+          Math.floor(
+            (typeof row.stock === "number"
+              ? row.stock
+              : Number(row.stock || 0)) / 10,
+          )
+        }}</span>
       </template>
       <template #available="{ row }">
-        <span>{{ typeof row.stock === 'number' ? row.stock : Number(row.stock || 0) }}</span>
+        <span>{{
+          typeof row.stock === "number" ? row.stock : Number(row.stock || 0)
+        }}</span>
       </template>
       <template #total="{ row }">
-        <span>{{ (typeof row.stock === 'number' ? row.stock : Number(row.stock || 0)) + 50 }}</span>
+        <span>{{
+          (typeof row.stock === "number" ? row.stock : Number(row.stock || 0)) +
+          50
+        }}</span>
       </template>
       <template #cog="{ row }">
-        <span>{{ String(row.price).replace('¥', '$ ') }}</span>
+        <span>{{ String(row.price).replace("¥", "$ ") }}</span>
       </template>
       <template #actions>
         <el-button link type="primary" size="small">Edit</el-button>
@@ -147,200 +187,296 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from 'vue'
-import * as echarts from 'echarts'
-import axios from 'axios'
-import BaseTable from '../../components/common/BaseTable.vue'
-import BaseSearch from '../../components/common/BaseSearch.vue'
+import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from "vue";
+import * as echarts from "echarts";
+import axios from "axios";
+import BaseTable from "../../components/common/BaseTable.vue";
+import BaseSearch from "../../components/common/BaseSearch.vue";
 
 // Search Configuration
 const searchForm = reactive({
-  name: '',
-  category: '',
-  sku: ''
-})
+  name: "",
+  category: "",
+  sku: "",
+});
 
 const searchItems: any[] = [
-  { label: 'Product Name', prop: 'name', type: 'input', placeholder: 'Product Name' },
-  { 
-    label: 'Category', 
-    prop: 'category', 
-    type: 'select', 
-    placeholder: 'Select Category',
+  {
+    label: "Product Name",
+    prop: "name",
+    type: "input",
+    placeholder: "Product Name",
+  },
+  {
+    label: "Category",
+    prop: "category",
+    type: "select",
+    placeholder: "Select Category",
     options: [
-      { label: 'Electronics', value: 'Electronics' },
-      { label: 'Clothing', value: 'Clothing' },
-      { label: 'Home', value: 'Home' },
-      { label: 'Books', value: 'Books' }
-    ]
-  }
-]
+      { label: "Electronics", value: "Electronics" },
+      { label: "Clothing", value: "Clothing" },
+      { label: "Home", value: "Home" },
+      { label: "Books", value: "Books" },
+    ],
+  },
+];
 
 // Table Configuration
 const columns = [
-  { label: 'Product / SKU ID', slot: 'product', width: 260 },
-  { label: 'Details', slot: 'details' },
-  { label: 'Incoming', slot: 'incoming', width: 120 },
-  { label: 'Reserved', slot: 'reserved', width: 120 },
-  { label: 'Available', slot: 'available', width: 120 },
-  { label: 'Total', slot: 'total', width: 120 },
-  { label: 'COG', slot: 'cog', width: 140 },
-  { label: 'Actions', slot: 'actions', width: 120, fixed: 'right' }
-]
+  { label: "Product / SKU ID", slot: "product", width: 260 },
+  { label: "Details", slot: "details" },
+  { label: "Incoming", slot: "incoming", width: 120 },
+  { label: "Reserved", slot: "reserved", width: 120 },
+  { label: "Available", slot: "available", width: 120 },
+  { label: "Total", slot: "total", width: 120 },
+  { label: "COG", slot: "cog", width: 140 },
+  { label: "Actions", slot: "actions", width: 120, fixed: "right" },
+];
 
 // Data Logic
-const tableData = ref([])
-const loading = ref(false)
-const total = ref(0)
-const page = ref(1)
-const limit = ref(10)
-const invChartRef = ref<HTMLElement | null>(null)
-const storageChartRef = ref<HTMLElement | null>(null)
-const valueChartRef = ref<HTMLElement | null>(null)
-let invChart: echarts.ECharts | null = null
-let storageChart: echarts.ECharts | null = null
-let valueChart: echarts.ECharts | null = null
+const tableData = ref([]);
+const loading = ref(false);
+const total = ref(0);
+const page = ref(1);
+const limit = ref(10);
+const invChartRef = ref<HTMLElement | null>(null);
+const storageChartRef = ref<HTMLElement | null>(null);
+const valueChartRef = ref<HTMLElement | null>(null);
+let invChart: echarts.ECharts | null = null;
+let storageChart: echarts.ECharts | null = null;
+let valueChart: echarts.ECharts | null = null;
 const stats = reactive({
   electronics: 0,
   clothing: 0,
   home: 0,
-  books: 0
-})
-const totalInventory = ref(0)
+  books: 0,
+});
+const totalInventory = ref(0);
 
 const filters = reactive({
-  lastDays: '7',
-  range: '',
-  stock: 'all',
-  qty: 'all'
-})
+  lastDays: "7",
+  range: "",
+  stock: "all",
+  qty: "all",
+});
 
 const updateStatsAndChart = () => {
-  const data = (tableData.value as any[]) || []
-  const categories = ['Electronics', 'Clothing', 'Home', 'Books']
-  const counts = [0, 0, 0, 0]
-  const stocks = [0, 0, 0, 0]
+  const data = (tableData.value as any[]) || [];
+  const categories = ["Electronics", "Clothing", "Home", "Books"];
+  const counts = [0, 0, 0, 0];
+  const stocks = [0, 0, 0, 0];
   for (const item of data) {
-    const idx = categories.indexOf(item.category)
+    const idx = categories.indexOf(item.category);
     if (idx >= 0) {
-      counts[idx] = (counts[idx] ?? 0) + 1
-      const s = typeof item.stock === 'number' ? item.stock : Number(item.stock || 0)
-      stocks[idx] = (stocks[idx] ?? 0) + (isNaN(s) ? 0 : s)
+      counts[idx] = (counts[idx] ?? 0) + 1;
+      const s =
+        typeof item.stock === "number" ? item.stock : Number(item.stock || 0);
+      stocks[idx] = (stocks[idx] ?? 0) + (isNaN(s) ? 0 : s);
     }
   }
-  stats.electronics = counts[0] ?? 0
-  stats.clothing = counts[1] ?? 0
-  stats.home = counts[2] ?? 0
-  stats.books = counts[3] ?? 0
-  totalInventory.value = (stocks[0] ?? 0) + (stocks[1] ?? 0) + (stocks[2] ?? 0) + (stocks[3] ?? 0)
+  stats.electronics = counts[0] ?? 0;
+  stats.clothing = counts[1] ?? 0;
+  stats.home = counts[2] ?? 0;
+  stats.books = counts[3] ?? 0;
+  totalInventory.value =
+    (stocks[0] ?? 0) + (stocks[1] ?? 0) + (stocks[2] ?? 0) + (stocks[3] ?? 0);
+  // 动态计算颜色：第一个是1，后面根据数据量动态设置步长，数据量大时最小步长0.05
+  const maxCount = Math.max(...counts);
+  const step = maxCount > 20 ? 0.05 : 1 / counts.length;
+  const colors = counts.map((_, i) => {
+    const alpha = i === 0 ? 1 : Math.max(0.05, 1 - i * step);
+    return `rgba(2, 17, 163, ${alpha})`;
+  });
+
   const option: echarts.EChartsOption = {
     grid: { left: 24, right: 24, top: 28, bottom: 24 },
-    tooltip: { trigger: 'axis' },
-    // legend: { data: ['Count', 'Stock'] },
-    xAxis: { type: 'category', data: categories },
-    yAxis: { type: 'value' },
-    series: [
-      { name: 'Count', type: 'bar', data: counts, itemStyle: { color: '#60a5fa' } },
-      // { name: 'Stock', type: 'line', data: stocks, smooth: true, itemStyle: { color: '#10b981' } }
-    ]
-  }
-  if (!invChart && invChartRef.value) {
-    invChart = echarts.init(invChartRef.value)
-    window.addEventListener('resize', onResize)
-  }
-  if (invChart) invChart.setOption(option)
-
-  const storageOption: echarts.EChartsOption = {
+    tooltip: { trigger: "axis", axisPointer: { type: "none" } },
+    xAxis: {
+      type: "category",
+      data: categories,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: {
+        show: true,
+        interval: 0,
+        formatter: (value: string, index: number) => {
+          return `{title|${value}}\n{sub|${counts[index]} items}`;
+        },
+        rich: {
+          title: {
+            color: "#000",
+            fontWeight: 500,
+            fontSize: 12,
+            // padding: [0, 0, 6, 0],
+            align: "center",
+          },
+          sub: {
+            color: "#9A9A9A",
+            // backgroundColor: "#F3F4F6",
+            padding: [4, 8],
+            // borderRadius: 12,
+            fontSize: 12,
+            align: "center",
+          },
+        },
+      },
+    },
+    yAxis: {
+      type: "value",
+      axisLine: { show: false },
+      splitLine: { show: false },
+      axisLabel: { show: false },
+    },
     series: [
       {
-        type: 'pie',
-        radius: ['60%', '90%'],
-        center: ['50%', '50%'],
+        name: "Count",
+        type: "bar",
+        data: counts,
+        itemStyle: {
+          color: (params: any) => colors[params.dataIndex] || "#60a5fa",
+          borderRadius: [8, 8, 8, 8],
+        },
+        barWidth: "60%",
+      },
+    ],
+  };
+  if (!invChart && invChartRef.value) {
+    invChart = echarts.init(invChartRef.value);
+    window.addEventListener("resize", onResize);
+  }
+  if (invChart) invChart.setOption(option);
+
+  const storageOption: echarts.EChartsOption = {
+    title: {
+      text: "70%",
+      left: "center",
+      top: "center",
+      textStyle: {
+        color: "#0211A3",
+        fontSize: 24,
+        fontWeight: "bold",
+      },
+    },
+    series: [
+      {
+        type: "pie",
+        radius: ["60%", "90%"],
+        center: ["50%", "50%"],
         avoidLabelOverlap: false,
         label: { show: false },
         labelLine: { show: false },
         data: [
-          { value: 30, name: 'Used', itemStyle: { color: '#3b82f6' } },
-          { value: 70, name: 'Free', itemStyle: { color: '#e5e7eb' } }
+          { value: 100, name: "Full", itemStyle: { color: "#0211A31A" } },
         ],
         silent: true,
-        animationType: 'scale',
-        animationEasing: 'elasticOut'
-      }
-    ]
-  }
+        z: 1,
+      },
+      {
+        type: "pie",
+        radius: ["60%", "90%"],
+        center: ["50%", "50%"],
+        avoidLabelOverlap: false,
+        label: { show: false },
+        labelLine: { show: false },
+        data: [
+          { value: 70, name: "Used", itemStyle: { color: "#0211A3", borderRadius: "50%" } },
+          { value: 30, name: "Free", itemStyle: { color: "transparent" } },
+        ],
+        silent: true,
+        animationType: "scale",
+        animationEasing: "elasticOut",
+        z: 2,
+      },
+    ],
+  };
   if (!storageChart && storageChartRef.value) {
-    storageChart = echarts.init(storageChartRef.value)
+    storageChart = echarts.init(storageChartRef.value);
   }
-  if (storageChart) storageChart.setOption(storageOption)
+  if (storageChart) storageChart.setOption(storageOption);
 
   const valueOption: echarts.EChartsOption = {
     grid: { left: 10, right: 10, top: 10, bottom: 10 },
-    xAxis: { type: 'category', boundaryGap: false, show: false, data: Array.from({ length: 24 }).map((_, i) => i) },
-    yAxis: { type: 'value', show: false },
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      show: false,
+      data: Array.from({ length: 24 }).map((_, i) => i),
+    },
+    yAxis: { type: "value", show: false },
     series: [
       {
-        type: 'line',
+        type: "line",
         smooth: true,
-        data: Array.from({ length: 24 }).map((_, i) => Math.round(50 + 20 * Math.sin(i / 3))),
-        areaStyle: { color: 'rgba(99, 102, 241, 0.25)' },
-        lineStyle: { color: '#60a5fa' }
-      }
-    ]
-  }
+        data: Array.from({ length: 24 }).map((_, i) =>
+          Math.round(50 + 20 * Math.sin(i / 3)),
+        ),
+        areaStyle: { color: "rgba(99, 102, 241, 0.25)" },
+        lineStyle: { color: "#60a5fa" },
+      },
+    ],
+  };
   if (!valueChart && valueChartRef.value) {
-    valueChart = echarts.init(valueChartRef.value)
+    valueChart = echarts.init(valueChartRef.value);
   }
-  if (valueChart) valueChart.setOption(valueOption)
-}
+  if (valueChart) valueChart.setOption(valueOption);
+};
 
 const onResize = () => {
-  if (invChart) invChart.resize()
-  if (storageChart) storageChart.resize()
-  if (valueChart) valueChart.resize()
-}
+  if (invChart) invChart.resize();
+  if (storageChart) storageChart.resize();
+  if (valueChart) valueChart.resize();
+};
 
 const fetchData = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const response = await axios.get('/api/products', {
+    const response = await axios.get("/api/products", {
       params: {
         page: page.value,
         limit: limit.value,
-        ...searchForm
-      }
-    })
-    tableData.value = response.data.data
+        ...searchForm,
+      },
+    });
+    tableData.value = response.data.data;
     // Mock total count
-    total.value = 200
-    await nextTick()
-    updateStatsAndChart()
+    total.value = 200;
+    await nextTick();
+    updateStatsAndChart();
   } catch (error) {
-    console.error('Failed to fetch products:', error)
+    console.error("Failed to fetch products:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const handleSearch = () => {
-  page.value = 1
-  fetchData()
-}
+  page.value = 1;
+  fetchData();
+};
 
 const handleReset = () => {
-  searchForm.name = ''
-  searchForm.category = ''
-  handleSearch()
-}
+  searchForm.name = "";
+  searchForm.category = "";
+  handleSearch();
+};
 
 onMounted(() => {
-  fetchData()
-})
+  fetchData();
+});
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', onResize)
-  if (invChart) { invChart.dispose(); invChart = null }
-  if (storageChart) { storageChart.dispose(); storageChart = null }
-  if (valueChart) { valueChart.dispose(); valueChart = null }
-})
+  window.removeEventListener("resize", onResize);
+  if (invChart) {
+    invChart.dispose();
+    invChart = null;
+  }
+  if (storageChart) {
+    storageChart.dispose();
+    storageChart = null;
+  }
+  if (valueChart) {
+    valueChart.dispose();
+    valueChart = null;
+  }
+});
 </script>

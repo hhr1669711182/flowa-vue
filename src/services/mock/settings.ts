@@ -132,6 +132,7 @@ export const mockSettings = defineMock({
     const operator = query.operator || '';
 
     let filtered = [...mockLogs];
+    console.log("🚀 ~ filtered:", filtered)
 
     if (search) {
       filtered = filtered.filter(l => 

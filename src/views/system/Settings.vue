@@ -559,6 +559,7 @@ const fetchLogs = async () => {
       pageSize: pagination.pageSize,
       // date range logic would go here
     });
+    console.log("🚀 ~ fetchLogs ~ res:", res)
     operationLogs.value = res.list;
     totalLogs.value = res.total;
   } finally {

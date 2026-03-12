@@ -6,10 +6,8 @@ import { createAlovaMockAdapter } from '@alova/mock';
 import router from '@/router';
 import { ElMessage } from 'element-plus';
 
-
 const useMock = (import.meta as any).env?.VITE_USE_MOCK === 'true';
 const baseURL = (import.meta as any).env?.VITE_API_BASE_URL || '';
-console.log("🚀 ~ baseURL:", baseURL)
 
 let requestAdapter: any;
 if (useMock) {
