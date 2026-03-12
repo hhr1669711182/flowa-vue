@@ -38,12 +38,12 @@
           v-if="dataVisibility.reservedCredits"
         >
           <div
-            class="card bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-59.5 animate__animated animate__fadeInUp flex flex-col"
+            class="card bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-59.5 animate__animated animate__fadeInUp flex flex-col flex-justify-around"
             style="animation-delay: 0.4s"
           >
             <div class="flex justify-between items-center mb-6">
               <div>
-                <h3 class="text-lg font-bold text-#000">Reserved Credits</h3>
+                <div class="text-lg font-bold text-#000">Reserved Credits</div>
                 <div
                   class="text-xs text-#0211A3 mt-0.5 flex items-center gap-2"
                 >
@@ -73,7 +73,7 @@
                 Recharge</el-button
               >
             </div>
-            <div class="flex-1 w-full min-h-0">
+            <div class="w-full min-h-0">
               <div
                 v-for="item in progressItems"
                 :key="item.label"
@@ -205,7 +205,6 @@
                 <el-tag
                   :type="getStatusType(row.status)"
                   size="small"
-                  effect="plain"
                   class="rounded-full px-3 w-fit"
                 >
                   {{ row.status }}

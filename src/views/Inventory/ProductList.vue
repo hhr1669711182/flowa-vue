@@ -1,25 +1,38 @@
 <template>
   <div class="products">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-bold flex">
-        <p>Inventory</p>
-        <p class="text-#9A9A9A font-size-5">/All Products</p>
-      </h2>
-
+      <div>
+        <div class="flex items-center gap-1 line-height-22px">
+          <div class="text-#000 text-28px line-height-36px">Inventory</div>
+          <div class="text-#9A9A9A text-20px pt-1">/All Products</div>
+        </div>
+        <div class="text-14px text-#6B6B6B">
+          View and manage all your individual products and their stock status.
+        </div>
+      </div>
       <div class="flex items-center gap-3">
-        <el-button type="primary" class="!px-4">
+        <el-button type="default" size="large">
+          <span class="flex items-center gap-2">
+            <Icon icon="svg-icon:arrow-down-to-square" color="#16215B" />
+            <span class="text-16px text-#16215B">Import SKU(s)</span>
+          </span>
+        </el-button>
+        <el-button type="primary" size="large">
           <span class="flex items-center gap-2">
             <img src="./Icons/plus.svg" alt="plus" class="w-3 h-3" />
             <span>Add Product</span>
           </span>
         </el-button>
-        <el-button link class="!text-gray-600 !px-2">
-          <span class="flex items-center gap-1">
-            <img src="./Icons/eye-slash.svg" alt="hide" class="w-4 h-4" />
-            <span>Hide Data</span>
-          </span>
-        </el-button>
       </div>
+    </div>
+
+    <div class="w-full h-20px flex justify-end">
+      <el-button link class="!text-gray-600 !px-2">
+        <span class="flex items-center gap-1">
+          <img src="./Icons/eye-slash.svg" alt="hide" class="w-4 h-4" />
+          <span>Hide Data</span>
+        </span>
+      </el-button>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 box">
@@ -54,7 +67,9 @@
         <div ref="storageChartRef" class="w-full h-44 py-4"></div>
       </div>
       <div class="card position-relative w-full">
-        <div class="flex items-center justify-between mb-2 p-6 position-absolute w-full box-border">
+        <div
+          class="flex items-center justify-between mb-2 p-6 position-absolute w-full box-border"
+        >
           <div class="text-sm font-semibold opacity-80">
             <div class="text-16px">Total Inventory Value</div>
             <div class="flex items-center gap-1">
@@ -78,7 +93,7 @@
     </div>
 
     <div
-      class="bg-white rounded-xl border border-gray-100 shadow-card p-3 mb-3 flex items-center gap-3"
+      class="p-3 mb-3 flex items-center gap-3"
     >
       <el-input
         v-model="searchForm.sku"
@@ -105,7 +120,7 @@
         range-separator="to"
         start-placeholder="Start date"
         end-placeholder="End date"
-        class="w-72"
+        class="w-72px"
       />
       <el-select v-model="filters.stock" class="w-32" placeholder="Stock">
         <el-option label="All" value="all" />
@@ -142,7 +157,7 @@
       v-model:page="page"
       v-model:limit="limit"
       @pagination-change="fetchData"
-      height="calc(100vh - 400px)"
+      height="calc(100vh - 600px)"
     >
       <template #product="{ row }">
         <div class="flex items-center gap-3">

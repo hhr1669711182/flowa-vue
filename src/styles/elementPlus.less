@@ -1,0 +1,241 @@
+/* Global Element Plus Overrides for Flowa Style */
+
+/* DatePicker & RangePicker */
+.el-picker-panel {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid var(--flowa-border-soft) !important;
+  font-family: var(--flowa-font-family) !important;
+  background-color: #fff !important;
+}
+
+/* Header (Month/Year) */
+.el-date-range-picker__header,
+.el-date-picker__header {
+  margin: 16px 16px 8px 16px !important;
+}
+
+.el-date-picker__header-label,
+.el-date-range-picker__header div {
+  font-weight: 700 !important;
+  color: var(--flowa-text-strong) !important;
+  text-transform: uppercase !important;
+  font-size: 14px !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* Navigation Icons */
+.el-picker-panel__icon-btn {
+  color: var(--flowa-text-muted) !important;
+  font-weight: bold !important;
+  
+  &:hover {
+    color: var(--flowa-brand-primary) !important;
+  }
+}
+
+/* Weekday Headers (MO TU WE...) */
+.el-date-table th {
+  color: var(--flowa-text-muted) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  border-bottom: 1px solid var(--flowa-border-soft) !important; /* Thin divider */
+  padding: 12px 0 !important;
+}
+
+/* Date Grid */
+.el-date-table td {
+  padding: 4px 0 !important;
+  height: 40px !important; /* Taller cells */
+  
+  .el-date-table-cell {
+    height: 32px !important;
+    padding: 0 !important;
+    
+    .el-date-table-cell__text {
+      width: 32px !important;
+      height: 32px !important;
+      line-height: 32px !important;
+      border-radius: 50% !important; /* Circle numbers */
+      font-weight: 500 !important;
+      font-size: 13px !important;
+    }
+  }
+
+  /* Current Day */
+  &.today .el-date-table-cell__text {
+    color: var(--flowa-brand-primary) !important;
+    font-weight: 700 !important;
+  }
+
+  /* Hover */
+  &:hover .el-date-table-cell__text {
+    background-color: var(--flowa-bg-soft) !important;
+    color: var(--flowa-brand-primary) !important;
+  }
+
+  /* In Range (Light Blue Strip) */
+  &.in-range .el-date-table-cell {
+    background-color: #EEF2FF !important; /* Light indigo */
+    
+    &:hover {
+      background-color: #E0E7FF !important;
+    }
+  }
+
+  /* Start & End Dates (Dark Navy Circle) */
+  &.start-date .el-date-table-cell__text,
+  &.end-date .el-date-table-cell__text {
+    background-color: var(--flowa-brand-primary) !important;
+    color: #fff !important;
+  }
+
+  /* Start & End Strip Radius */
+  &.start-date .el-date-table-cell {
+    background-color: #EEF2FF !important;
+    border-top-left-radius: 16px !important;
+    border-bottom-left-radius: 16px !important;
+    margin-left: 2px !important; /* Gap for visual */
+  }
+  
+  &.end-date .el-date-table-cell {
+    background-color: #EEF2FF !important;
+    border-top-right-radius: 16px !important;
+    border-bottom-right-radius: 16px !important;
+    margin-right: 2px !important;
+  }
+}
+
+/* Input Global Styling (Pill/Rounded) */
+.el-input__wrapper {
+  border-radius: 8px !important; /* Rounded rectangle as per image container */
+  box-shadow: 0 0 0 1px var(--flowa-border-soft) inset !important;
+  padding: 8px 12px !important;
+  transition: all 0.2s ease !important;
+  
+  &.is-focus {
+    box-shadow: 0 0 0 1.5px var(--flowa-brand-primary) inset !important;
+  }
+  
+  &:hover:not(.is-focus) {
+    box-shadow: 0 0 0 1px var(--flowa-text-muted) inset !important;
+  }
+}
+
+/* Range Input Specifics */
+.el-date-editor.el-input__wrapper {
+  border-radius: 99px !important; /* Pill shape for date range inputs specifically */
+  background-color: #fff !important;
+}
+
+.el-range-editor.el-input__wrapper {
+  border-radius: 99px !important;
+  padding: 4px 16px !important;
+}
+
+.el-range-input {
+  font-weight: 500 !important;
+  color: var(--flowa-text-strong) !important;
+  font-size: 13px !important;
+}
+
+.el-range-separator {
+  color: var(--flowa-text-muted) !important;
+  font-size: 12px !important;
+}
+
+/* Shortcuts as Tabs (Experimental) */
+.el-date-range-picker__sidebar {
+  background-color: #fff !important;
+  border-right: none !important;
+  border-bottom: 1px solid var(--flowa-border-soft) !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: row !important;
+  padding: 12px 16px !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+}
+
+.el-picker-panel__shortcut {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 32px !important;
+  padding: 0 16px !important;
+  border-radius: 16px !important;
+  border: 1px solid var(--flowa-border-soft) !important;
+  color: var(--flowa-text-strong) !important;
+  font-size: 13px !important;
+  background-color: #fff !important;
+  white-space: nowrap !important;
+  margin: 0 !important;
+  transition: all 0.2s !important;
+  
+  &:hover {
+    color: var(--flowa-brand-primary) !important;
+    border-color: var(--flowa-brand-primary) !important;
+    background-color: #EEF2FF !important;
+  }
+}
+
+/* Adjust body wrapper to stack sidebar on top */
+.el-picker-panel__body-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.el-picker-panel__body {
+  margin-left: 0 !important;
+}
+
+/* Fix content margins */
+.el-date-range-picker__content {
+  padding: 16px !important;
+}
+
+.el-date-range-picker__content.is-left {
+  border-right: 1px solid var(--flowa-border-soft) !important;
+}
+
+/* Popover/Dropdown Global */
+.el-popper.is-light {
+  border: 1px solid var(--flowa-border-soft) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 16px !important;
+}
+
+/* Button Overrides for consistency */
+.el-button {
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+}
+
+.el-button--primary {
+  background-color: var(--flowa-brand-primary) !important;
+  border-color: var(--flowa-brand-primary) !important;
+  
+  &:hover, &:focus {
+    background-color: var(--flowa-brand-secondary-medium-blue) !important;
+    border-color: var(--flowa-brand-secondary-medium-blue) !important;
+  }
+}
+
+/* Tag Overrides */
+.el-tag {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+}
+
+/* Select/Dropdown Item Hover */
+.el-select-dropdown__item.hover, 
+.el-select-dropdown__item:hover {
+  background-color: #EEF2FF !important;
+  color: var(--flowa-brand-primary) !important;
+}
+
+.el-select-dropdown__item.selected {
+  color: var(--flowa-brand-primary) !important;
+  font-weight: 600 !important;
+}
