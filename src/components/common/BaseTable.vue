@@ -1,22 +1,13 @@
-<!--
- * @Author: huanghuanrong
- * @Date: 2026-02-10 14:15:43
- * @LastEditTime: 2026-02-10 19:55:11
- * @LastEditors: huanghuanrong
- * @Description: 文件描述
- * @FilePath: \flowa1\src\components\common\BaseTable.vue
--->
 <template>
-  <div class="bg-white rounded-xl shadow-card overflow-hidden border border-gray-100 animate__animated animate__fadeIn">
+  <div class="bg-white overflow-hidden border-gray-100 animate__animated animate__fadeIn h-full">
     <el-table
       v-loading="loading"
       :data="data"
-      style="width: 100%; height: 65vh;"
-      :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: '600' }"
+      :header-cell-style="{ backgroundColor: '#F1F1F1', color: '#6B6B6B', fontWeight: '600' }"
       v-bind="$attrs"
+      class="base-table w-full"
     >
       <template v-for="col in columns" :key="col.prop">
-        <!-- Custom Slot Column -->
         <el-table-column
           v-if="col.slot"
           v-bind="col"
@@ -26,7 +17,6 @@
           </template>
         </el-table-column>
         
-        <!-- Standard Column -->
         <el-table-column
           v-else
           v-bind="col"
@@ -50,7 +40,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+defineOptions({
+  inheritAttrs: false
+})
 
 interface Column {
   prop?: string
@@ -75,7 +67,7 @@ const props = withDefaults(defineProps<Props>(), {
   pagination: false,
   total: 0,
   page: 1,
-  limit: 10
+  limit: 10,
 })
 
 const emit = defineEmits(['update:page', 'update:limit', 'pagination-change'])
@@ -101,6 +93,15 @@ const handleCurrentChange = (val: number) => {
 
 <style scoped>
 :deep(.el-table__inner-wrapper::before) {
-  display: none; /* Remove bottom border */
+  display: none;
+}
+
+.base-table :deep(td.el-table__cell),
+.base-table :deep(th.el-table__cell.is-leaf) {
+  border-bottom: none !important;
+}
+
+.base-table :deep(.el-table__row:hover > td.el-table__cell) {
+  background-color: var(--el-table-row-hover-bg-color);
 }
 </style>

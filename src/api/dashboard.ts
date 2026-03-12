@@ -11,3 +11,7 @@ export const getDashboardNotifications = () => {
 export const getDashboardRecentOrders = () => {
   return alovaInstance.Get<any[]>('/api/dashboard/recent-orders');
 }
+
+export const markNotificationAsRead = (id?: number) => {
+  return alovaInstance.Post('/api/dashboard/notifications/read', { id });
+}

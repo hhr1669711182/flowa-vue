@@ -136,7 +136,7 @@
                 height="24"
                 style="color: #1e7f4e"
               />
-              <span class="text-[14px] text-#1E7F4E">Mark all as read</span>
+              <span class="text-[14px] text-#1E7F4E" @click="markAllAsRead">Mark all as read</span>
             </el-button>
           </div>
           <el-divider class="!my-2"></el-divider>
@@ -161,7 +161,7 @@
         </div>
       </el-col>
       <el-col :xs="24" :sm="12" :lg="15">
-        <div class="bg-white rounded-xl action-table overflow-auto p-1">
+        <div class="bg-white rounded-xl action-table overflow-auto box-border">
           <div class="flex items-center justify-between p-2">
             <div class="text-lg font-bold text-#000 text-16px">
               Action Required
@@ -173,63 +173,60 @@
                 height="24"
                 style="color: #16215b"
               />
-              <span class="text-[14px] text-#16215B">View All Pending</span>
+              <span class="text-[14px] text-#16215B">View All</span>
             </el-button>
           </div>
-          <el-divider class="!my-2"></el-divider>
-          <el-table :data="recentOrders" height="100%" :show-header="false">
-            <el-table-column prop="order" min-width="100">
-              <template #default="{ row }">
-                <div class="flex items-center gap-3">
-                  <img
-                    :src="row.image"
-                    class="w-10 h-10 rounded-lg object-cover border border-gray-200"
-                  />
-                  <div class="flex flex-col">
-                    <span class="text-sm font-semibold text-gray-900">{{
-                      row.title
-                    }}</span>
-                    <span class="text-xs text-gray-400">{{ row.code }}</span>
-                  </div>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column prop="action" width="auto">
-              <template #default="{ row }">
-                <span class="text-sm text-gray-700">{{ row.action }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="status" width="130">
-              <template #default="{ row }">
-                <div class="flex flex-col gap-1">
-                  <el-tag
-                    :type="getStatusType(row.status)"
-                    size="small"
-                    effect="plain"
-                    class="rounded-full px-3 w-fit"
-                  >
-                    {{ row.status }}
-                  </el-tag>
-                  <span class="text-xs text-gray-400">{{
-                    row.statusNote
+          <el-divider class="!my-0"></el-divider>
+          <BaseTable
+            :data="recentOrders"
+            :columns="recentOrderColumns"
+            :pagination="false"
+            height="calc(100vh - 585px)"
+          >
+            <template #order="{ row }">
+              <div class="flex items-center gap-3">
+                <img
+                  :src="row.image"
+                  class="w-10 h-10 rounded-lg object-cover border border-gray-200"
+                />
+                <div class="flex flex-col">
+                  <span class="text-sm font-semibold text-gray-900">{{
+                    row.title
                   }}</span>
+                  <span class="text-xs text-gray-400">{{ row.code }}</span>
                 </div>
-              </template>
-            </el-table-column>
-            <el-table-column width="180">
-              <template #default>
-                <div class="flex items-center justify-end gap-2">
-                  <el-button size="small" plain class="!rounded-full !px-3">
-                    <el-icon class="mr-1"><CircleCheck /></el-icon>
-                    Review & Fix
-                  </el-button>
-                  <el-button size="small" circle class="!rounded-full">
-                    <el-icon><View /></el-icon>
-                  </el-button>
-                </div>
-              </template>
-            </el-table-column>
-          </el-table>
+              </div>
+            </template>
+            <template #stage="{ row }">
+              <span class="text-sm text-gray-700">{{ row.action }}</span>
+            </template>
+            <template #status="{ row }">
+              <div class="flex flex-col gap-1">
+                <el-tag
+                  :type="getStatusType(row.status)"
+                  size="small"
+                  effect="plain"
+                  class="rounded-full px-3 w-fit"
+                >
+                  {{ row.status }}
+                </el-tag>
+                <span class="text-xs text-gray-400">{{
+                  row.statusNote
+                }}</span>
+              </div>
+            </template>
+            <template #actions="{ row }">
+              <div class="flex items-center justify-end gap-2">
+                <el-button size="small" plain class="!rounded-full !px-3" @click="handleReview(row)">
+                  <el-icon class="mr-1"><CircleCheck /></el-icon>
+                  Review & Fix
+                </el-button>
+                <el-button size="small" circle class="!rounded-full" @click="handleView(row)">
+                  <el-icon><View /></el-icon>
+                </el-button>
+              </div>
+            </template>
+          </BaseTable>
         </div>
       </el-col>
     </el-row>
@@ -237,8 +234,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, markRaw } from "vue";
+import { ref, reactive, computed, markRaw, onMounted } from "vue";
 import CategoryChart from "@/components/dashboard/CategoryChart.vue";
+import BaseTable from "@/components/common/BaseTable.vue";
 import EditPopover from "./components/editPopover.vue";
 import {
   Plus,
@@ -252,9 +250,11 @@ import {
   CircleCheck,
   View,
 } from "@element-plus/icons-vue";
-import productImage from "../icon/image.png";
+import productImage from "../icon/yf.png";
+import { getDashboardStats, getDashboardNotifications, getDashboardRecentOrders, markNotificationAsRead } from "@/api/dashboard";
+import { ElMessage } from "element-plus";
 
-const price = ref("$2,400");
+const price = ref("$0");
 const editVisible = ref(false);
 const dataVisibility = reactive({
   totalInventory: true,
@@ -324,124 +324,18 @@ const hideAll = () => {
     dataVisibility[typedKey] = false;
   });
 };
-const progressItems = ref([
-  {
-    label: "Available",
-    value: 2400,
-    total: 4250,
-    percent: 88,
-    color: "#0211A3",
-  },
-  {
-    label: "Reserved",
-    value: 1850,
-    total: 4250,
-    percent: 38,
-    color: "#FF7214",
-  },
-]);
+const progressItems = ref<any[]>([]);
 
-const notifications = ref([
-  {
-    id: 1,
-    title: "Order #X12345 Requires Your Action",
-    time: "5 hours ago",
-    icon: markRaw(ShoppingCart),
-    bg: "#EEF2FF",
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "SKU #X12345 is Running Low",
-    time: "2 hours ago",
-    icon: markRaw(Box),
-    bg: "#EEF2FF",
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "Your Flowa Credit is Running Low",
-    time: "8 hours ago",
-    icon: markRaw(CreditCard),
-    bg: "#EEF2FF",
-    unread: true,
-  },
-  {
-    id: 4,
-    title: "Payment has been successfully received.",
-    time: "12 hours ago",
-    icon: markRaw(Document),
-    bg: "#F5F7FF",
-    unread: true,
-  },
-  {
-    id: 5,
-    title: "New Reply on Ticket #SUP-1023",
-    time: "24 hours ago",
-    icon: markRaw(Message),
-    bg: "#F5F7FF",
-    unread: true,
-  },
-  {
-    id: 6,
-    title: "Your Password was Updated",
-    time: "32 hours ago",
-    icon: markRaw(Lock),
-    bg: "#F5F7FF",
-    unread: false,
-  },
-]);
+const notifications = ref<any[]>([]);
 
-const recentOrders = ref([
-  {
-    title: "Order X012345",
-    code: "LGF20241212",
-    action: "Review & Fix",
-    status: "Awaiting Approval",
-    statusNote: "",
-    image: productImage,
-  },
-  {
-    title: "Order X012345",
-    code: "LGF20241212",
-    action: "Review & Fix",
-    status: "Need Attention",
-    statusNote: "Address Error",
-    image: productImage,
-  },
-  {
-    title: "Order X012345",
-    code: "LGF20241212",
-    action: "Review & Fix",
-    status: "Need Attention",
-    statusNote: "Out of Stock",
-    image: productImage,
-  },
-  {
-    title: "Order X012345",
-    code: "LGF20241212",
-    action: "Review & Fix",
-    status: "Need Attention",
-    statusNote: "Info Missing",
-    image: productImage,
-  },
-  {
-    title: "Order X012345",
-    code: "LGF20241212",
-    action: "Review & Fix",
-    status: "Need Attention",
-    statusNote: "Issue Detected",
-    image: productImage,
-  },
-  {
-    title: "Order X012345",
-    code: "LGF20241212",
-    action: "Export Processing",
-    status: "Need Attention",
-    statusNote: "Wrong Declaration",
-    image: productImage,
-  },
-]);
+const recentOrders = ref<any[]>([]);
+
+const recentOrderColumns = [
+  { label: "Order ID", slot: "order", minWidth: 100 },
+  { label: "Stages", slot: "stage", width: "auto" },
+  { label: "Status", slot: "status", width: 150 },
+  { label: "Actions", slot: "actions", width: 180, align: "center", fixed: "right" },
+];
 
 const getStatusType = (status: string) => {
   switch (status) {
@@ -453,6 +347,67 @@ const getStatusType = (status: string) => {
       return "info";
   }
 };
+
+const loadData = async () => {
+  try {
+    const [statsRes, notifRes, ordersRes] = await Promise.all([
+      getDashboardStats(),
+      getDashboardNotifications(),
+      getDashboardRecentOrders()
+    ]);
+    
+    price.value = statsRes.price;
+    progressItems.value = statsRes.progressItems;
+    
+    // Process notifications icons
+    notifications.value = notifRes.map(n => ({
+      ...n,
+      icon: getIconComponent(n.iconType)
+    }));
+    
+    // Process orders images
+    recentOrders.value = ordersRes.map(o => ({
+      ...o,
+      image: o.image.includes('placeholder') ? productImage : o.image
+    }));
+  } catch (error) {
+    console.error("Failed to load dashboard data:", error);
+  }
+};
+
+const getIconComponent = (type: string) => {
+  const map: Record<string, any> = {
+    ShoppingCart,
+    Box,
+    CreditCard,
+    Document,
+    Message,
+    Lock
+  };
+  return markRaw(map[type] || Message);
+};
+
+const markAllAsRead = async () => {
+  try {
+    await markNotificationAsRead();
+    notifications.value.forEach(n => n.unread = false);
+    ElMessage.success("All notifications marked as read");
+  } catch (error) {
+    ElMessage.error("Failed to update notifications");
+  }
+};
+
+const handleReview = (row: any) => {
+  ElMessage.info(`Reviewing order ${row.code}`);
+};
+
+const handleView = (row: any) => {
+  ElMessage.info(`Viewing details for ${row.code}`);
+};
+
+onMounted(() => {
+  loadData();
+});
 </script>
 
 <style scoped>

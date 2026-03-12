@@ -40,7 +40,9 @@
         </div>
         <div ref="invChartRef" class="w-full h-41"></div>
       </div>
-      <div class="bg-white rounded-xl border border-gray-100 shadow-card p-6 flex">
+      <div
+        class="bg-white rounded-xl border border-gray-100 shadow-card p-6 flex"
+      >
         <div class="font-semibold">
           <div class="whitespace-nowrap">Total Storage</div>
           <div class="flex items-center gap-1">
@@ -51,22 +53,27 @@
 
         <div ref="storageChartRef" class="w-full h-44 py-4"></div>
       </div>
-      <div class="rounded-xl shadow-card p-4 bg-[#0F1A3A] text-white">
-        <div class="flex items-center justify-between mb-2">
+      <div class="card position-relative w-full">
+        <div class="flex items-center justify-between mb-2 p-6 position-absolute w-full box-border">
           <div class="text-sm font-semibold opacity-80">
-            Total Inventory Value
+            <div class="text-16px">Total Inventory Value</div>
+            <div class="flex items-center gap-1">
+              <Icon icon="svg-icon:circle-arrow-up" color="#BDBDBD" />
+              <div class="text-#BDBDBD">45%</div>
+            </div>
           </div>
-          <el-tag
-            size="small"
-            effect="dark"
-            class="!bg-white/10 !border-white/20 !text-white"
-            >15%</el-tag
-          >
+          <div class="flex items-center justify-end mb-1">
+            <span class="text-3xl font-bold">$9k</span>
+          </div>
         </div>
-        <div class="flex items-center justify-end mb-1">
-          <span class="text-2xl font-bold">$9k</span>
+        <div class="position-absolute bottom-1 left-0 w-full h-45 box-border">
+          <img
+            src="@/assets/svgs/bo-lang-blue.svg"
+            width="100%"
+            height="100%"
+          />
         </div>
-        <div ref="valueChartRef" class="w-full h-40"></div>
+        <!-- <div ref="valueChartRef" class="w-full h-40"></div> -->
       </div>
     </div>
 
@@ -135,6 +142,7 @@
       v-model:page="page"
       v-model:limit="limit"
       @pagination-change="fetchData"
+      height="calc(100vh - 400px)"
     >
       <template #product="{ row }">
         <div class="flex items-center gap-3">
@@ -365,9 +373,7 @@ const updateStatsAndChart = () => {
         avoidLabelOverlap: false,
         label: { show: false },
         labelLine: { show: false },
-        data: [
-          { value: 100, name: "Full", itemStyle: { color: "#0211A31A" } },
-        ],
+        data: [{ value: 100, name: "Full", itemStyle: { color: "#0211A31A" } }],
         silent: true,
         z: 1,
       },
@@ -379,7 +385,11 @@ const updateStatsAndChart = () => {
         label: { show: false },
         labelLine: { show: false },
         data: [
-          { value: 70, name: "Used", itemStyle: { color: "#0211A3", borderRadius: "50%" } },
+          {
+            value: 70,
+            name: "Used",
+            itemStyle: { color: "#0211A3", borderRadius: "50%" },
+          },
           { value: 30, name: "Free", itemStyle: { color: "transparent" } },
         ],
         silent: true,
@@ -480,3 +490,12 @@ onBeforeUnmount(() => {
   }
 });
 </script>
+<style lang="less" scoped>
+.card {
+  padding: 4px;
+  color: #fff;
+  border-radius: 12px;
+  background: linear-gradient(131deg, #16215b 26.84%, #0a123c 98.1%);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+}
+</style>

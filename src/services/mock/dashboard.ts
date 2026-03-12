@@ -144,5 +144,15 @@ export default defineMock({
   },
   '[GET]/api/dashboard/recent-orders': () => {
     return recentOrders;
+  },
+  '[POST]/api/dashboard/notifications/read': ({ data }) => {
+    const { id } = data;
+    if (id) {
+      const item = notifications.find(n => n.id === id);
+      if (item) item.unread = false;
+    } else {
+      notifications.forEach(n => n.unread = false);
+    }
+    return { ok: true };
   }
 });
