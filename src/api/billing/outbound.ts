@@ -17,6 +17,14 @@ export interface OutboundStats {
   totalRevenue: number;
   totalOrders: number;
   avgOrderValue: number;
+  price: string;
+  progressItems: Array<{
+    label: string;
+    value: number;
+    total: number;
+    percent: number;
+    color: string;
+  }>;
 }
 
 export const getOutboundBillingList = (params: {
@@ -29,6 +37,8 @@ export const getOutboundBillingList = (params: {
   return alovaInstance.Get<{
     total: number;
     list: OutboundRecord[];
+    page: number;
+    pageSize: number;
   }>('/api/billing/outbound', { params });
 };
 

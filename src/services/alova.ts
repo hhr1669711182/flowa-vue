@@ -11,7 +11,7 @@ const baseURL = (import.meta as any).env?.VITE_API_BASE_URL || '';
 
 let requestAdapter: any;
 if (useMock) {
-  const mockFiles = import.meta.glob('./mock/*.ts', { eager: true });
+  const mockFiles = import.meta.glob('./mock/**/*.ts', { eager: true });
   const mockGroups: any[] = [];
   Object.values(mockFiles).forEach((module: any) => {
     if (module.default) {

@@ -122,25 +122,25 @@ export const routes: Array<any> = [
           {
             path: 'outbound',
             name: 'Outbound',
-            component: () => import('../views/Billing/outbound.vue'),
+            component: () => import('../views/Billing/outbound/index.vue'),
             meta: { title: 'Outbound' }
           },
           {
             path: 'inbound',
             name: 'Inbound',
-            component: () => import('../views/Billing/Segments.vue'),
+            component: () => import('../views/Billing/Segments/index.vue'),
             meta: { title: 'Inbound' }
           },
           {
             path: 'services',
             name: 'Services',
-            component: () => import('../views/Billing/Services.vue'),
+            component: () => import('../views/Billing/Services/index.vue'),
             meta: { title: 'Services' }
           },
           {
             path: 'storage',
             name: 'Storage',
-            component: () => import('../views/Billing/Storage.vue'),
+            component: () => import('../views/Billing/Storage/index.vue'),
             meta: { title: 'Storage' }
           }
         ]
