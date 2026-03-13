@@ -54,6 +54,10 @@ export const login = (data: LoginPayload) => {
   return alovaInstance.Post<LoginResponse | { ok: false; message: string }>('/api/auth/login', data)
 }
 
+export const loginOutApi = (): Promise<IResponse> => {
+  return alovaInstance.Get('/user/loginOut')
+}
+
 export const requestPasswordReset = (data: ResetPayload) => {
   return alovaInstance.Post<ResetResponse>('/api/auth/reset', data)
 }
