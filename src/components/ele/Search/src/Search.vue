@@ -1,11 +1,11 @@
 <script setup lang="tsx">
-import { Form, FormSchema, FormSetProps } from '@/components/Form'
+import { Form, FormSchema, FormSetProps } from '@/components/ele/Form'
 import { PropType, computed, unref, ref, watch, onMounted } from 'vue'
 import { propTypes } from '@/utils/propTypes'
 import { useForm } from '@/hooks/web/useForm'
 import { findIndex } from '@/utils'
 import { cloneDeep, set } from 'lodash-es'
-import { initModel } from '@/components/Form/src/helper'
+import { initModel } from '@/components/ele/Form/src/helper'
 import ActionButton from './components/ActionButton.vue'
 import { SearchProps } from './types'
 import { FormItemProp } from 'element-plus'
@@ -139,7 +139,7 @@ const filterModel = async () => {
   const model = await getFormData()
   if (unref(getProps).removeNoValueItem) {
     // 使用reduce过滤空值，并返回一个新对象
-    return Object.keys(model).reduce((prev, next) => {
+    return Object.keys(model).reduce((prev: any, next) => {
       const value = model[next]
       if (!isEmptyVal(value)) {
         if (isObject(value)) {

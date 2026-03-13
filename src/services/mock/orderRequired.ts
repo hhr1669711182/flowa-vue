@@ -160,6 +160,8 @@ export default defineMock({
     return {
       total,
       list,
+      page,
+      pageSize,
       segmented: segmentedCounter()
     }
   },

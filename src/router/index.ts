@@ -1,13 +1,15 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import { 
-  Odometer, 
-  Goods, 
-  List, 
-  User, 
-  TrendCharts, 
-  Shop, 
-  Setting 
+import {
+  Odometer,
+  Goods,
+  List,
+  User,
+  TrendCharts,
+  Shop,
+  Setting
 } from '@element-plus/icons-vue'
+import { NO_RESET_WHITE_LIST } from '@/constants'
+import type { App } from 'vue'
 
 export const routes: Array<any> = [
   {
@@ -25,8 +27,8 @@ export const routes: Array<any> = [
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('../views/dashboard/index.vue'),
-        meta: { 
-          title: 'Dashboard', 
+        meta: {
+          title: 'Dashboard',
           icon: Odometer
         }
       },
@@ -34,9 +36,9 @@ export const routes: Array<any> = [
         path: 'inventory',
         name: 'Inventory',
         redirect: '/inventory/products',
-        meta: { 
-          title: 'Inventory', 
-          icon: Goods 
+        meta: {
+          title: 'Inventory',
+          icon: Goods
         },
         children: [
           {
@@ -58,9 +60,9 @@ export const routes: Array<any> = [
         path: 'orders',
         name: 'Orders',
         redirect: '/orders/list',
-        meta: { 
-          title: 'Orders', 
-          icon: List 
+        meta: {
+          title: 'Orders',
+          icon: List
         },
         children: [
           {
@@ -112,9 +114,9 @@ export const routes: Array<any> = [
         path: 'billing',
         name: 'Billing',
         redirect: '/billing/outbound',
-        meta: { 
-          title: 'Billing', 
-          icon: User 
+        meta: {
+          title: 'Billing',
+          icon: User
         },
         children: [
           {
@@ -147,9 +149,9 @@ export const routes: Array<any> = [
         path: 'invoices',
         name: 'Invoices',
         component: () => import('../views/Invoices/index.vue'),
-        meta: { 
-          title: 'Invoices', 
-          icon: TrendCharts 
+        meta: {
+          title: 'Invoices',
+          icon: TrendCharts
         }
       },
       // Support Hub
@@ -157,9 +159,9 @@ export const routes: Array<any> = [
         path: 'support',
         name: 'SupportHub',
         component: () => import('../views/Support/index.vue'),
-        meta: { 
-          title: 'Support Hub', 
-          icon: Shop 
+        meta: {
+          title: 'Support Hub',
+          icon: Shop
         }
       },
       // Settings
@@ -167,9 +169,9 @@ export const routes: Array<any> = [
         path: 'settings',
         name: 'Settings',
         component: () => import('../views/system/Settings.vue'),
-        meta: { 
-          title: 'Settings', 
-          icon: Setting 
+        meta: {
+          title: 'Settings',
+          icon: Setting
         }
       }
     ]
@@ -195,5 +197,19 @@ router.beforeEach((to, _from, next) => {
     next()
   }
 })
+
+
+export const resetRouter = (): void => {
+  router.getRoutes().forEach((route) => {
+    const { name } = route
+    if (name && !NO_RESET_WHITE_LIST.includes(name as string)) {
+      router.hasRoute(name) && router.removeRoute(name)
+    }
+  })
+}
+
+export const setupRouter = (app: App<Element>) => {
+  app.use(router)
+}
 
 export default router

@@ -153,7 +153,9 @@ export const mockSettings = defineMock({
 
     return {
       list,
-      total
+      total,
+      page,
+      pageSize
     };
   }
 });

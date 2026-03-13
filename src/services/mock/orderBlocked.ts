@@ -166,6 +166,8 @@ export default defineMock({
     return {
       total,
       list,
+      page,
+      pageSize,
       segmented: {
         all: blockedOrdersDb.length,
         active: blockedOrdersDb.filter((item) => item.status !== 'Resolved').length,

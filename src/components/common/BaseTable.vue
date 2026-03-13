@@ -1,11 +1,12 @@
 <template>
-  <div class="bg-white overflow-hidden border-gray-100 animate__animated animate__fadeIn h-full">
+  <div class="bg-white overflow-hidden animate__animated animate__fadeIn h-full" >
     <el-table
       v-loading="loading"
       :data="data"
       :header-cell-style="{ backgroundColor: '#F1F1F1', color: '#6B6B6B', fontWeight: '600' }"
       v-bind="$attrs"
-      class="base-table w-full"
+      height="calc(100% - 60px)"
+      class="base-table w-full h-auto"
     >
       <template v-for="col in columns" :key="col.prop">
         <el-table-column
@@ -24,7 +25,7 @@
       </template>
     </el-table>
 
-    <div v-if="pagination" class="flex justify-end p-4 border-t border-gray-50">
+    <div v-if="pagination" class="flex justify-end p-4 border-t border-gray-50 h-12">
       <el-pagination
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
@@ -46,9 +47,10 @@ defineOptions({
 
 interface Column {
   prop?: string
-  label: string
+  label?: string
   width?: string | number
   slot?: string
+  type?: string
   [key: string]: any
 }
 

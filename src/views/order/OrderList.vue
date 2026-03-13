@@ -1,74 +1,69 @@
 <template>
-  <div class="orders">
-    <div class="flex justify-between items-center mb-6">
+  <div class="orders h-full flex flex-col">
+    <div class="flex justify-between items-center mb-4 flex-shrink-0">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">Order Management</h2>
-        <p class="text-gray-500 mt-1">Manage your orders and track their status.</p>
+        <div class="flex items-center gap-1 line-height-22px">
+          <div class="text-#000 text-28px line-height-36px">Orders</div>
+          <div class="text-#9A9A9A text-20px pt-1">/All Orders</div>
+        </div>
+        <div class="text-14px text-#6B6B6B">
+          View and manage all your orders and their status.
+        </div>
       </div>
-      <el-button type="primary" :icon="Plus">Create Order</el-button>
+      <div class="flex items-center gap-3">
+        <el-button type="primary" size="large">
+          <span class="flex items-center gap-2">
+            <el-icon><Plus /></el-icon>
+            <span>Create Order</span>
+          </span>
+        </el-button>
+      </div>
     </div>
 
-    <BaseSearch
-      v-model="searchForm"
-      :items="searchItems"
-      @search="handleSearch"
-      @reset="handleReset"
-    />
+    <OrderFilter ref="filterRef" @search="handleFilterSearch" />
     
-    <BaseTable
-      :data="tableData"
-      :columns="columns"
-      :loading="loading"
-      :pagination="true"
-      :total="total"
-      v-model:page="page"
-      v-model:limit="limit"
-      @pagination-change="fetchData"
-    >
-      <template #status="{ row }">
-        <el-tag :type="getStatusType(row.status)" effect="plain" class="!rounded-md">
-          {{ row.status }}
-        </el-tag>
-      </template>
+    <div class="flex-1 min-h-0 rounded-xl overflow-hidden">
+      <BaseTable
+        :data="tableData"
+        :columns="columns"
+        :loading="loading"
+        :pagination="true"
+        :total="total"
+        v-model:page="page"
+        v-model:limit="limit"
+        @pagination-change="fetchData"
+      >
+        <template #status="{ row }">
+          <el-tag :type="getStatusType(row.status)" effect="plain" class="!rounded-md">
+            {{ row.status }}
+          </el-tag>
+        </template>
 
-      <template #operations>
-        <el-button link type="primary" size="small">Detail</el-button>
-        <el-button link type="primary" size="small">Edit</el-button>
-      </template>
-    </BaseTable>
+        <template #operations>
+          <el-button link type="primary" size="small">Detail</el-button>
+          <el-button link type="primary" size="small">Edit</el-button>
+        </template>
+      </BaseTable>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
-import axios from 'axios'
+import { ref, onMounted, nextTick } from 'vue'
 import BaseTable from '../../components/common/BaseTable.vue'
-import BaseSearch from '../../components/common/BaseSearch.vue'
+import OrderFilter from './components/OrderFilter.vue'
 import { Plus } from '@element-plus/icons-vue'
+import { getOrders } from '@/api/order'
 
-// Search Configuration
-const searchForm = reactive({
-  id: '',
-  customer: '',
-  status: ''
-})
+// Filter State
+const filterRef = ref()
+const currentFilters = ref({})
 
-const searchItems: any[] = [
-  { label: 'Order ID', prop: 'id', type: 'input', placeholder: 'Order ID' },
-  { label: 'Customer', prop: 'customer', type: 'input', placeholder: 'Customer Name' },
-  { 
-    label: 'Status', 
-    prop: 'status', 
-    type: 'select', 
-    placeholder: 'All Status',
-    options: [
-      { label: 'Pending', value: 'Pending' },
-      { label: 'Processing', value: 'Processing' },
-      { label: 'Completed', value: 'Completed' },
-      { label: 'Cancelled', value: 'Cancelled' }
-    ]
-  }
-]
+const handleFilterSearch = (params: any) => {
+  currentFilters.value = params
+  page.value = 1
+  fetchData()
+}
 
 // Table Configuration
 const columns = [
@@ -100,16 +95,13 @@ const getStatusType = (status: string) => {
 const fetchData = async () => {
   loading.value = true
   try {
-    const response = await axios.get('/api/orders', {
-      params: {
-        page: page.value,
-        limit: limit.value,
-        ...searchForm
-      }
+    const res = await getOrders({
+      page: page.value,
+      pageSize: limit.value,
+      ...currentFilters.value
     })
-    tableData.value = response.data.data
-    // Mock total count
-    total.value = 100 
+    tableData.value = res.list
+    total.value = res.total
   } catch (error) {
     console.error('Failed to fetch orders:', error)
   } finally {
@@ -117,19 +109,11 @@ const fetchData = async () => {
   }
 }
 
-const handleSearch = () => {
-  page.value = 1
-  fetchData()
-}
-
-const handleReset = () => {
-  searchForm.id = ''
-  searchForm.customer = ''
-  searchForm.status = ''
-  handleSearch()
-}
-
-onMounted(() => {
+onMounted(async () => {
+  await nextTick()
+  if (filterRef.value) {
+    currentFilters.value = filterRef.value.getSearchParams()
+  }
   fetchData()
 })
 </script>

@@ -10,7 +10,7 @@ import { useNow } from '@/hooks/web/useNow'
 import { useDesign } from '@/hooks/web/useDesign'
 import { Icon } from '@/components/base/Icon'
 import { BaseButton } from '@/components/ele/Button'
-import { loginOutApi } from '@/api/login'
+import { loginOutApi } from '@/api/auth'
 import { useTagsViewStore } from '@/store/modules/tagsView'
 
 const tagsViewStore = useTagsViewStore()

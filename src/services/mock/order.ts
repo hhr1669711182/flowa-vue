@@ -239,7 +239,12 @@ export default defineMock({
     const total = filtered.length;
     const start = (page - 1) * pageSize;
     const list = filtered.slice(start, start + pageSize);
-    return { total, list };
+    return { 
+      total, 
+      list,
+      page,
+      pageSize
+    };
   },
 
   '/api/orders/in-progress/detail': ({ query }) => {

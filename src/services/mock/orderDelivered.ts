@@ -141,7 +141,7 @@ export default defineMock({
       issue: deliveredOrdersDb.filter((item) => item.status !== 'Delivered').length
     }
 
-    return { total, list, segmented: segmentedCounter }
+    return { total, list, page, pageSize, segmented: segmentedCounter }
   },
 
   '/api/orders/delivered/detail': ({ query }) => {

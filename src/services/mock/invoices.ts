@@ -140,7 +140,7 @@ export const mockInvoices = defineMock({
     const total = filtered.length
     const startIndex = (page - 1) * pageSize
     const list = filtered.slice(startIndex, startIndex + pageSize)
-    return { total, list }
+    return { total, list, page, pageSize }
   },
   '/api/invoices/summary': () => {
     const totalAmount = Number(invoices.reduce((sum, item) => sum + item.total, 0).toFixed(2))

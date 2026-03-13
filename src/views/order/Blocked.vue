@@ -1,6 +1,6 @@
 <template>
-  <div class="p-6 space-y-6">
-    <div class="flex flex-wrap items-end justify-between gap-4">
+  <div class="p-6 h-full flex flex-col">
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-6 flex-shrink-0">
       <div class="space-y-1">
         <h2 class="text-[28px] leading-9 font-bold text-black">
           Orders <span class="text-[#6B6B6B] font-semibold">/ Blocked</span>
@@ -20,174 +20,134 @@
       show-icon
       :closable="false"
       title="Blocked orders require immediate review to avoid SLA delay."
-      class="!rounded-xl !border !border-[#F5C2C7] !bg-[#FDF2F4]"
+      class="!rounded-xl !border !border-[#F5C2C7] !bg-[#FDF2F4] mb-6 flex-shrink-0"
     />
 
-    <div class="bg-white rounded-xl border border-[#ECECEC] shadow-sm overflow-hidden">
-      <div class="px-4 py-3 bg-[#F1F1F1] border-b border-[#ECECEC] flex flex-wrap gap-3 items-center">
-        <el-input
-          v-model="filters.keyword"
-          class="blocked-search !w-[368px] max-w-full"
-          placeholder="Search by Order ID, Platform ID, SKU..."
-          :prefix-icon="Search"
-          clearable
-          @input="handleDebouncedSearch"
-          @clear="handleImmediateSearch"
-        />
-        <el-select v-model="filters.quickRange" class="!w-[150px]" @change="handleImmediateSearch">
-          <el-option label="Last 7 days" value="last7" />
-          <el-option label="Last 30 days" value="last30" />
-          <el-option label="This month" value="thisMonth" />
-          <el-option label="All time" value="all" />
-        </el-select>
-        <el-date-picker
-          v-model="filters.dateRange"
-          type="daterange"
-          range-separator="-"
-          start-placeholder="Start Date"
-          end-placeholder="End Date"
-          value-format="YYYY-MM-DD"
-          class="!w-[260px]"
-          @change="handleImmediateSearch"
-        />
-        <el-select v-model="filters.status" class="!w-[170px]" clearable placeholder="Status" @change="handleImmediateSearch">
-          <el-option label="Blocked" value="Blocked" />
-          <el-option label="Awaiting Review" value="Awaiting Review" />
-          <el-option label="Escalated" value="Escalated" />
-          <el-option label="Resolved" value="Resolved" />
-        </el-select>
-        <el-select v-model="filters.reason" class="!w-[190px]" clearable placeholder="Reason" @change="handleImmediateSearch">
-          <el-option label="Address Error" value="Address Error" />
-          <el-option label="Payment Risk" value="Payment Risk" />
-          <el-option label="Inventory Hold" value="Inventory Hold" />
-          <el-option label="Compliance Alert" value="Compliance Alert" />
-          <el-option label="Manual Review" value="Manual Review" />
-        </el-select>
-        <el-button class="!h-10 !px-4" @click="openAdvancedFilterDialog">
-          <el-icon class="mr-1"><Operation /></el-icon>
-          Filters
-        </el-button>
-      </div>
+    <div class="bg-white rounded-xl border border-[#ECECEC] shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
+      <BlockedFilter ref="filterRef" @search="handleFilterSearch" />
 
-      <div class="px-4 py-3 border-b border-[#ECECEC]">
+      <div class="px-4 py-3 border-b border-[#ECECEC] flex-shrink-0">
         <el-segmented
-          v-model="filters.segmented"
+          v-model="segmented"
           :options="segmentedOptions"
           size="large"
-          @change="handleImmediateSearch"
+          @change="handleSegmentedChange"
         />
       </div>
 
-      <el-table
-        v-loading="loading"
-        :data="listData"
-        row-key="id"
-        class="blocked-table"
-        :header-cell-style="{ background: '#F1F1F1', color: '#000000', fontWeight: '600' }"
-        @expand-change="handleExpandChange"
-      >
-        <el-table-column type="expand" width="44">
-          <template #default="{ row }">
-            <div v-loading="!!expandLoadingMap[row.id]" class="bg-[#FAFAFA] rounded-lg border border-[#ECECEC] m-4 p-4 space-y-3">
-              <div class="grid grid-cols-2 gap-3 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-[#6B6B6B]">SKU</span>
-                  <span class="font-semibold text-black">{{ getExpandedDetail(row).sku }}</span>
+      <div class="flex-1 min-h-0 overflow-auto">
+        <el-table
+          v-loading="loading"
+          :data="listData"
+          row-key="id"
+          class="blocked-table"
+          height="100%"
+          :header-cell-style="{ background: '#F1F1F1', color: '#000000', fontWeight: '600' }"
+          @expand-change="handleExpandChange"
+        >
+          <el-table-column type="expand" width="44">
+            <template #default="{ row }">
+              <div v-loading="!!expandLoadingMap[row.id]" class="bg-[#FAFAFA] rounded-lg border border-[#ECECEC] m-4 p-4 space-y-3">
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-[#6B6B6B]">SKU</span>
+                    <span class="font-semibold text-black">{{ getExpandedDetail(row).sku }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-[#6B6B6B]">Quantity</span>
+                    <span class="font-semibold text-black">{{ getExpandedDetail(row).quantity }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-[#6B6B6B]">Hold Days</span>
+                    <span class="font-semibold text-black">{{ getExpandedDetail(row).holdDays }} days</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-[#6B6B6B]">Priority</span>
+                    <span class="font-semibold text-black">{{ getExpandedDetail(row).holdLevel }}</span>
+                  </div>
+                  <div class="flex justify-between col-span-2">
+                    <span class="text-[#6B6B6B]">Note</span>
+                    <span class="font-semibold text-black">{{ getExpandedDetail(row).holdNote }}</span>
+                  </div>
                 </div>
-                <div class="flex justify-between">
-                  <span class="text-[#6B6B6B]">Quantity</span>
-                  <span class="font-semibold text-black">{{ getExpandedDetail(row).quantity }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-[#6B6B6B]">Hold Days</span>
-                  <span class="font-semibold text-black">{{ getExpandedDetail(row).holdDays }} days</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-[#6B6B6B]">Priority</span>
-                  <span class="font-semibold text-black">{{ getExpandedDetail(row).holdLevel }}</span>
-                </div>
-                <div class="flex justify-between col-span-2">
-                  <span class="text-[#6B6B6B]">Note</span>
-                  <span class="font-semibold text-black">{{ getExpandedDetail(row).holdNote }}</span>
+                <div class="flex justify-end gap-2">
+                  <el-button size="small" @click="openDetailDialog(row)">View Detail</el-button>
+                  <el-button size="small" type="primary" @click="openReactivateDialog(row)">Reactivate</el-button>
                 </div>
               </div>
-              <div class="flex justify-end gap-2">
-                <el-button size="small" @click="openDetailDialog(row)">View Detail</el-button>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="Order ID / Platform ID" min-width="270">
+            <template #default="{ row }">
+              <div class="font-semibold text-black">{{ row.orderId }}</div>
+              <div class="text-xs text-[#6B6B6B] mt-1">{{ row.platformId }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="stage" label="Stages" min-width="150" />
+          <el-table-column label="Status" min-width="170">
+            <template #default="{ row }">
+              <el-tag effect="plain" class="!rounded-md" :type="statusTagType(row.status)">
+                {{ row.status }}
+              </el-tag>
+              <div class="text-xs text-[#6B6B6B] mt-1">{{ row.holdReason }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column label="Customer" min-width="170">
+            <template #default="{ row }">
+              <div class="text-sm text-black">{{ row.customerName }}</div>
+              <div class="text-xs text-[#6B6B6B] mt-1">{{ row.customerRegion }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column label="Inventory" width="130" align="center">
+            <template #default="{ row }">
+              <el-tag effect="plain" class="!rounded-md" :type="inventoryTagType(row.inventoryStatus)">
+                {{ row.inventoryStatus }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="Date" width="170">
+            <template #default="{ row }">
+              <div class="text-xs text-[#6B6B6B]">Blocked: {{ row.blockedDate }}</div>
+              <div class="text-xs text-[#6B6B6B] mt-1">Due: {{ row.dueDate }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column label="Actions" width="200" align="right">
+            <template #default="{ row }">
+              <div class="flex items-center justify-end gap-2">
                 <el-button size="small" type="primary" @click="openReactivateDialog(row)">Reactivate</el-button>
+                <el-dropdown trigger="click" @command="(command: string) => handleRowCommand(command, row)">
+                  <el-button class="!h-8 !w-8 !p-0 !border-[#16215B1A]">
+                    <el-icon><MoreFilled /></el-icon>
+                  </el-button>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="detail">
+                        <el-icon class="mr-2"><View /></el-icon>
+                        View Detail
+                      </el-dropdown-item>
+                      <el-dropdown-item command="escalate">
+                        <el-icon class="mr-2"><WarningFilled /></el-icon>
+                        Escalate
+                      </el-dropdown-item>
+                      <el-dropdown-item command="ticket">
+                        <el-icon class="mr-2"><Headset /></el-icon>
+                        Create Ticket
+                      </el-dropdown-item>
+                      <el-dropdown-item command="reactivate" class="!text-[#0A7A0A]">
+                        <el-icon class="mr-2"><RefreshRight /></el-icon>
+                        Reactivate Order
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
               </div>
-            </div>
-          </template>
-        </el-table-column>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
-        <el-table-column label="Order ID / Platform ID" min-width="270">
-          <template #default="{ row }">
-            <div class="font-semibold text-black">{{ row.orderId }}</div>
-            <div class="text-xs text-[#6B6B6B] mt-1">{{ row.platformId }}</div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="stage" label="Stages" min-width="150" />
-        <el-table-column label="Status" min-width="170">
-          <template #default="{ row }">
-            <el-tag effect="plain" class="!rounded-md" :type="statusTagType(row.status)">
-              {{ row.status }}
-            </el-tag>
-            <div class="text-xs text-[#6B6B6B] mt-1">{{ row.holdReason }}</div>
-          </template>
-        </el-table-column>
-        <el-table-column label="Customer" min-width="170">
-          <template #default="{ row }">
-            <div class="text-sm text-black">{{ row.customerName }}</div>
-            <div class="text-xs text-[#6B6B6B] mt-1">{{ row.customerRegion }}</div>
-          </template>
-        </el-table-column>
-        <el-table-column label="Inventory" width="130" align="center">
-          <template #default="{ row }">
-            <el-tag effect="plain" class="!rounded-md" :type="inventoryTagType(row.inventoryStatus)">
-              {{ row.inventoryStatus }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="Date" width="170">
-          <template #default="{ row }">
-            <div class="text-xs text-[#6B6B6B]">Blocked: {{ row.blockedDate }}</div>
-            <div class="text-xs text-[#6B6B6B] mt-1">Due: {{ row.dueDate }}</div>
-          </template>
-        </el-table-column>
-        <el-table-column label="Actions" width="200" align="right">
-          <template #default="{ row }">
-            <div class="flex items-center justify-end gap-2">
-              <el-button size="small" type="primary" @click="openReactivateDialog(row)">Reactivate</el-button>
-              <el-dropdown trigger="click" @command="(command: string) => handleRowCommand(command, row)">
-                <el-button class="!h-8 !w-8 !p-0 !border-[#16215B1A]">
-                  <el-icon><MoreFilled /></el-icon>
-                </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="detail">
-                      <el-icon class="mr-2"><View /></el-icon>
-                      View Detail
-                    </el-dropdown-item>
-                    <el-dropdown-item command="escalate">
-                      <el-icon class="mr-2"><WarningFilled /></el-icon>
-                      Escalate
-                    </el-dropdown-item>
-                    <el-dropdown-item command="ticket">
-                      <el-icon class="mr-2"><Headset /></el-icon>
-                      Create Ticket
-                    </el-dropdown-item>
-                    <el-dropdown-item command="reactivate" class="!text-[#0A7A0A]">
-                      <el-icon class="mr-2"><RefreshRight /></el-icon>
-                      Reactivate Order
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="p-4 border-t border-[#ECECEC] flex flex-wrap gap-4 items-center justify-between">
+      <div class="p-4 border-t border-[#ECECEC] flex flex-wrap gap-4 items-center justify-between flex-shrink-0">
         <div class="text-sm text-[#6B6B6B]">Total {{ total }} blocked orders</div>
         <el-pagination
           v-model:current-page="pagination.page"
@@ -276,49 +236,22 @@
         </div>
       </template>
     </el-dialog>
-
-    <el-dialog v-model="advancedFilterVisible" title="Advanced Filters" width="520px" destroy-on-close>
-      <el-form :model="advancedFilterForm" label-position="top">
-        <el-form-item label="Stage">
-          <el-select v-model="advancedFilterForm.stage" class="w-full" clearable>
-            <el-option label="Manual Hold" value="Manual Hold" />
-            <el-option label="Compliance Check" value="Compliance Check" />
-            <el-option label="Address Verification" value="Address Verification" />
-            <el-option label="Payment Hold" value="Payment Hold" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Inventory">
-          <el-select v-model="advancedFilterForm.inventory" class="w-full" clearable>
-            <el-option label="In Stock" value="In Stock" />
-            <el-option label="Reserved" value="Reserved" />
-            <el-option label="Out of Stock" value="Out of Stock" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <el-button @click="advancedFilterVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="applyAdvancedFilter">Apply</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, reactive, ref, nextTick, onMounted } from 'vue'
 import { useRequest } from 'alova/client'
 import { ElMessage } from 'element-plus'
 import {
   Plus,
-  Search,
-  Operation,
   MoreFilled,
   View,
   WarningFilled,
   Headset,
   RefreshRight
 } from '@element-plus/icons-vue'
+import BlockedFilter from './components/BlockedFilter.vue'
 import {
   createBlockedSupportTicket,
   getBlockedOrderDetail,
@@ -336,36 +269,13 @@ const pagination = reactive({
   pageSize: 10
 })
 
-const filters = reactive<{
-  keyword: string
-  quickRange: 'last7' | 'last30' | 'thisMonth' | 'all'
-  dateRange: [string, string] | []
-  status: BlockedOrderStatus | ''
-  reason:
-    | 'Address Error'
-    | 'Payment Risk'
-    | 'Inventory Hold'
-    | 'Compliance Alert'
-    | 'Manual Review'
-    | ''
-  segmented: 'all' | 'active' | 'resolved'
-  stage: BlockedOrderStage | ''
-  inventory: BlockedInventoryStatus | ''
-}>({
-  keyword: '',
-  quickRange: 'last7',
-  dateRange: [],
-  status: '',
-  reason: '',
-  segmented: 'all',
-  stage: '',
-  inventory: ''
-})
+const filterRef = ref()
+const currentFilters = ref<any>({})
+const segmented = ref<'all' | 'active' | 'resolved'>('all')
 
 const detailVisible = ref(false)
 const reactivateVisible = ref(false)
 const ticketVisible = ref(false)
-const advancedFilterVisible = ref(false)
 const activeRowId = ref('')
 const detailRecord = ref<BlockedOrderRecord | null>(null)
 const expandLoadingMap = reactive<Record<string, boolean>>({})
@@ -381,30 +291,30 @@ const ticketForm = reactive({
   message: ''
 })
 
-const advancedFilterForm = reactive({
-  stage: '' as BlockedOrderStage | '',
-  inventory: '' as BlockedInventoryStatus | ''
-})
-
 const { data, loading, send: fetchList } = useRequest(
   () =>
     getBlockedOrderList({
       page: pagination.page,
       pageSize: pagination.pageSize,
-      keyword: filters.keyword,
-      quickRange: filters.quickRange,
-      dateRange: filters.dateRange,
-      status: filters.status,
-      reason: filters.reason,
-      stage: filters.stage,
-      inventory: filters.inventory,
-      segmented: filters.segmented
+      segmented: segmented.value,
+      ...currentFilters.value
     }),
   {
-    immediate: true,
+    immediate: false, // We trigger it manually after mounting filter
     initialData: { total: 0, list: [], segmented: { all: 0, active: 0, resolved: 0 } }
   }
 )
+
+const handleFilterSearch = (params: any) => {
+  currentFilters.value = params
+  pagination.page = 1
+  fetchList()
+}
+
+const handleSegmentedChange = () => {
+  pagination.page = 1
+  fetchList()
+}
 
 const { send: fetchOrderDetail } = useRequest((id: string) => getBlockedOrderDetail(id), {
   immediate: false
@@ -435,15 +345,13 @@ const total = computed(() => {
 })
 
 const segmentedOptions = computed(() => {
-  const segmented = data.value?.segmented || { all: 0, active: 0, resolved: 0 }
+  const segData = data.value?.segmented || { all: 0, active: 0, resolved: 0 }
   return [
-    { label: `All Orders (${segmented.all})`, value: 'all' },
-    { label: `Active Blocks (${segmented.active})`, value: 'active' },
-    { label: `Resolved (${segmented.resolved})`, value: 'resolved' }
+    { label: `All Orders (${segData.all})`, value: 'all' },
+    { label: `Active Blocks (${segData.active})`, value: 'active' },
+    { label: `Resolved (${segData.resolved})`, value: 'resolved' }
   ]
 })
-
-let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const statusTagType = (status: BlockedOrderStatus) => {
   if (status === 'Resolved') return 'success'
@@ -460,19 +368,6 @@ const inventoryTagType = (status: string) => {
 
 const getExpandedDetail = (row: BlockedOrderRecord) => {
   return expandDetailMap[row.id] || row
-}
-
-const handleDebouncedSearch = () => {
-  if (searchTimer) clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => {
-    pagination.page = 1
-    fetchList()
-  }, 300)
-}
-
-const handleImmediateSearch = () => {
-  pagination.page = 1
-  fetchList()
 }
 
 const handleExpandChange = async (row: BlockedOrderRecord, expandedRows: BlockedOrderRecord[]) => {
@@ -553,26 +448,16 @@ const submitTicket = async () => {
   ElMessage.success('Ticket created')
 }
 
-const openAdvancedFilterDialog = () => {
-  advancedFilterForm.stage = filters.stage
-  advancedFilterForm.inventory = filters.inventory
-  advancedFilterVisible.value = true
-}
-
-const applyAdvancedFilter = () => {
-  filters.stage = advancedFilterForm.stage
-  filters.inventory = advancedFilterForm.inventory
-  advancedFilterVisible.value = false
-  pagination.page = 1
-  fetchList()
-}
-
 const handleCreateOrder = () => {
   ElMessage.success('Create Order modal is coming next step')
 }
 
-onBeforeUnmount(() => {
-  if (searchTimer) clearTimeout(searchTimer)
+onMounted(async () => {
+  await nextTick()
+  if (filterRef.value) {
+    currentFilters.value = filterRef.value.getFilters()
+  }
+  fetchList()
 })
 </script>
 

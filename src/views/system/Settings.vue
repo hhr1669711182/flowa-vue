@@ -9,17 +9,15 @@
       description="Page Under Construction"
     />
 
-    <div v-else class="px-6 py-3">
-      <!-- Header Section -->
+    <div v-else>
       <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-800 mb-1">Settings</h2>
+        <span class="text-2xl font-bold text-gray-800 mb-1">Settings</span>
         <p class="text-gray-500 text-sm">
           View open and resolved tickets, track their status, and chat directly
           with the Flowa Support Team.
         </p>
       </div>
 
-      <!-- Toolbar: Tabs and Search -->
       <div
         class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4"
       >
@@ -270,10 +268,11 @@
       <!-- Order Operation Log Tab -->
       <div
         v-else-if="activeTab === 'Order Operation Log'"
+        class="h-[calc(100vh-280px)] flex flex-col"
       >
         <!-- Filters -->
         <div
-          class="pb-4 border-b border-gray-100 grid grid-cols-[1fr_1fr_1fr] gap-3 bg-gray-50"
+          class="pb-4 border-b border-gray-100 grid grid-cols-[1fr_1fr_1fr] gap-3 bg-gray-50 flex-shrink-0"
         >
           <el-input
             v-model="logFilters.search"
@@ -303,68 +302,33 @@
           </el-select>
         </div>
 
-        <el-table
-          :data="operationLogs"
-          style="width: 100%"
-          height="calc(100vh - 420px)"
-          v-loading="logsLoading"
-        >
-          <el-table-column prop="id" label="ID" width="60" align="center" />
-          <el-table-column
-            prop="sku"
-            label="SKU"
-            width="120"
-            class-name="font-medium"
-          />
-          <el-table-column
-            prop="actionInfo"
-            label="Action Info"
-            min-width="200"
+        <div class="flex-1 min-h-0 bg-white rounded-xl border border-t-0 border-gray-100 overflow-hidden">
+          <BaseTable
+            :data="operationLogs"
+            :columns="logColumns"
+            :loading="logsLoading"
+            :pagination="true"
+            :total="totalLogs"
+            v-model:page="pagination.currentPage"
+            v-model:limit="pagination.pageSize"
+            @pagination-change="fetchLogs"
           >
-            <template #default="{ row }">
+            <template #actionInfo="{ row }">
               <div class="text-xs text-gray-600 line-clamp-2">
                 {{ row.actionInfo }}
               </div>
             </template>
-          </el-table-column>
-          <el-table-column
-            prop="operationDetails"
-            label="Operation Details"
-            min-width="200"
-          >
-            <template #default="{ row }">
+            <template #operationDetails="{ row }">
               <div class="text-xs text-gray-600 line-clamp-2">
                 {{ row.operationDetails }}
               </div>
             </template>
-          </el-table-column>
-          <el-table-column
-            prop="operator"
-            label="Operator"
-            width="100"
-            align="center"
-            class-name="font-bold text-gray-900"
-          />
-          <el-table-column prop="date" label="Date" width="120" align="center">
-            <template #default="{ row }">
-              <div
-                class="text-xs text-gray-500 whitespace-pre-line text-center"
-              >
+            <template #date="{ row }">
+              <div class="text-xs text-gray-500 whitespace-pre-line text-center">
                 {{ row.date }}
               </div>
             </template>
-          </el-table-column>
-        </el-table>
-
-        <div class="p-4 flex justify-end">
-          <el-pagination
-            v-model:current-page="pagination.currentPage"
-            v-model:page-size="pagination.pageSize"
-            layout="prev, pager, next"
-            :total="totalLogs"
-            background
-            @current-change="handlePageChange"
-          />
+          </BaseTable>
         </div>
       </div>
     </div>
@@ -462,6 +426,7 @@
 import { computed, ref, reactive, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import ExceptionPage from "@/components/common/ExceptionPage.vue";
+import BaseTable from "@/components/common/BaseTable.vue";
 import {
   Search,
   Edit,
@@ -528,6 +493,15 @@ const pagination = reactive({
   pageSize: 10,
 });
 
+const logColumns = [
+  { prop: 'id', label: 'ID', width: 60, align: 'center' },
+  { prop: 'sku', label: 'SKU', width: 120, className: 'font-medium' },
+  { prop: 'actionInfo', label: 'Action Info', minWidth: 200, slot: 'actionInfo' },
+  { prop: 'operationDetails', label: 'Operation Details', minWidth: 200, slot: 'operationDetails' },
+  { prop: 'operator', label: 'Operator', width: 100, align: 'center', className: 'font-bold text-gray-900' },
+  { prop: 'date', label: 'Date', width: 120, align: 'center', slot: 'date' },
+];
+
 // --- Initialization & Watchers ---
 onMounted(() => {
   fetchGeneralSettings();
@@ -578,11 +552,6 @@ const fetchLogs = async () => {
 
 const handleLogsFilterChange = () => {
   pagination.currentPage = 1; // Reset to first page on filter change
-  fetchLogs();
-};
-
-const handlePageChange = (page: number) => {
-  pagination.currentPage = page;
   fetchLogs();
 };
 

@@ -27,7 +27,7 @@ export const filterMenusPath = (
     let data: Nullable<AppRouteRecordRaw> = null
     const meta = v.meta ?? {}
     if (!meta.hidden || meta.canTo) {
-      const allParentPath = getAllParentPath<AppRouteRecordRaw>(allRoutes, v.path)
+      const allParentPath: any = getAllParentPath<AppRouteRecordRaw>(allRoutes, v.path)
 
       const fullPath = isUrl(v.path) ? v.path : allParentPath.join('/')
 
@@ -42,7 +42,7 @@ export const filterMenusPath = (
       }
 
       if (allParentPath && allParentPath.length && tabPathMap[allParentPath[0]]) {
-        tabPathMap[allParentPath[0]].push(fullPath)
+        tabPathMap[allParentPath[0]]?.push(fullPath)
       }
     }
   }

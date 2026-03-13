@@ -55,7 +55,9 @@ export const mockBilling = defineMock({
     
     return {
       total,
-      list: list.slice(start, end)
+      list: list.slice(start, end),
+      page,
+      pageSize
     };
   },
   

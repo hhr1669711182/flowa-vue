@@ -1,6 +1,6 @@
 <template>
-  <div class="products">
-    <div class="flex justify-between items-center mb-4">
+  <div class="products h-full flex flex-col">
+    <div class="flex justify-between items-center mb-4 flex-shrink-0">
       <div>
         <div class="flex items-center gap-1 line-height-22px">
           <div class="text-#000 text-28px line-height-36px">Inventory</div>
@@ -11,13 +11,13 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <el-button type="default" size="large">
+        <el-button type="default" size="large" @click="handleImport">
           <span class="flex items-center gap-2">
             <Icon icon="svg-icon:arrow-down-to-square" color="#16215B" />
             <span class="text-16px text-#16215B">Import SKU(s)</span>
           </span>
         </el-button>
-        <el-button type="primary" size="large">
+        <el-button type="primary" size="large" @click="handleAddProduct">
           <span class="flex items-center gap-2">
             <img src="./Icons/plus.svg" alt="plus" class="w-3 h-3" />
             <span>Add Product</span>
@@ -27,15 +27,15 @@
     </div>
 
     <div class="w-full h-20px flex justify-end">
-      <el-button link class="!text-gray-600 !px-2">
+      <el-button link class="!text-gray-600 !px-2" @click="showCards = !showCards">
         <span class="flex items-center gap-1">
-          <img src="./Icons/eye-slash.svg" alt="hide" class="w-4 h-4" />
-          <span>Hide Data</span>
+          <Icon :icon="showCards ? 'svg-icon:eye-slash' : 'svg-icon:eye'" color="#16215B" />
+          <span>{{ showCards ? 'Hide Data' : 'View Data' }}</span>
         </span>
       </el-button>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 box">
+    <div v-show="showCards" class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 box">
       <div class="bg-white rounded-xl border border-gray-100 shadow-card p-6">
         <div class="flex items-center justify-between mb-2">
           <div class="font-semibold">
@@ -92,73 +92,19 @@
       </div>
     </div>
 
-    <div
-      class="p-3 mb-3 flex items-center gap-3"
-    >
-      <el-input
-        v-model="searchForm.sku"
-        placeholder="Search by SKU..."
-        clearable
-        class="w-64"
-      >
-        <template #prefix>
-          <img src="./Icons/search.svg" class="w-4 h-4" alt="search" />
-        </template>
-      </el-input>
-      <el-select
-        v-model="filters.lastDays"
-        class="w-36"
-        placeholder="Last 7 days"
-      >
-        <el-option label="Last 7 days" value="7" />
-        <el-option label="Last 30 days" value="30" />
-        <el-option label="Last 90 days" value="90" />
-      </el-select>
-      <el-date-picker
-        v-model="filters.range"
-        type="daterange"
-        range-separator="to"
-        start-placeholder="Start date"
-        end-placeholder="End date"
-        class="w-72px"
-      />
-      <el-select v-model="filters.stock" class="w-32" placeholder="Stock">
-        <el-option label="All" value="all" />
-        <el-option label="Low" value="low" />
-        <el-option label="Out of stock" value="out" />
-      </el-select>
-      <el-select v-model="filters.qty" class="w-36" placeholder="Product Qty">
-        <el-option label="All" value="all" />
-        <el-option label="< 100" value="<100" />
-        <el-option label="100 - 500" value="100-500" />
-        <el-option label="> 500" value=">500" />
-      </el-select>
-      <el-button plain>
-        <span class="flex items-center gap-2">
-          <img src="./Icons/filters.svg" class="w-4 h-4" alt="filters" />
-          <span>Filters</span>
-        </span>
-      </el-button>
-    </div>
+    <ProductFilter ref="filterRef" @search="handleFilterSearch" />
 
-    <BaseSearch
-      v-model="searchForm"
-      :items="searchItems"
-      @search="handleSearch"
-      @reset="handleReset"
-    />
-
-    <BaseTable
-      :data="tableData"
-      :columns="columns"
-      :loading="loading"
-      :pagination="true"
-      :total="total"
-      v-model:page="page"
-      v-model:limit="limit"
-      @pagination-change="fetchData"
-      height="calc(100vh - 600px)"
-    >
+    <div class="flex-1 min-h-0 rounded-xl overflow-hidden">
+      <BaseTable
+        :data="tableData"
+        :columns="columns"
+        :loading="loading"
+        :pagination="true"
+        :total="total"
+        v-model:page="page"
+        v-model:limit="limit"
+        @pagination-change="fetchData"
+      >
       <template #product="{ row }">
         <div class="flex items-center gap-3">
           <el-avatar :size="32" class="bg-gray-100 text-gray-700">P</el-avatar>
@@ -201,48 +147,74 @@
       <template #cog="{ row }">
         <span>{{ String(row.price).replace("¥", "$ ") }}</span>
       </template>
-      <template #actions>
-        <el-button link type="primary" size="small">Edit</el-button>
+      <template #actions="{ row }">
+        <el-button link type="primary" size="small" @click="handleEditProduct(row)">Edit</el-button>
         <el-button link type="primary" size="small">More</el-button>
       </template>
     </BaseTable>
+    </div>
+
+    <ProductDetail
+      v-model:visible="detailVisible"
+      :product-id="currentProductId"
+      @save="handleSaveProduct"
+      @delete="fetchData"
+      @close="detailVisible = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from "vue";
 import * as echarts from "echarts";
-import axios from "axios";
 import BaseTable from "../../components/common/BaseTable.vue";
-import BaseSearch from "../../components/common/BaseSearch.vue";
+import ProductFilter from "./components/ProductFilter.vue";
+import ProductDetail from "./components/productDetail.vue";
+import { exportInventoryProducts, getInventoryProducts } from "@/api/inventory";
+import { ElMessage } from "element-plus";
 
-// Search Configuration
-const searchForm = reactive({
-  name: "",
-  category: "",
-  sku: "",
-});
+// Product Detail State
+const detailVisible = ref(false);
+const currentProductId = ref<string | undefined>(undefined);
 
-const searchItems: any[] = [
-  {
-    label: "Product Name",
-    prop: "name",
-    type: "input",
-    placeholder: "Product Name",
-  },
-  {
-    label: "Category",
-    prop: "category",
-    type: "select",
-    placeholder: "Select Category",
-    options: [
-      { label: "Electronics", value: "Electronics" },
-      { label: "Clothing", value: "Clothing" },
-      { label: "Home", value: "Home" },
-      { label: "Books", value: "Books" },
-    ],
-  },
-];
+const handleAddProduct = () => {
+  currentProductId.value = undefined;
+  detailVisible.value = true;
+};
+
+const handleEditProduct = (row: any) => {
+  currentProductId.value = row.id;
+  detailVisible.value = true;
+};
+
+const handleImport = async () => {
+  try {
+    const res = await exportInventoryProducts({});
+    if (res?.url) {
+      window.open(res.url, '_blank');
+      ElMessage.success('Export started successfully');
+    }
+  } catch (error) {
+    ElMessage.error('Export failed');
+  }
+};
+
+const handleSaveProduct = async (data: any) => {
+  // Mock save logic
+  console.log('Saved:', data);
+  detailVisible.value = false;
+  fetchData();
+};
+
+// Filter State
+const filterRef = ref();
+const currentFilters = ref({});
+
+const handleFilterSearch = (params: any) => {
+  currentFilters.value = params;
+  page.value = 1;
+  fetchData();
+};
 
 // Table Configuration
 const columns = [
@@ -275,13 +247,7 @@ const stats = reactive({
   books: 0,
 });
 const totalInventory = ref(0);
-
-const filters = reactive({
-  lastDays: "7",
-  range: "",
-  stock: "all",
-  qty: "all",
-});
+const showCards = ref(true);
 
 const updateStatsAndChart = () => {
   const data = (tableData.value as any[]) || [];
@@ -301,6 +267,7 @@ const updateStatsAndChart = () => {
   stats.clothing = counts[1] ?? 0;
   stats.home = counts[2] ?? 0;
   stats.books = counts[3] ?? 0;
+  // Calculate total inventory
   totalInventory.value =
     (stocks[0] ?? 0) + (stocks[1] ?? 0) + (stocks[2] ?? 0) + (stocks[3] ?? 0);
   // 动态计算颜色：第一个是1，后面根据数据量动态设置步长，数据量大时最小步长0.05
@@ -455,16 +422,13 @@ const onResize = () => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const response = await axios.get("/api/products", {
-      params: {
-        page: page.value,
-        limit: limit.value,
-        ...searchForm,
-      },
+    const res = await getInventoryProducts({
+      page: page.value,
+      pageSize: limit.value,
+      ...currentFilters.value,
     });
-    tableData.value = response.data.data;
-    // Mock total count
-    total.value = 200;
+    tableData.value = res.list;
+    total.value = res.total;
     await nextTick();
     updateStatsAndChart();
   } catch (error) {
@@ -474,18 +438,11 @@ const fetchData = async () => {
   }
 };
 
-const handleSearch = () => {
-  page.value = 1;
-  fetchData();
-};
-
-const handleReset = () => {
-  searchForm.name = "";
-  searchForm.category = "";
-  handleSearch();
-};
-
-onMounted(() => {
+onMounted(async () => {
+  await nextTick();
+  if (filterRef.value) {
+    currentFilters.value = filterRef.value.getSearchParams();
+  }
   fetchData();
 });
 

@@ -1,10 +1,13 @@
 <template>
-  <el-drawer
-    v-model="visible"
+  <Drawer
+    :model-value="visible"
     direction="rtl"
     size="100%"
     :show-close="false"
     class="!p-0 ticket-detail-drawer"
+    custom-layout
+    @update:model-value="val => emit('update:modelValue', val)"
+    @close="close"
   >
     <template #header>
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
@@ -165,11 +168,12 @@
         </div>
       </div>
     </div>
-  </el-drawer>
+  </Drawer>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
+import { Drawer } from '@/components/base/Drawer'
 import { Back, MoreFilled, Clock, Files, Paperclip, Position } from '@element-plus/icons-vue'
 import type { Ticket, ChatMessage } from '@/api/support'
 import { sendMessage } from '@/api/support'

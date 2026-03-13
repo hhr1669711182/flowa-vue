@@ -35,7 +35,8 @@ export default [
             'stock|10-200': 100,
             'category|1': ['Electronics', 'Clothing', 'Home', 'Books']
           }
-        ]
+        ],
+        total: 20
       }
     }
   }
