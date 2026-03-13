@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { propTypes } from "@/utils/propTypes";
 import { useDesign } from "@/hooks/web/useDesign";
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useEventListener, useIntersectionObserver } from "@vueuse/core";
 import { debounce } from "lodash-es";
-import { N } from "vue-router/dist/index-Cu9B0wDz.mjs";
 
 const { getPrefixCls } = useDesign();
 
