@@ -27,15 +27,25 @@
     </div>
 
     <div class="w-full h-20px flex justify-end">
-      <el-button link class="!text-gray-600 !px-2" @click="showCards = !showCards">
+      <el-button
+        link
+        class="!text-gray-600 !px-2"
+        @click="showCards = !showCards"
+      >
         <span class="flex items-center gap-1">
-          <Icon :icon="showCards ? 'svg-icon:eye-slash' : 'svg-icon:eye'" color="#16215B" />
-          <span>{{ showCards ? 'Hide Data' : 'View Data' }}</span>
+          <Icon
+            :icon="showCards ? 'svg-icon:eye-slash' : 'svg-icon:eye'"
+            color="#16215B"
+          />
+          <span>{{ showCards ? "Hide Data" : "View Data" }}</span>
         </span>
       </el-button>
     </div>
 
-    <div v-show="showCards" class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 box">
+    <div
+      v-show="showCards"
+      class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 box"
+    >
       <div class="bg-white rounded-xl border border-gray-100 shadow-card p-6">
         <div class="flex items-center justify-between mb-2">
           <div class="font-semibold">
@@ -105,53 +115,62 @@
         v-model:limit="limit"
         @pagination-change="fetchData"
       >
-      <template #product="{ row }">
-        <div class="flex items-center gap-3">
-          <el-avatar :size="32" class="bg-gray-100 text-gray-700">P</el-avatar>
-          <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-800">{{
-              row.name
-            }}</span>
-            <span class="text-xs text-gray-500">SKU {{ row.id }}</span>
+        <template #product="{ row }">
+          <div class="flex items-center gap-3">
+            <el-avatar :size="32" class="bg-gray-100 text-gray-700"
+              >P</el-avatar
+            >
+            <div class="flex flex-col">
+              <span class="text-sm font-medium text-gray-800">{{
+                row.name
+              }}</span>
+              <span class="text-xs text-gray-500">SKU {{ row.id }}</span>
+            </div>
           </div>
-        </div>
-      </template>
-      <template #details="{ row }">
-        <span class="text-xs text-gray-500"
-          >{{ row.name }} · {{ row.category }}</span
-        >
-      </template>
-      <template #incoming>
-        <span>50</span>
-      </template>
-      <template #reserved="{ row }">
-        <span>{{
-          Math.floor(
+        </template>
+        <template #details="{ row }">
+          <span class="text-xs text-gray-500"
+            >{{ row.name }} · {{ row.category }}</span
+          >
+        </template>
+        <template #incoming>
+          <span>50</span>
+        </template>
+        <template #reserved="{ row }">
+          <span>{{
+            Math.floor(
+              (typeof row.stock === "number"
+                ? row.stock
+                : Number(row.stock || 0)) / 10,
+            )
+          }}</span>
+        </template>
+        <template #available="{ row }">
+          <span>{{
+            typeof row.stock === "number" ? row.stock : Number(row.stock || 0)
+          }}</span>
+        </template>
+        <template #total="{ row }">
+          <span>{{
             (typeof row.stock === "number"
               ? row.stock
-              : Number(row.stock || 0)) / 10,
-          )
-        }}</span>
-      </template>
-      <template #available="{ row }">
-        <span>{{
-          typeof row.stock === "number" ? row.stock : Number(row.stock || 0)
-        }}</span>
-      </template>
-      <template #total="{ row }">
-        <span>{{
-          (typeof row.stock === "number" ? row.stock : Number(row.stock || 0)) +
-          50
-        }}</span>
-      </template>
-      <template #cog="{ row }">
-        <span>{{ String(row.price).replace("¥", "$ ") }}</span>
-      </template>
-      <template #actions="{ row }">
-        <el-button link type="primary" size="small" @click="handleEditProduct(row)">Edit</el-button>
-        <el-button link type="primary" size="small">More</el-button>
-      </template>
-    </BaseTable>
+              : Number(row.stock || 0)) + 50
+          }}</span>
+        </template>
+        <template #cog="{ row }">
+          <span>{{ String(row.price).replace("¥", "$ ") }}</span>
+        </template>
+        <template #actions="{ row }">
+          <el-button
+            link
+            type="primary"
+            size="small"
+            @click="handleEditProduct(row)"
+            >Edit</el-button
+          >
+          <el-button link type="primary" size="small">More</el-button>
+        </template>
+      </BaseTable>
     </div>
 
     <ProductDetail
@@ -191,17 +210,17 @@ const handleImport = async () => {
   try {
     const res = await exportInventoryProducts({});
     if (res?.url) {
-      window.open(res.url, '_blank');
-      ElMessage.success('Export started successfully');
+      window.open(res.url, "_blank");
+      ElMessage.success("Export started successfully");
     }
   } catch (error) {
-    ElMessage.error('Export failed');
+    ElMessage.error("Export failed");
   }
 };
 
 const handleSaveProduct = async (data: any) => {
   // Mock save logic
-  console.log('Saved:', data);
+  console.log("Saved:", data);
   detailVisible.value = false;
   fetchData();
 };
@@ -218,6 +237,8 @@ const handleFilterSearch = (params: any) => {
 
 // Table Configuration
 const columns = [
+  { type: "selection", width: 50 },
+  { type: "expand", width: 50, slot: "expand" },
   { label: "Product / SKU ID", slot: "product", width: 260 },
   { label: "Details", slot: "details" },
   { label: "Incoming", slot: "incoming", width: 120 },

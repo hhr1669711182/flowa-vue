@@ -27,6 +27,15 @@ export interface OutboundStats {
   }>;
 }
 
+export interface TransactionRecord {
+  id: string;
+  transactionTime: string;
+  type: 'Credit' | 'Debit';
+  description: string;
+  amount: string;
+  currentBalance: string;
+}
+
 export const getOutboundBillingList = (params: {
   page?: number;
   pageSize?: number;
@@ -45,3 +54,26 @@ export const getOutboundBillingList = (params: {
 export const getOutboundStats = () => {
   return alovaInstance.Get<OutboundStats>('/api/billing/outbound/stats');
 }
+
+export const exportOutboundBilling = (params: any) => {
+  return alovaInstance.Post<{ url: string }>('/api/billing/outbound/export', params);
+}
+
+export const rechargeCredit = (data: { amount: number }) => {
+  return alovaInstance.Post('/api/billing/recharge', data);
+}
+
+export const getBillingTransactions = (params: {
+  page?: number;
+  pageSize?: number;
+  type?: string;
+  search?: string;
+  dateRange?: string[];
+}) => {
+  return alovaInstance.Get<{
+    total: number;
+    list: TransactionRecord[];
+    page: number;
+    pageSize: number;
+  }>('/api/billing/transactions', { params });
+};

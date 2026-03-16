@@ -1,25 +1,26 @@
 ﻿<template>
-  <div class="products h-full flex flex-col">
+  <div class="products h-full flex flex-col" v-show="!showHistory">
     <div class="flex justify-between items-center mb-4 flex-shrink-0">
       <div>
         <div class="flex items-center gap-1 line-height-22px">
           <div class="text-#000 text-28px line-height-36px">Billing</div>
-          <div class="text-#9A9A9A text-20px pt-1">/Services</div>
+          <div class="text-#9A9A9A text-20px pt-1">/Outbound</div>
         </div>
         <div class="text-14px text-#6B6B6B">
-          View charges related to operational services performed by Flowa.
+          Review outbound shipping costs, performance insights, and savings
+          generated with Flowa.
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <el-button type="default" size="large">
-          <span class="flex items-center gap-2">
-            <Icon icon="svg-icon:document-text" color="#16215B" />
+        <el-button type="default" size="large" @click="showHistory = true">
+          <span class="flex items-center gap-1">
+            <Icon icon="svg-icon:file-dollar" color="#16215B" />
             <span class="text-16px text-#16215B">Transaction History</span>
           </span>
         </el-button>
-        <el-button type="primary" size="large">
-          <span class="flex items-center gap-2">
-            <Icon icon="mage:dollar" color="#fff" width="20" height="20" />
+        <el-button type="primary" size="large" @click="handleAddCredit">
+          <span class="flex items-center gap-1">
+            <Icon icon="svg-icon:circle-dollar" color="#fff" />
             <span>Recharge Credit</span>
           </span>
         </el-button>
@@ -47,11 +48,22 @@
       class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 box"
     >
       <div
-        class="bg-white rounded-xl border border-gray-100 shadow-card p-6 flex"
+        class="bg-white rounded-xl border border-gray-100 shadow-card p-6 flex animate__animated animate__fadeInUp"
       >
         <div class="font-semibold">
-          <div class="whitespace-nowrap">Credit Remaining</div>
-          <div class="flex items-center gap-1">
+          <div class="whitespace-nowrap text-[16px] line-height-24px">
+            Credit Remaining
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="!!!!"
+              placement="top-start"
+            >
+              <Icon icon="svg-icon:circle-question" color="#9A9A9A" />
+            </el-tooltip>
+          </div>
+          <div class="flex items-center gap-1 text-[14px]">
+            <Icon icon="svg-icon:circle-arrow-up" color="#0211A3" />
             <div class="text-#0211A3">$5,250</div>
             <div class="text-#9A9A9A">/ $10,500</div>
           </div>
@@ -66,7 +78,17 @@
       >
         <div class="flex justify-between items-center mb-6">
           <div>
-            <div class="text-lg font-bold text-#000">Reserved Credits</div>
+            <div class="text-lg font-bold text-#000">
+              Reserved Credits
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="!!!!"
+                placement="top-start"
+              >
+                <Icon icon="svg-icon:circle-question" color="#9A9A9A" />
+              </el-tooltip>
+            </div>
             <div class="text-xs text-#0211A3 mt-0.5 flex items-center gap-2">
               <Icon
                 icon="material-symbols:arrow-circle-up-outline-rounded"
@@ -116,7 +138,9 @@
         </div>
       </div>
 
-      <div class="card position-relative w-full">
+      <div
+        class="card position-relative w-full animate__animated animate__fadeInUp"
+      >
         <div
           class="flex items-center justify-between mb-2 p-6 position-absolute w-full box-border"
         >
@@ -154,16 +178,183 @@
         v-model:limit="limit"
         @pagination-change="fetchData"
       >
+        <template #expand="{ row }">
+          <div class="py-4 px-6 bg-#F7F7F7">
+            <div class="bg-#fff rounded-lg border border-gray-200">
+              <div
+                class="flex justify-between items-start px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+              >
+                <div>
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="text-lg font-bold text-gray-900">
+                      {{ row.title }}
+                    </span>
+                    <span
+                      class="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700"
+                    >
+                      {{ row.deliveryStatus }}
+                    </span>
+                  </div>
+                  <div class="text-xs text-gray-500 flex gap-4">
+                    <span>Create {{ row.code }}</span>
+                    <span>Fulfilled Date {{ row.code }}</span>
+                  </div>
+                </div>
+
+                <div class="text-left text-sm">
+                  <div class="mb-1">
+                    <span class="text-gray-500 mr-2">Tracking No</span>
+                    <a
+                      href="#"
+                      class="font-bold text-gray-900 border-b border-gray-900"
+                      >{{ row.trackingNo }}</a
+                    >
+                  </div>
+                  <div class="mb-1">
+                    <span class="text-gray-500 mr-2">Sending to</span>
+                    <span class="text-gray-900"
+                      >Narangba, 4504, QLD, Australia</span
+                    >
+                  </div>
+                </div>
+
+                <div class="text-left text-sm">
+                  <div class="mb-1">
+                    <span class="text-gray-500 mr-2">Carrier</span>
+                    <span class="text-gray-900">{{ row.carrier }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500 mr-2">Method</span>
+                    <span class="text-gray-900">{{ row.method }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="px-6 py-4">
+                <div class="mb-4 flex flex-col gap-2">
+                  <div
+                    class="flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+                  >
+                    <span class="text-gray-500">Item Quantity</span>
+                    <span class="font-medium text-gray-500">{{
+                      row.itemQuantity
+                    }}</span>
+                  </div>
+                  <div
+                    class="flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+                  >
+                    <span class="text-gray-500">Charging Weight (kg)</span>
+                    <span class="font-medium text-gray-500">{{
+                      row.chargingWeight
+                    }}</span>
+                  </div>
+                </div>
+
+                <div
+                  class="border border-gray-200 rounded-lg overflow-hidden mb-4 border-solid"
+                >
+                  <div
+                    class="grid grid-cols-4 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 text-center border-solid border-0"
+                  >
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Picking
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Packaging
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Shipping
+                    </div>
+                    <div class="p-2 border-solid border-0">Tax</div>
+                  </div>
+
+                  <div
+                    class="grid grid-cols-8 text-xs text-gray-500 bg-gray-50 border-b border-gray-200 text-center border-solid border-0"
+                  >
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      First Pick
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Additional
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Used
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Cost
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Shipping Cost
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Doc Fee
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      VAT
+                    </div>
+                    <div class="p-2 border-solid border-0">Surcharge</div>
+                  </div>
+
+                  <div
+                    class="grid grid-cols-8 text-sm text-gray-900 bg-white text-center"
+                  >
+                    <div class="p-3 border-r border-gray-200">
+                      {{ row.pickingFirst }}
+                    </div>
+                    <div class="p-3 border-r border-gray-200">
+                      {{ row.pickingAdditional }}
+                    </div>
+                    <div class="p-3 border-r border-gray-200">
+                      {{ row.packagingUsed }}
+                    </div>
+                    <div class="p-3 border-r border-gray-200">
+                      {{ row.packagingCost }}
+                    </div>
+                    <div class="p-3 border-r border-gray-200">
+                      {{ row.shippingCost }}
+                    </div>
+                    <div class="p-3 border-r border-gray-200">
+                      {{ row.docFee }}
+                    </div>
+                    <div class="p-3 border-r border-gray-200">
+                      {{ row.taxVat }}
+                    </div>
+                    <div class="p-3">{{ row.taxSurcharge }}</div>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-center">
+                  <span class="text-lg font-bold text-gray-900">Total</span>
+                  <span class="text-lg font-bold text-gray-900">{{
+                    row.grandTotal
+                  }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <template #serviceId="{ row }">
           <div class="flex items-center gap-2">
-            <div
-              class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100"
-            >
-              <Icon
-                icon="svg-icon:document-text"
-                class="text-gray-500 w-4 h-4"
-              />
-            </div>
             <span class="font-medium text-gray-900">{{ row.title }}</span>
           </div>
         </template>
@@ -177,15 +368,32 @@
         <template #type="{ row }">
           <span class="text-gray-500">{{ row.action }}</span>
         </template>
-        
+
         <template #total="{ row }">
-          <span class="font-medium text-gray-900">{{ row.statusNote }}</span>
+          <span class="text-gray-500">{{ row.statusNote }}</span>
+        </template>
+
+        <template #shipping="{ row }">
+          <span class="text-gray-500">{{ row.shipping }}</span>
+        </template>
+
+        <template #tax="{ row }">
+          <span class="text-gray-500">{{ row.tax }}</span>
+        </template>
+
+        <template #grandTotal="{ row }">
+          <span class="font-medium text-gray-900">{{ row.grandTotal }}</span>
         </template>
 
         <template #actions="{ row }">
-          <el-button link>
-            <el-icon><MoreFilled /></el-icon>
-          </el-button>
+          <div class="flex flex-1">
+            <el-button class="w-8 h-8" @click="handleViewDetail(row)">
+              <Icon icon="svg-icon:eye" color="#16215B"/>
+            </el-button>
+            <el-button class="w-8 h-8" @click="handleMoreActions(row)">
+              <Icon icon="svg-icon:ellipsis-vertical" color="#16215B"/>
+            </el-button>
+          </div>
         </template>
       </BaseTable>
     </div>
@@ -197,6 +405,14 @@
       @delete="fetchData"
       @close="detailVisible = false"
     />
+
+    <AddCredit
+      v-model:visible="addCreditVisible"
+      @success="loadData"
+    />
+  </div>
+  <div v-show="showHistory">
+    <History ref="historyRef" @close="showHistory = false" />
   </div>
 </template>
 
@@ -217,6 +433,8 @@ import {
 import * as echarts from "echarts";
 import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
+import AddCredit from "./components/addCredit.vue";
+import History from "./components/History.vue";
 import { exportInventoryProducts, getInventoryProducts } from "@/api/inventory";
 import {
   getOutboundStats,
@@ -234,9 +452,12 @@ const progressItems = ref<any[]>([]);
 const notifications = ref<any[]>([]);
 const recentOrders = ref<any[]>([]);
 
+const showHistory = ref(false);
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
+// Add Credit State
+const addCreditVisible = ref(false);
 
 const getIconComponent = (type: string) => {
   const map: Record<string, any> = {
@@ -265,7 +486,7 @@ const loadData = async () => {
       icon: getIconComponent(n.iconType),
     }));
 
-    recentOrders.value = ordersRes.map((o) => ({
+    recentOrders.value = ordersRes.list.map((o) => ({
       ...o,
       image: o.image.includes("placeholder") ? productImage : o.image,
     }));
@@ -274,14 +495,18 @@ const loadData = async () => {
   }
 };
 
-const handleAddProduct = () => {
-  currentProductId.value = undefined;
+const handleViewDetail = (row: any) => {
+  currentProductId.value = row.id;
   detailVisible.value = true;
 };
 
-const handleEditProduct = (row: any) => {
-  currentProductId.value = row.id;
-  detailVisible.value = true;
+const handleMoreActions = (row: any) => {
+  // Logic for more actions (e.g. dropdown menu)
+  console.log('More actions for', row);
+};
+
+const handleAddCredit = () => {
+  addCreditVisible.value = true;
 };
 
 const handleImport = async () => {
@@ -313,14 +538,17 @@ const handleFilterSearch = (params: any) => {
   fetchData();
 };
 
-// Table Configuration
 const columns = [
   { type: "selection", width: 50 },
-  { label: "Service ID", slot: "serviceId", width: 200 },
-  { label: "Approved Date", slot: "date", width: 200 },
-  { label: "Type", slot: "type", width: 200 },
-  { label: "Total", slot: "total", width: "auto" },
-  { label: "Actions", slot: "actions", width: 100, fixed: "right" },
+  { type: "expand", width: 50, slot: "expand" },
+  { label: "Order ID", slot: "serviceId", width: 200 },
+  { label: "Fulfilled Date", slot: "date", width: 200 },
+  { label: "Picking", slot: "type", width: 120 },
+  { label: "Packaging", slot: "total", width: 120 },
+  { label: "Shipping", slot: "shipping", width: 120 },
+  { label: "TAX", slot: "tax", width: 120 },
+  { label: "Total", slot: "grandTotal", width: "auto" },
+  { label: "Actions", slot: "actions", width: 100, fixed: "right", align: "center" },
 ];
 
 // Data Logic
@@ -518,9 +746,12 @@ const onResize = () => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await getBillingRecentOrders();
-    tableData.value = res;
-    total.value = res.length;
+    const res = await getBillingRecentOrders({
+      page: page.value,
+      pageSize: limit.value,
+    });
+    tableData.value = res.list;
+    total.value = res.total;
     await nextTick();
     updateStatsAndChart();
   } catch (error) {

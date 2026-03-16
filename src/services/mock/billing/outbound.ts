@@ -27,7 +27,31 @@ const generateMockList = () => {
   return list;
 };
 
+const generateTransactionList = () => {
+  const list = [];
+  const types = ['Credit', 'Debit'];
+  
+  for (let i = 1; i <= 50; i++) {
+    const isCredit = Math.random() > 0.5;
+    // Generate a random date within the last year
+    const date = new Date();
+    date.setDate(date.getDate() - Math.floor(Math.random() * 365));
+    
+    list.push({
+      id: i.toString().padStart(2, '0'),
+      transactionTime: `20:12\n00/00/2026`, 
+      realDate: date.toISOString().split('T')[0], // YYYY-MM-DD for filtering
+      type: isCredit ? 'Credit' : 'Debit',
+      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
+      amount: "$ 0,00",
+      currentBalance: "$ 0,00"
+    });
+  }
+  return list;
+};
+
 const outboundData = generateMockList();
+const transactionData = generateTransactionList();
 
 export const mockOutbound = defineMock({
   '/api/billing/outbound': ({ query }) => {
@@ -83,6 +107,61 @@ export const mockOutbound = defineMock({
           color: "var(--color-brand-primary-pumpkin)",
         },
       ]
+    };
+  },
+
+  '[POST]/api/billing/outbound/export': () => {
+    return {
+      url: 'https://example.com/billing-export.csv'
+    };
+  },
+
+  '[POST]/api/billing/recharge': () => {
+    return {
+      success: true,
+      newBalance: 2500
+    };
+  },
+
+  '/api/billing/transactions': ({ query }) => {
+    const page = parseInt(query.page || '1');
+    const pageSize = parseInt(query.pageSize || '10');
+    const type = query.type;
+    const search = query.search?.toLowerCase();
+    const dateRange = query['dateRange[]'] || query.dateRange; // Handle array parameter
+    
+    let list = [...transactionData];
+    
+    if (type) {
+      list = list.filter(item => item.type === type);
+    }
+    
+    if (search) {
+      list = list.filter(item => 
+        item.description.toLowerCase().includes(search) || 
+        item.id.includes(search)
+      );
+    }
+    
+    if (dateRange && Array.isArray(dateRange) && dateRange.length === 2) {
+      const startDate = new Date(dateRange[0]);
+      const endDate = new Date(dateRange[1]);
+      
+      list = list.filter(item => {
+        const itemDate = new Date(item?.realDate || '');
+        return itemDate >= startDate && itemDate <= endDate;
+      });
+    }
+    
+    const total = list.length;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    
+    return {
+      total,
+      list: list.slice(start, end),
+      page,
+      pageSize
     };
   }
 });
