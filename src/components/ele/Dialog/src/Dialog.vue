@@ -19,7 +19,7 @@ const getBindValue = computed(() => {
   const obj = { ...attrs, ...props }
   for (const key in obj) {
     if (delArr.indexOf(key) !== -1) {
-      delete obj[key]
+      delete obj[key as keyof typeof obj]
     }
   }
   return obj

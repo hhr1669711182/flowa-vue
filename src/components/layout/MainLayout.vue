@@ -41,7 +41,6 @@
           class="hidden md:flex text-blue transition-all duration-300 shadow-xl z-20 flex-col h-full"
         >
           <!-- Logo -->
-       
 
           <!-- Menu -->
           <el-scrollbar class="flex-1 bg-white">
@@ -49,7 +48,9 @@
           </el-scrollbar>
         </el-aside>
 
-        <el-main class="bg-gray-50/50 p-2 sm:p-6 overflow-hidden overflow-y-scroll max-h-full">
+        <el-main
+          class="bg-gray-50/50 p-2 sm:p-6 overflow-hidden overflow-y-scroll max-h-full"
+        >
           <div class="max-w-7xl mx-auto w-full h-full">
             <router-view v-slot="{ Component }">
               <transition
@@ -57,9 +58,11 @@
                 leave-active-class="animate__animated animate__fadeOut animate__faster"
                 mode="out-in"
               >
-                <keep-alive>
-                  <component :is="Component" />
-                </keep-alive>
+                <div class="w-full h-full">
+                  <keep-alive>
+                    <component :is="Component" />
+                  </keep-alive>
+                </div>
               </transition>
             </router-view>
           </div>
@@ -75,4 +78,3 @@
 
 const drawer = ref(false);
 </script>
-

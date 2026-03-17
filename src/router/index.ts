@@ -126,9 +126,15 @@ export const routes: Array<any> = [
             meta: { title: 'Outbound' }
           },
           {
+            path: 'Exception',
+            name: 'Exception',
+            component: () => import('../views/Billing/Exception/index.vue'),
+            meta: { title: 'Exception' }
+          },
+          {
             path: 'inbound',
             name: 'Inbound',
-            component: () => import('../views/Billing/Segments/index.vue'),
+            component: () => import('../views/Billing/Inbound/index.vue'),
             meta: { title: 'Inbound' }
           },
           {

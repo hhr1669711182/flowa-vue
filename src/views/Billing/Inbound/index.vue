@@ -4,11 +4,10 @@
       <div>
         <div class="flex items-center gap-1 line-height-22px">
           <div class="text-#000 text-28px line-height-36px">Billing</div>
-          <div class="text-#9A9A9A text-20px pt-1">/Outbound</div>
+          <div class="text-#9A9A9A text-20px pt-1">/Inbound</div>
         </div>
         <div class="text-14px text-#6B6B6B">
-          Review outbound shipping costs, performance insights, and savings
-          generated with Flowa.
+          Analyze inbound processing costs and warehouse-related expenses.
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -182,37 +181,30 @@
           <div class="py-4 px-6 bg-#F7F7F7">
             <div class="bg-#fff rounded-lg border border-gray-200">
               <div
-                class="flex justify-between items-start px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+                class="flex justify-between items-center px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
               >
                 <div>
                   <div class="flex items-center gap-3 mb-2">
                     <span class="text-lg font-bold text-gray-900">
-                      {{ row.title }}
+                      {{ row.inboundId }}
                     </span>
-                    <span
-                      class="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700"
-                    >
-                      {{ row.deliveryStatus }}
-                    </span>
-                  </div>
+                  </div>                      
                 </div>
-
-                <div class="text-left text-sm flex flex-1 justify-between">
-                  <div class="mb-1">
-                    <span class="text-gray-500 mr-2">Carrier</span>
-                    <span class="text-gray-900">{{ row.carrier }}</span>
+                <div class="text-left text-sm flex items-center gap-12">
+                  <div>
+                    <span class="text-gray-500 mr-2">Create</span>
+                    <span class="text-gray-900 font-semibold">dd/mm/yyyy</span>
                   </div>
                   <div>
-                    <span class="text-gray-500 mr-2">Method</span>
-                    <span class="text-gray-900">{{ row.method }}</span>
+                    <span class="text-gray-500 mr-2">Forecasted</span>
+                    <span class="text-gray-900 font-semibold">dd/mm/yyyy</span>
                   </div>
                   <div>
-                    <span class="text-gray-500 mr-2">Method</span>
-                    <span class="text-gray-900">{{ row.method }}</span>
+                    <span class="text-gray-500 mr-2">Completed</span>
+                    <span class="text-gray-900 font-semibold">dd/mm/yyyy</span>
                   </div>
                 </div>
               </div>
-
               <div class="px-6 py-4">
                 <div
                   class="border border-gray-200 rounded-lg overflow-hidden mb-4 border-solid"
@@ -318,46 +310,37 @@
           </div>
         </template>
 
-        <template #serviceId="{ row }">
+        <template #inboundId="{ row }">
           <div class="flex items-center gap-2">
-            <span class="font-medium text-gray-900">{{ row.title }}</span>
+            <span class="font-medium text-gray-900">{{ row.inboundId }}</span>
           </div>
         </template>
 
-        <template #date="{ row }">
-          <span class="text-gray-500">{{
-            row.code?.replace("Approved Date ", "")
-          }}</span>
-        </template>
-
-        <template #type="{ row }">
-          <span class="text-gray-500">{{ row.action }}</span>
-        </template>
-
-        <template #total="{ row }">
-          <span class="text-gray-500">{{ row.statusNote }}</span>
-        </template>
-
-        <template #shipping="{ row }">
-          <span class="text-gray-500">{{ row.shipping }}</span>
-        </template>
-
-        <template #tax="{ row }">
-          <span class="text-gray-500">{{ row.tax }}</span>
-        </template>
-
-        <template #grandTotal="{ row }">
-          <span class="font-medium text-gray-900">{{ row.grandTotal }}</span>
-        </template>
-
         <template #actions="{ row }">
-          <div class="flex flex-1">
-            <el-button class="w-8 h-8" @click="handleViewDetail(row)">
-              <Icon icon="svg-icon:eye" color="#16215B"/>
-            </el-button>
-            <el-button class="w-8 h-8" @click="handleMoreActions(row)">
-              <Icon icon="svg-icon:ellipsis-vertical" color="#16215B"/>
-            </el-button>
+          <div class="flex flex-col items-center">
+            <el-popover
+              placement="bottom-start"
+              trigger="click"
+              popper-class="!p-0 !px-6 !min-w-auto !rounded-lg !w-auto"
+              :show-arrow="false"
+            >
+              <template #reference>
+                <el-button class="w-8 h-8">
+                  <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
+                </el-button>
+              </template>
+              <div class="py-2 px-1">
+                <el-button
+                  link
+                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-red-50 !px-3 !h-9"
+                >
+                  <span class="flex items-center gap-2">
+                    <Icon icon="svg-icon:headphones" />
+                    Contact Support
+                  </span>
+                </el-button>
+              </div>
+            </el-popover>
           </div>
         </template>
       </BaseTable>
@@ -371,10 +354,7 @@
       @close="detailVisible = false"
     />
 
-    <AddCredit
-      v-model:visible="addCreditVisible"
-      @success="loadData"
-    />
+    <AddCredit v-model:visible="addCreditVisible" @success="loadData" />
   </div>
   <div v-show="showHistory">
     <History ref="historyRef" @close="showHistory = false" />
@@ -407,6 +387,7 @@ import {
   getBillingRecentOrders,
   markBillingNotificationAsRead,
 } from "@/api/billing";
+import { getInboundList } from "@/api/billing/inbound";
 import { ElMessage } from "element-plus";
 import { MoreFilled } from "@element-plus/icons-vue";
 import productImage from "@/views/icon/yf.png";
@@ -467,7 +448,7 @@ const handleViewDetail = (row: any) => {
 
 const handleMoreActions = (row: any) => {
   // Logic for more actions (e.g. dropdown menu)
-  console.log('More actions for', row);
+  console.log("More actions for", row);
 };
 
 const handleAddCredit = () => {
@@ -506,14 +487,22 @@ const handleFilterSearch = (params: any) => {
 const columns = [
   { type: "selection", width: 50 },
   { type: "expand", width: 50, slot: "expand" },
-  { label: "Order ID", slot: "serviceId", width: 200 },
-  { label: "Fulfilled Date", slot: "date", width: 200 },
-  { label: "Picking", slot: "type", width: 120 },
-  { label: "Packaging", slot: "total", width: 120 },
-  { label: "Shipping", slot: "shipping", width: 120 },
-  { label: "TAX", slot: "tax", width: 120 },
-  { label: "Total", slot: "grandTotal", width: "auto" },
-  { label: "Actions", slot: "actions", width: 100, fixed: "right", align: "center" },
+  { label: "Inbound ID", slot: "inboundId", minWidth: 200 },
+  {
+    label: "Completion Date",
+    prop: "completionDate",
+    minWidth: 150,
+    align: "center",
+  },
+  { label: "Warehouse", prop: "warehouse", minWidth: 150, align: "center" },
+  { label: "Total Amount", prop: "totalAmount", minWidth: 150, align: "right" },
+  {
+    label: "Actions",
+    slot: "actions",
+    width: 80,
+    fixed: "right",
+    align: "center",
+  },
 ];
 
 // Data Logic
@@ -711,16 +700,17 @@ const onResize = () => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await getBillingRecentOrders({
+    const res = await getInboundList({
       page: page.value,
       pageSize: limit.value,
+      ...currentFilters.value,
     });
     tableData.value = res.list;
     total.value = res.total;
     await nextTick();
     updateStatsAndChart();
   } catch (error) {
-    console.error("Failed to fetch services:", error);
+    console.error("Failed to fetch inbound list:", error);
   } finally {
     loading.value = false;
   }
