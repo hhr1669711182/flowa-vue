@@ -210,92 +210,47 @@
                   class="border border-gray-200 rounded-lg overflow-hidden mb-4 border-solid"
                 >
                   <div
-                    class="grid grid-cols-4 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 text-center border-solid border-0"
+                    class="grid grid-cols-3 bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-900 text-center border-solid border-0"
                   >
                     <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
+                      class="p-3 border-r border-gray-200 border-solid border-0"
                     >
-                      Picking
+                      Pallet
                     </div>
                     <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
+                      class="p-3 border-r border-gray-200 border-solid border-0"
                     >
-                      Packaging
+                      Box
                     </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Shipping
-                    </div>
-                    <div class="p-2 border-solid border-0">Tax</div>
+                    <div class="p-3 border-solid border-0">Scan and Put Away</div>
                   </div>
 
                   <div
-                    class="grid grid-cols-8 text-xs text-gray-500 bg-gray-50 border-b border-gray-200 text-center border-solid border-0"
+                    class="grid grid-cols-9 text-xs text-gray-500 bg-gray-50 border-b border-gray-200 text-center border-solid border-0"
                   >
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      First Pick
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Additional
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Used
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Cost
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Shipping Cost
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Doc Fee
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      VAT
-                    </div>
-                    <div class="p-2 border-solid border-0">Surcharge</div>
+                    <div class="p-2 border-r border-gray-200 border-solid border-0">QTY</div>
+                    <div class="p-2 border-r border-gray-200 border-solid border-0">Price</div>
+                    <div class="p-2 border-r border-gray-200 border-solid border-0">Subtotal</div>
+                    <div class="p-2 border-r border-gray-200 border-solid border-0">QTY</div>
+                    <div class="p-2 border-r border-gray-200 border-solid border-0">Price</div>
+                    <div class="p-2 border-r border-gray-200 border-solid border-0">Subtotal</div>
+                    <div class="p-2 border-r border-gray-200 border-solid border-0">QTY</div>
+                    <div class="p-2 border-r border-gray-200 border-solid border-0">Price</div>
+                    <div class="p-2 border-solid border-0">Subtotal</div>
                   </div>
 
                   <div
-                    class="grid grid-cols-8 text-sm text-gray-900 bg-white text-center"
+                    class="grid grid-cols-9 text-sm text-gray-900 bg-white text-center"
                   >
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.pickingFirst }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.pickingAdditional }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.packagingUsed }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.packagingCost }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.shippingCost }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.docFee }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.taxVat }}
-                    </div>
-                    <div class="p-3">{{ row.taxSurcharge }}</div>
+                    <div class="p-4 border-r border-gray-200">{{ row.palletQty?.toString().padStart(2, '0') || '02' }}</div>
+                    <div class="p-4 border-r border-gray-200">{{ row.palletPrice || '$0,00' }}</div>
+                    <div class="p-4 border-r border-gray-200">{{ row.palletSubtotal || '$0,00' }}</div>
+                    <div class="p-4 border-r border-gray-200">{{ row.boxQty?.toString().padStart(2, '0') || '03' }}</div>
+                    <div class="p-4 border-r border-gray-200">{{ row.boxPrice || '$0,00' }}</div>
+                    <div class="p-4 border-r border-gray-200">{{ row.boxSubtotal || '$0,00' }}</div>
+                    <div class="p-4 border-r border-gray-200">{{ row.scanQty?.toString().padStart(2, '0') || '04' }}</div>
+                    <div class="p-4 border-r border-gray-200">{{ row.scanPrice || '$0,00' }}</div>
+                    <div class="p-4">{{ row.scanSubtotal || '$0,00' }}</div>
                   </div>
                 </div>
 
@@ -332,7 +287,7 @@
               <div class="py-2 px-1">
                 <el-button
                   link
-                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-red-50 !px-3 !h-9"
+                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !px-3 !h-9"
                 >
                   <span class="flex items-center gap-2">
                     <Icon icon="svg-icon:headphones" />

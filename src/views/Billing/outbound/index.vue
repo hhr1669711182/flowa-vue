@@ -195,9 +195,30 @@
                       {{ row.deliveryStatus }}
                     </span>
                   </div>
+                  <div class="text-xs text-gray-500 flex gap-4">
+                    <span>Create {{ row.code }}</span>
+                    <span>Fulfilled Date {{ row.code }}</span>
+                  </div>
                 </div>
 
-                <div class="text-left text-sm flex flex-1 justify-between">
+                <div class="text-left text-sm">
+                  <div class="mb-1">
+                    <span class="text-gray-500 mr-2">Tracking No</span>
+                    <a
+                      href="#"
+                      class="font-bold text-gray-900 border-b border-gray-900"
+                      >{{ row.trackingNo }}</a
+                    >
+                  </div>
+                  <div class="mb-1">
+                    <span class="text-gray-500 mr-2">Sending to</span>
+                    <span class="text-gray-900"
+                      >Narangba, 4504, QLD, Australia</span
+                    >
+                  </div>
+                </div>
+
+                <div class="text-left text-sm">
                   <div class="mb-1">
                     <span class="text-gray-500 mr-2">Carrier</span>
                     <span class="text-gray-900">{{ row.carrier }}</span>
@@ -206,14 +227,28 @@
                     <span class="text-gray-500 mr-2">Method</span>
                     <span class="text-gray-900">{{ row.method }}</span>
                   </div>
-                  <div>
-                    <span class="text-gray-500 mr-2">Method</span>
-                    <span class="text-gray-900">{{ row.method }}</span>
-                  </div>
                 </div>
               </div>
-
               <div class="px-6 py-4">
+                <div class="mb-4 flex flex-col gap-2">
+                  <div
+                    class="flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+                  >
+                    <span class="text-gray-500">Item Quantity</span>
+                    <span class="font-medium text-gray-500">{{
+                      row.itemQuantity
+                    }}</span>
+                  </div>
+                  <div
+                    class="flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+                  >
+                    <span class="text-gray-500">Charging Weight (kg)</span>
+                    <span class="font-medium text-gray-500">{{
+                      row.chargingWeight
+                    }}</span>
+                  </div>
+                </div>
+
                 <div
                   class="border border-gray-200 rounded-lg overflow-hidden mb-4 border-solid"
                 >
@@ -408,7 +443,6 @@ import {
   markBillingNotificationAsRead,
 } from "@/api/billing";
 import { ElMessage } from "element-plus";
-import { MoreFilled } from "@element-plus/icons-vue";
 import productImage from "@/views/icon/yf.png";
 
 const price = ref("$0");
@@ -416,8 +450,8 @@ const editVisible = ref(false);
 const progressItems = ref<any[]>([]);
 const notifications = ref<any[]>([]);
 const recentOrders = ref<any[]>([]);
-
 const showHistory = ref(false);
+
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);

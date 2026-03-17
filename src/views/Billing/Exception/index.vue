@@ -182,11 +182,9 @@
         @pagination-change="fetchData"
       >
         <template #expand="{ row }">
-           <div class="py-4 px-6 bg-#F7F7F7">
+          <div class="py-4 px-6 bg-#F7F7F7">
             <div class="bg-#fff rounded-lg border border-gray-200">
-              <div
-                class="grid grid-cols-2 items-center px-6 py-6"
-              >
+              <div class="grid grid-cols-2 items-center px-6 py-6">
                 <div class="text-left text-sm">
                   <div class="flex items-center gap-3 mb-2">
                     <span class="text-lg font-bold text-gray-900">
@@ -199,7 +197,12 @@
                     </span>
                   </div>
                   <div class="text-xs text-gray-500 flex gap-4">
-                    <span>Tracking No <span class="font-bold text-gray-900 underline ml-1">{{ row.trackingNo }}</span></span>
+                    <span
+                      >Tracking No
+                      <span class="font-bold text-gray-900 underline ml-1">{{
+                        row.trackingNo
+                      }}</span></span
+                    >
                   </div>
                 </div>
 
@@ -242,14 +245,46 @@
 
         <template #actions="{ row }">
           <div class="flex flex-1">
-            <el-button class="w-8 h-8" @click="handleMoreActions(row)">
+            <el-popover
+              placement="bottom-start"
+              trigger="click"
+              popper-class="!p-0 !px-6 !min-w-auto !rounded-lg !w-auto"
+              :show-arrow="false"
+            >
+              <template #reference>
+                <el-button class="w-8 h-8">
+                  <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
+                </el-button>
+              </template>
+              <div class="py-2 px-1">
+                <el-button
+                  link
+                  class="!text-blue-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !h-9"
+                >
+                  <span class="flex justify-center items-center gap-2">
+                    <Icon icon="svg-icon:shopping-cart" />
+                    View Order
+                  </span>
+                </el-button>
+                <el-button
+                  link
+                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !h-9"
+                >
+                  <span class="flex justify-center items-center gap-2">
+                    <Icon icon="svg-icon:headphones" />
+                    Contact Support
+                  </span>
+                </el-button>
+              </div>
+            </el-popover>
+            <!-- <el-button class="w-8 h-8" @click="handleMoreActions(row)">
               <Icon
                 icon="gravity-ui:ellipsis-vertical"
                 width="16"
                 height="16"
                 style="color: #16215b"
               />
-            </el-button>
+            </el-button> -->
           </div>
         </template>
       </BaseTable>

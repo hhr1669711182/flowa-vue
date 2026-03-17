@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="products h-full flex flex-col">
+  <div class="products h-full flex flex-col" v-show="!showHistory">
     <div class="flex justify-between items-center mb-4 flex-shrink-0">
       <div>
         <div class="flex items-center gap-1 line-height-22px">
@@ -7,17 +7,17 @@
           <div class="text-#9A9A9A text-20px pt-1">/Services</div>
         </div>
         <div class="text-14px text-#6B6B6B">
-          View charges related to operational services performed by Flowa.
+         View charges related to operational services performed by Flowa.
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <el-button type="default" size="large">
+        <el-button type="default" size="large" @click="showHistory = true">
           <span class="flex items-center gap-1">
             <Icon icon="svg-icon:file-dollar" color="#16215B" />
             <span class="text-16px text-#16215B">Transaction History</span>
           </span>
         </el-button>
-        <el-button type="primary" size="large">
+        <el-button type="primary" size="large" @click="handleAddCredit">
           <span class="flex items-center gap-1">
             <Icon icon="svg-icon:circle-dollar" color="#fff" />
             <span>Recharge Credit</span>
@@ -137,7 +137,9 @@
         </div>
       </div>
 
-      <div class="card position-relative w-full animate__animated animate__fadeInUp">
+      <div
+        class="card position-relative w-full animate__animated animate__fadeInUp"
+      >
         <div
           class="flex items-center justify-between mb-2 p-6 position-absolute w-full box-border"
         >
@@ -175,38 +177,137 @@
         v-model:limit="limit"
         @pagination-change="fetchData"
       >
-        <template #serviceId="{ row }">
-          <div class="flex items-center gap-2">
-            <div
-              class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100"
-            >
-              <Icon
-                icon="svg-icon:document-text"
-                class="text-gray-500 w-4 h-4"
-              />
+        <template #expand="{ row }">
+          <div class="py-4 px-6 bg-#F7F7F7">
+            <div class="bg-#fff rounded-lg border border-gray-200">
+              <div
+                class="flex justify-between items-start px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+              >
+                <div>
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="text-lg font-bold text-gray-900">
+                      {{ row.serviceId }}
+                    </span>
+                  </div>
+                  <div class="text-xs text-gray-500 flex gap-4">
+                    <span>Type <span class="font-medium text-gray-900">{{ row.typeDescription }}</span></span>
+                  </div>
+                </div>
+
+                <div class="text-left text-sm">
+                  <div class="mb-1">
+                    <span class="text-gray-500 mr-2">Approved Date</span>
+                    <span class="text-gray-900">{{ row.approvedDate }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500 mr-2">Approved By</span>
+                    <span class="text-gray-900">{{ row.approvedBy }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="px-6 py-4">
+                <div class="mb-4 flex flex-col gap-2">
+                  <div
+                    class="flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+                  >
+                    <span class="text-gray-500">Price</span>
+                    <span class="font-medium text-gray-500">{{
+                      row.price
+                    }}</span>
+                  </div>
+                  <div
+                    class="flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+                  >
+                    <span class="text-gray-500">UOM</span>
+                    <span class="font-medium text-gray-500">{{
+                      row.uom
+                    }}</span>
+                  </div>
+                  <div
+                    class="flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+                  >
+                    <span class="text-gray-500">Quantity</span>
+                    <span class="font-medium text-gray-500">{{
+                      row.quantity
+                    }}</span>
+                  </div>
+                  <div
+                    class="flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+                  >
+                    <span class="text-gray-500">Subtotal</span>
+                    <span class="font-medium text-gray-500">{{
+                      row.subtotal
+                    }}</span>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-center">
+                  <span class="text-lg font-bold text-gray-900">Total VAT</span>
+                  <span class="text-lg font-bold text-gray-900">{{
+                    row.totalVat
+                  }}</span>
+                </div>
+              </div>
             </div>
-            <span class="font-medium text-gray-900">{{ row.title }}</span>
           </div>
         </template>
 
-        <template #date="{ row }">
-          <span class="text-gray-500">{{
-            row.code?.replace("Approved Date ", "")
-          }}</span>
+        <template #serviceId="{ row }">
+          <div class="flex items-center gap-2">
+            <span class="font-medium text-gray-900">{{ row.serviceId }}</span>
+          </div>
+        </template>
+
+        <template #approvedDate="{ row }">
+          <span class="text-gray-500">{{ row.approvedDate }}</span>
         </template>
 
         <template #type="{ row }">
-          <span class="text-gray-500">{{ row.action }}</span>
+          <span class="text-gray-500">{{ row.type }}</span>
         </template>
 
         <template #total="{ row }">
-          <span class="font-medium text-gray-900">{{ row.statusNote }}</span>
+          <span class="text-gray-500">{{ row.total }}</span>
+        </template>
+
+        <template #shipping="{ row }">
+          <span class="text-gray-500">{{ row.shipping }}</span>
+        </template>
+
+        <template #tax="{ row }">
+          <span class="text-gray-500">{{ row.tax }}</span>
+        </template>
+
+        <template #grandTotal="{ row }">
+          <span class="font-medium text-gray-900">{{ row.grandTotal }}</span>
         </template>
 
         <template #actions="{ row }">
-          <el-button link>
-            <el-icon><MoreFilled /></el-icon>
-          </el-button>
+          <div class="flex flex-col items-center">
+            <el-popover
+              placement="bottom-start"
+              trigger="click"
+              popper-class="!p-0 !px-6 !min-w-auto !rounded-lg !w-auto"
+              :show-arrow="false"
+            >
+              <template #reference>
+                <el-button class="w-8 h-8">
+                  <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
+                </el-button>
+              </template>
+              <div class="py-2 px-1">
+                <el-button
+                  link
+                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !px-3 !h-9"
+                >
+                  <span class="flex items-center gap-2">
+                    <Icon icon="svg-icon:headphones" />
+                    Contact Support
+                  </span>
+                </el-button>
+              </div>
+            </el-popover>
+          </div>
         </template>
       </BaseTable>
     </div>
@@ -218,6 +319,14 @@
       @delete="fetchData"
       @close="detailVisible = false"
     />
+
+    <AddCredit
+      v-model:visible="addCreditVisible"
+      @success="loadData"
+    />
+  </div>
+  <div v-show="showHistory">
+    <History ref="historyRef" @close="showHistory = false" />
   </div>
 </template>
 
@@ -238,15 +347,17 @@ import {
 import * as echarts from "echarts";
 import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
-import { exportInventoryProducts, getInventoryProducts } from "@/api/inventory";
+import AddCredit from "./components/addCredit.vue";
+import History from "./components/History.vue";
 import {
   getOutboundStats,
   getBillingNotifications,
   getBillingRecentOrders,
   markBillingNotificationAsRead,
 } from "@/api/billing";
+import { exportInventoryProducts, getInventoryProducts } from "@/api/inventory";
+import { getServicesList } from "@/api/billing/services";
 import { ElMessage } from "element-plus";
-import { MoreFilled } from "@element-plus/icons-vue";
 import productImage from "@/views/icon/yf.png";
 
 const price = ref("$0");
@@ -254,10 +365,13 @@ const editVisible = ref(false);
 const progressItems = ref<any[]>([]);
 const notifications = ref<any[]>([]);
 const recentOrders = ref<any[]>([]);
+const showHistory = ref(false);
 
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
+// Add Credit State
+const addCreditVisible = ref(false);
 
 const getIconComponent = (type: string) => {
   const map: Record<string, any> = {
@@ -286,7 +400,7 @@ const loadData = async () => {
       icon: getIconComponent(n.iconType),
     }));
 
-    recentOrders.value = ordersRes.map((o) => ({
+    recentOrders.value = ordersRes.list.map((o) => ({
       ...o,
       image: o.image.includes("placeholder") ? productImage : o.image,
     }));
@@ -295,14 +409,18 @@ const loadData = async () => {
   }
 };
 
-const handleAddProduct = () => {
-  currentProductId.value = undefined;
+const handleViewDetail = (row: any) => {
+  currentProductId.value = row.id;
   detailVisible.value = true;
 };
 
-const handleEditProduct = (row: any) => {
-  currentProductId.value = row.id;
-  detailVisible.value = true;
+const handleMoreActions = (row: any) => {
+  // Logic for more actions (e.g. dropdown menu)
+  console.log('More actions for', row);
+};
+
+const handleAddCredit = () => {
+  addCreditVisible.value = true;
 };
 
 const handleImport = async () => {
@@ -334,14 +452,14 @@ const handleFilterSearch = (params: any) => {
   fetchData();
 };
 
-// Table Configuration
 const columns = [
   { type: "selection", width: 50 },
-  { label: "Service ID", slot: "serviceId", width: 200 },
-  { label: "Approved Date", slot: "date", width: 200 },
-  { label: "Type", slot: "type", width: 200 },
-  { label: "Total", slot: "total", width: "auto" },
-  { label: "Actions", slot: "actions", width: 100, fixed: "right" },
+  { type: "expand", width: 50, slot: "expand" },
+  { label: "Service ID", slot: "serviceId", minWidth: 200 },
+  { label: "Approved Date", slot: "approvedDate", minWidth: 150 },
+  { label: "Type", slot: "type", minWidth: 150 },
+  { label: "Total", slot: "total", minWidth: 150 },
+  { label: "Actions", slot: "actions", width: 80, fixed: "right", align: "center" },
 ];
 
 // Data Logic
@@ -539,13 +657,17 @@ const onResize = () => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await getBillingRecentOrders();
-    tableData.value = res;
-    total.value = res.length;
+    const res = await getServicesList({
+      page: page.value,
+      pageSize: limit.value,
+      ...currentFilters.value,
+    });
+    tableData.value = res.list;
+    total.value = res.total;
     await nextTick();
     updateStatsAndChart();
   } catch (error) {
-    console.error("Failed to fetch services:", error);
+    console.error("Failed to fetch services list:", error);
   } finally {
     loading.value = false;
   }

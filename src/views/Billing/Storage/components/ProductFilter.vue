@@ -3,7 +3,7 @@
     <div class="py-2 flex items-center gap-3">
       <el-input
         v-model="searchForm.sku"
-        placeholder="Search by Order ID, Platform ID, SKU..."
+        placeholder="Search by SKU..."
         clearable
         class="!w-80"
         @keyup.enter="handleSearch"
@@ -14,6 +14,7 @@
         </template>
       </el-input>
       <el-date-picker
+        class="!w-66"
         v-model="filters.range"
         type="daterange"
         range-separator="to"
@@ -21,22 +22,19 @@
         end-placeholder="End date"
         @change="handleSearch"
       />
-      <el-select 
-        v-model="filters.type" 
-        class="!w-50 custom-select" 
-        placeholder="Service Type"
+      <!-- <el-select 
+        v-model="filters.stock" 
+        class="!w-50" 
+        placeholder="Exception Fee"
         @change="handleSearch"
       >
-        
-        <el-option label="Service Type" value="Service Type" />
-        <el-option label="Other" value="Other" />
-      </el-select>
-      
-      <div class="flex-1"></div>
-
+        <el-option label="All" value="all" />
+        <el-option label="Low" value="low" />
+        <el-option label="Out of stock" value="out" />
+      </el-select> -->
       <el-button plain @click="doDownloadTable">
         <span class="flex items-center gap-2">
-          <Icon icon="svg-icon:arrow-down-to-square" color="#000"/>
+          <Icon icon="svg-icon:arrow-down-to-square" color="#000" />
           <span class="text-[#000]">Download Table</span>
         </span>
       </el-button>
@@ -45,57 +43,50 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
-import { exportOutboundBilling } from '@/api/billing/outbound'
-import { ElMessage } from 'element-plus'
-import { Icon } from "@iconify/vue";
+import { reactive } from "vue";
+import { exportOutboundBilling } from "@/api/billing/outbound";
+import { ElMessage } from "element-plus";
 
-const emit = defineEmits(['search'])
+const emit = defineEmits(["search"]);
 
 const searchForm = reactive({
+  name: "",
+  category: "",
   sku: "",
-})
+});
 
 const filters = reactive({
-  type: "Service Type",
-  range: [],
-})
+  lastDays: "7",
+  range: "",
+  stock: "all",
+  qty: "all",
+});
 
 const getSearchParams = () => {
   return {
     ...searchForm,
     ...filters,
-  }
-}
+  };
+};
 
 const handleSearch = () => {
-  emit('search', getSearchParams())
-}
+  emit("search", getSearchParams());
+};
 
 const doDownloadTable = async () => {
   try {
     const res = await exportOutboundBilling(getSearchParams());
     if (res?.url) {
-      window.open(res.url, '_blank');
-      ElMessage.success('Export started successfully');
+      window.open(res.url, "_blank");
+      ElMessage.success("Export started successfully");
     }
   } catch (error) {
-    console.error('Export failed:', error);
-    ElMessage.error('Export failed');
+    console.error("Export failed:", error);
+    ElMessage.error("Export failed");
   }
-}
+};
 
 defineExpose({
-  getSearchParams
-})
+  getSearchParams,
+});
 </script>
-
-<style scoped>
-:deep(.custom-select .el-input__wrapper) {
-  border-radius: 9999px;
-  box-shadow: 0 0 0 1px #a855f7 inset !important;
-}
-:deep(.custom-select .el-input__inner) {
-  color: #111;
-}
-</style>
