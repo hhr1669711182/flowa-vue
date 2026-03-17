@@ -188,7 +188,7 @@
                     <span class="text-lg font-bold text-gray-900">
                       {{ row.inboundId }}
                     </span>
-                  </div>                      
+                  </div>
                 </div>
                 <div class="text-left text-sm flex items-center gap-12">
                   <div>
@@ -222,35 +222,85 @@
                     >
                       Box
                     </div>
-                    <div class="p-3 border-solid border-0">Scan and Put Away</div>
+                    <div class="p-3 border-solid border-0">
+                      Scan and Put Away
+                    </div>
                   </div>
 
                   <div
                     class="grid grid-cols-9 text-xs text-gray-500 bg-gray-50 border-b border-gray-200 text-center border-solid border-0"
                   >
-                    <div class="p-2 border-r border-gray-200 border-solid border-0">QTY</div>
-                    <div class="p-2 border-r border-gray-200 border-solid border-0">Price</div>
-                    <div class="p-2 border-r border-gray-200 border-solid border-0">Subtotal</div>
-                    <div class="p-2 border-r border-gray-200 border-solid border-0">QTY</div>
-                    <div class="p-2 border-r border-gray-200 border-solid border-0">Price</div>
-                    <div class="p-2 border-r border-gray-200 border-solid border-0">Subtotal</div>
-                    <div class="p-2 border-r border-gray-200 border-solid border-0">QTY</div>
-                    <div class="p-2 border-r border-gray-200 border-solid border-0">Price</div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      QTY
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Price
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Subtotal
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      QTY
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Price
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Subtotal
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      QTY
+                    </div>
+                    <div
+                      class="p-2 border-r border-gray-200 border-solid border-0"
+                    >
+                      Price
+                    </div>
                     <div class="p-2 border-solid border-0">Subtotal</div>
                   </div>
 
                   <div
                     class="grid grid-cols-9 text-sm text-gray-900 bg-white text-center"
                   >
-                    <div class="p-4 border-r border-gray-200">{{ row.palletQty?.toString().padStart(2, '0') || '02' }}</div>
-                    <div class="p-4 border-r border-gray-200">{{ row.palletPrice || '$0,00' }}</div>
-                    <div class="p-4 border-r border-gray-200">{{ row.palletSubtotal || '$0,00' }}</div>
-                    <div class="p-4 border-r border-gray-200">{{ row.boxQty?.toString().padStart(2, '0') || '03' }}</div>
-                    <div class="p-4 border-r border-gray-200">{{ row.boxPrice || '$0,00' }}</div>
-                    <div class="p-4 border-r border-gray-200">{{ row.boxSubtotal || '$0,00' }}</div>
-                    <div class="p-4 border-r border-gray-200">{{ row.scanQty?.toString().padStart(2, '0') || '04' }}</div>
-                    <div class="p-4 border-r border-gray-200">{{ row.scanPrice || '$0,00' }}</div>
-                    <div class="p-4">{{ row.scanSubtotal || '$0,00' }}</div>
+                    <div class="p-4 border-r border-gray-200">
+                      {{ row.palletQty?.toString().padStart(2, "0") || "02" }}
+                    </div>
+                    <div class="p-4 border-r border-gray-200">
+                      {{ row.palletPrice || "$0,00" }}
+                    </div>
+                    <div class="p-4 border-r border-gray-200">
+                      {{ row.palletSubtotal || "$0,00" }}
+                    </div>
+                    <div class="p-4 border-r border-gray-200">
+                      {{ row.boxQty?.toString().padStart(2, "0") || "03" }}
+                    </div>
+                    <div class="p-4 border-r border-gray-200">
+                      {{ row.boxPrice || "$0,00" }}
+                    </div>
+                    <div class="p-4 border-r border-gray-200">
+                      {{ row.boxSubtotal || "$0,00" }}
+                    </div>
+                    <div class="p-4 border-r border-gray-200">
+                      {{ row.scanQty?.toString().padStart(2, "0") || "04" }}
+                    </div>
+                    <div class="p-4 border-r border-gray-200">
+                      {{ row.scanPrice || "$0,00" }}
+                    </div>
+                    <div class="p-4">{{ row.scanSubtotal || "$0,00" }}</div>
                   </div>
                 </div>
 
@@ -276,7 +326,7 @@
             <el-popover
               placement="bottom-start"
               trigger="click"
-              popper-class="!p-0 !px-6 !min-w-auto !rounded-lg !w-auto"
+              popper-class="!p-0 !px-2 !min-w-auto !rounded-lg !w-auto"
               :show-arrow="false"
             >
               <template #reference>
@@ -284,12 +334,21 @@
                   <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
                 </el-button>
               </template>
-              <div class="py-2 px-1">
+              <div class="py-2 px-1 flex flex-col">
                 <el-button
                   link
-                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !px-3 !h-9"
+                  class="!text-blue-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !h-9 !px-2"
                 >
-                  <span class="flex items-center gap-2">
+                  <span class="flex justify-center items-center gap-2">
+                    <Icon icon="svg-icon:shopping-cart" />
+                    View Order
+                  </span>
+                </el-button>
+                <el-button
+                  link
+                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !h-9 !ml0 !px2"
+                >
+                  <span class="flex justify-center items-center gap-2">
                     <Icon icon="svg-icon:headphones" />
                     Contact Support
                   </span>

@@ -19,16 +19,11 @@ interface UserState {
 export const useUserStore = defineStore('user', {
   state: (): UserState => {
     return {
-      userInfo: {
-        username: '111',
-        password: '',
-        role: '',
-        roleId: ''
-      },
+      userInfo: undefined,
       tokenKey: 'sso_token',
-      token: 'SSO:TOKEN:LOGIN_NAME:D8FFC0D8CE8926AA41E8D9F03BA1D926',
+      token: localStorage.getItem('token') || '',
       roleRouters: undefined,
-      rememberMe: true,
+      rememberMe: false,
       loginInfo: undefined
     }
   },
@@ -83,7 +78,8 @@ export const useUserStore = defineStore('user', {
     reset() {
       const tagsViewStore = useTagsViewStore()
       tagsViewStore.delAllViews()
-      // this.setToken('')
+      this.setToken('')
+      localStorage.removeItem('token')
       this.setUserInfo(undefined)
       this.setRoleRouters([])
       router.replace('/login')

@@ -129,9 +129,16 @@
           </div>
         </template>
         <template #details="{ row }">
-          <span class="text-xs text-gray-500"
-            >{{ row.name }} · {{ row.category }}</span
+          <el-tooltip
+            effect="dark"
+            :content="`${row.name} · ${row.category}`"
+            placement="top"
+            :disabled="!row.name && !row.category"
           >
+            <span class="text-xs text-gray-500 text-ellipsis whitespace-nowrap"
+              >{{ row.name }} · {{ row.category }}</span
+            >
+          </el-tooltip>
         </template>
         <template #incoming>
           <span>50</span>
@@ -161,14 +168,42 @@
           <span>{{ String(row.price).replace("¥", "$ ") }}</span>
         </template>
         <template #actions="{ row }">
-          <el-button
-            link
-            type="primary"
-            size="small"
-            @click="handleEditProduct(row)"
-            >Edit</el-button
-          >
-          <el-button link type="primary" size="small">More</el-button>
+          <div class="flex flex-1">
+            <el-button class="w-8 h-8" @click="handleEditProduct(row)">
+              <Icon icon="svg-icon:eye" color="#16215B" />
+            </el-button>
+            <el-popover
+              placement="bottom-start"
+              trigger="click"
+              popper-class="!p-0 !px-2 !min-w-auto !rounded-lg !w-auto"
+              :show-arrow="false"
+            >
+              <template #reference>
+                <el-button class="w-8 h-8">
+                  <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
+                </el-button>
+              </template>
+              <div class="py-2 px-1 flex flex-col">
+                <el-button
+                  v-for="action in rowActions"
+                  :key="action.key"
+                  link
+                  :class="[
+                    'row-action-btn',
+                    action.tone === 'danger'
+                      ? 'row-action-btn-danger'
+                      : 'row-action-btn-primary',
+                  ]"
+                  @click="handleRowAction(action.key, row)"
+                >
+                  <span class="flex justify-center items-center gap-2">
+                    <Icon :icon="action.icon" />
+                    {{ action.label }}
+                  </span>
+                </el-button>
+              </div>
+            </el-popover>
+          </div>
         </template>
       </BaseTable>
     </div>
@@ -191,6 +226,7 @@ import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
 import { exportInventoryProducts, getInventoryProducts } from "@/api/inventory";
 import { ElMessage } from "element-plus";
+import { createHeaderHintRenderer } from "../../components/common/TableHeaderHint";
 
 // Product Detail State
 const detailVisible = ref(false);
@@ -218,6 +254,59 @@ const handleImport = async () => {
   }
 };
 
+const rowActions = [
+  {
+    key: "view",
+    label: "View",
+    icon: "svg-icon:eye",
+    tone: "primary",
+  },
+  {
+    key: "edit",
+    label: "Edit",
+    icon: "svg-icon:pencil",
+    tone: "primary",
+  },
+  {
+    key: "export",
+    label: "Export/Print",
+    icon: "svg-icon:printer",
+    tone: "primary",
+  },
+  {
+    key: "support",
+    label: "Contact Support",
+    icon: "svg-icon:headphones",
+    tone: "danger",
+  },
+  {
+    key: "delete",
+    label: "Delete",
+    icon: "svg-icon:trash-bin",
+    tone: "danger",
+  },
+];
+
+const handleRowAction = (action: string, row: any) => {
+  switch (action) {
+    case "view":
+    case "edit":
+      handleEditProduct(row);
+      break;
+    case "export":
+      handleImport();
+      break;
+    case "support":
+      ElMessage.info(`Contact support for SKU ${row.id}`);
+      break;
+    case "delete":
+      ElMessage.warning(`Delete action for SKU ${row.id}`);
+      break;
+    default:
+      break;
+  }
+};
+
 const handleSaveProduct = async (data: any) => {
   // Mock save logic
   console.log("Saved:", data);
@@ -241,12 +330,52 @@ const columns = [
   { type: "expand", width: 50, slot: "expand" },
   { label: "Product / SKU ID", slot: "product", width: 260 },
   { label: "Details", slot: "details" },
-  { label: "Incoming", slot: "incoming", width: 120 },
-  { label: "Reserved", slot: "reserved", width: 120 },
-  { label: "Available", slot: "available", width: 120 },
-  { label: "Total", slot: "total", width: 120 },
-  { label: "COG", slot: "cog", width: 140 },
-  { label: "Actions", slot: "actions", width: 120, fixed: "right" },
+  {
+    label: "Incoming",
+    slot: "incoming",
+    width: 110,
+    align: "center",
+    headerRender: createHeaderHintRenderer(
+      "50 units are currently being received or processed in the warehouse but are not yet available for fulfillment.",
+    ),
+  },
+  {
+    label: "Reserved",
+    slot: "reserved",
+    width: 110,
+    align: "center",
+    headerRender: createHeaderHintRenderer(
+      "50 units are currently reserved for sale but not yet available for purchase.",
+    ),
+  },
+  {
+    label: "Available",
+    slot: "available",
+    width: 110,
+    align: "center",
+    headerRender: createHeaderHintRenderer(
+      "50 units are available for purchase.",
+    ),
+  },
+  {
+    label: "Total",
+    slot: "total",
+    width: 80,
+    align: "center",
+    headerRender: createHeaderHintRenderer(
+      "Total stock quantity, including incoming, reserved, and available units.",
+    ),
+  },
+  {
+    label: "COG",
+    slot: "cog",
+    width: 80,
+    align: "center",
+    headerRender: createHeaderHintRenderer(
+      "Cost of Goods Sold (COG) is the total cost of the goods that have been sold.",
+    ),
+  },
+  { label: "Actions", slot: "actions", width: 100, fixed: "right" },
 ];
 
 // Data Logic
@@ -490,5 +619,26 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   background: linear-gradient(131deg, #16215b 26.84%, #0a123c 98.1%);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+}
+
+.row-action-btn {
+  width: 100% !important;
+  justify-content: flex-start !important;
+  height: 36px !important;
+  padding: 0 8px !important;
+  font-weight: 600 !important;
+  margin-left: 0px !important;
+}
+
+.row-action-btn:hover {
+  background: #f4f6fa !important;
+}
+
+.row-action-btn-primary {
+  color: #2563eb !important;
+}
+
+.row-action-btn-danger {
+  color: #dc2626 !important;
 }
 </style>

@@ -14,10 +14,10 @@ export const filterBreadcrumb = (
 
     const data: AppRouteRecordRaw =
       !meta.alwaysShow && route.children?.length === 1
-        ? { ...route.children[0], path: pathResolve(route.path, route.children[0].path) }
-        : { ...route }
+        ? { ...route.children[0], path: pathResolve(route.path, route.children[0]?.path || '') } as AppRouteRecordRaw
+        : { ...route } as AppRouteRecordRaw
 
-    data.path = pathResolve(parentPath, data.path)
+    data.path = pathResolve(parentPath, data.path || '')
 
     if (data.children) {
       data.children = filterBreadcrumb(data.children, data.path)

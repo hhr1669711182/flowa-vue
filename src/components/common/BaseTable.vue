@@ -63,17 +63,34 @@
           </el-table-column>
         </template>
 
-        <el-table-column v-else-if="col.slot" v-bind="col">
-          <template #default="scope">
+        <el-table-column v-else v-bind="col">
+          <template v-if="col.headerSlot || col.headerRender" #header="scope">
+            <RenderVNode
+              v-if="col.headerSlot"
+              :render-fn="getHeaderSlotRender(col.headerSlot)"
+              :scope="{ column: scope.column, index: scope.$index }"
+            />
+            <RenderVNode
+              v-else-if="col.headerRender"
+              :render-fn="col.headerRender"
+              :scope="scope"
+            />
+          </template>
+
+          <template v-if="col.slot || col.render" #default="scope">
             <slot
+              v-if="col.slot"
               :name="col.slot"
               :row="scope.row"
               :index="scope.$index"
             ></slot>
+            <RenderVNode
+              v-else-if="col.render"
+              :render-fn="col.render"
+              :scope="scope"
+            />
           </template>
         </el-table-column>
-
-        <el-table-column v-else v-bind="col" />
       </template>
     </el-table>
 
@@ -96,7 +113,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import {
+  ref,
+  computed,
+  defineComponent,
+  h,
+  useSlots,
+  type PropType,
+} from "vue";
 
 defineOptions({
   inheritAttrs: false,
@@ -107,9 +131,12 @@ interface Column {
   label?: string;
   width?: string | number;
   slot?: string;
+  headerSlot?: string;
   type?: string;
   icon?: string;
   color?: string;
+  render?: (scope: any) => any;
+  headerRender?: (scope: any) => any;
   [key: string]: any;
 }
 
@@ -132,6 +159,29 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits(["update:page", "update:limit", "pagination-change"]);
+const slots = useSlots();
+
+const getHeaderSlotRender = (slotName: string) => {
+  return (scope: any) => slots[slotName]?.(scope);
+};
+
+const RenderVNode = defineComponent({
+  name: "RenderVNode",
+  props: {
+    renderFn: {
+      type: Function as PropType<(scope: any) => any>,
+      required: false,
+    },
+    scope: {
+      type: Object as PropType<any>,
+      required: true,
+    },
+  },
+  setup(props) {
+    return () =>
+      props.renderFn ? h("span", props.renderFn(props.scope)) : h("span");
+  },
+});
 
 const tableRef = ref();
 const expandedRows = ref<any[]>([]);
@@ -179,6 +229,15 @@ const handleCurrentChange = (val: number) => {
 
 .base-table :deep(.el-table__row:hover > td.el-table__cell) {
   background-color: var(--el-table-row-hover-bg-color);
+}
+
+.base-table :deep(.el-scrollbar__bar) {
+  opacity: 0 !important;
+  transition: opacity 0.2s ease;
+}
+
+.base-table:hover :deep(.el-scrollbar__bar) {
+  opacity: 1 !important;
 }
 
 /* Hide the ghost expand column's cell content and header */

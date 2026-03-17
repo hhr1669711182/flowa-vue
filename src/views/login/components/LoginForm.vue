@@ -42,12 +42,14 @@ import {
   clearRememberCredentials
 } from '@/utils/storage'
 import { tryBrowserCredentialStore } from '@/utils/storage'
+import { useUserStore } from '@/store/modules/user'
 
 const emit = defineEmits<{
   (e: 'forgot'): void
   (e: 'signup'): void
 }>()
 const formRef = ref()
+const userStore = useUserStore()
 const { send: sendLogin, loading } = useRequest(
   (payload: { email: string; password: string; remember?: boolean }) => login(payload),
   { immediate: false }
@@ -70,6 +72,18 @@ const submit = async () => {
       const res = await sendLogin({ email: form.email, password: form.password, remember: form.remember })
       if ('token' in res) {
         localStorage.setItem('token', res.token)
+        userStore.setToken(res.token)
+        userStore.setRememberMe(!!form.remember)
+        userStore.setLoginInfo({ username: form.email, password: form.password })
+        userStore.setUserInfo({
+          id: res.user.id,
+          name: res.user.name,
+          email: res.user.email,
+          username: res.user.name || form.email,
+          password: '',
+          role: res.user.role,
+          roleId: res.user.role
+        })
         if (form.remember) {
           await saveRememberCredentials({ email: form.email, password: form.password })
           await tryBrowserCredentialStore(form.email, form.password)

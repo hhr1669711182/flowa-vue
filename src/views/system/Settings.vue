@@ -302,7 +302,9 @@
           </el-select>
         </div>
 
-        <div class="flex-1 min-h-0 bg-white rounded-xl border border-t-0 border-gray-100 overflow-hidden">
+        <div
+          class="flex-1 min-h-0 bg-white rounded-xl border border-t-0 border-gray-100 overflow-hidden"
+        >
           <BaseTable
             :data="operationLogs"
             :columns="logColumns"
@@ -324,7 +326,9 @@
               </div>
             </template>
             <template #date="{ row }">
-              <div class="text-xs text-gray-500 whitespace-pre-line text-center">
+              <div
+                class="text-xs text-gray-500 whitespace-pre-line text-center"
+              >
                 {{ row.date }}
               </div>
             </template>
@@ -494,17 +498,39 @@ const pagination = reactive({
 });
 
 const logColumns = [
-  { prop: 'id', label: 'ID', width: 60, align: 'center' },
-  { prop: 'sku', label: 'SKU', width: 120, className: 'font-medium' },
-  { prop: 'actionInfo', label: 'Action Info', minWidth: 200, slot: 'actionInfo' },
-  { prop: 'operationDetails', label: 'Operation Details', minWidth: 200, slot: 'operationDetails' },
-  { prop: 'operator', label: 'Operator', width: 100, align: 'center', className: 'font-bold text-gray-900' },
-  { prop: 'date', label: 'Date', width: 120, align: 'center', slot: 'date' },
+  { prop: "id", label: "ID", width: 60, align: "center" },
+  { prop: "sku", label: "SKU", width: 120, className: "font-medium" },
+  {
+    prop: "actionInfo",
+    label: "Action Info",
+    minWidth: 200,
+    slot: "actionInfo",
+  },
+  {
+    prop: "operationDetails",
+    label: "Operation Details",
+    minWidth: 200,
+    slot: "operationDetails",
+  },
+  {
+    prop: "operator",
+    label: "Operator",
+    width: 100,
+    align: "center",
+    className: "font-bold text-gray-900",
+  },
+  { prop: "date", label: "Date", width: 120, align: "center", slot: "date" },
 ];
 
 // --- Initialization & Watchers ---
 onMounted(() => {
   fetchGeneralSettings();
+
+  activeTab.value = (route.query.tab as string) || "Profile";
+});
+
+onActivated(() => {
+  activeTab.value = (route.query.tab as string) || "Profile";
 });
 
 watch(activeTab, (val) => {

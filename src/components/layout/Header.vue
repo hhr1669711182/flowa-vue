@@ -78,14 +78,14 @@
             :size="32"
             class="mr-2 bg-gradient-to-br from-primary to-blue-600 text-white font-semibold shadow-sm"
           >
-            A
+            {{ avatarInitial }}
           </el-avatar>
           <div class="hidden sm:flex flex-col items-start mr-2">
             <span class="text-sm font-semibold text-gray-700 leading-tight"
-              >Admin User</span
+              >{{ displayName }}</span
             >
             <span class="text-xs text-gray-500 leading-tight"
-              >Administrator</span
+              >{{ displayRole }}</span
             >
           </div>
           <el-icon class="hidden sm:block text-gray-400"
@@ -95,8 +95,8 @@
         <template #dropdown>
           <el-dropdown-menu class="w-48">
             <div class="px-4 py-2 border-b border-gray-50 mb-1">
-              <p class="text-sm font-medium text-gray-800">Admin User</p>
-              <p class="text-xs text-gray-500">admin@flowa.com</p>
+              <p class="text-sm font-medium text-gray-800">{{ displayName }}</p>
+              <p class="text-xs text-gray-500">{{ displayEmail }}</p>
             </div>
             <el-dropdown-item command="profile">
               <el-icon><User /></el-icon>Profile
@@ -117,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import {
   Bell,
@@ -130,8 +130,10 @@ import {
 import messageAll from "./messageAll.vue";
 import SearchPopover from "../common/searchPopover.vue";
 import { getSearchResults, type SearchResult } from "@/api/common";
+import { useUserStore } from "@/store/modules/user";
 
 const router = useRouter();
+const userStore = useUserStore();
 const searchText = ref("");
 const searchVisible = ref(false);
 const searchResults = ref<SearchResult[]>([]);
@@ -139,6 +141,19 @@ const searchLoading = ref(false);
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
 const drawerVisible = ref(false);
+const displayName = computed(() => {
+  return userStore.getUserInfo?.name || userStore.getUserInfo?.username || "Admin User";
+});
+const displayEmail = computed(() => {
+  return userStore.getUserInfo?.email || userStore.getLoginInfo?.username || "admin@flowa.com";
+});
+const displayRole = computed(() => {
+  return userStore.getUserInfo?.role || "Administrator";
+});
+const avatarInitial = computed(() => {
+  const name = displayName.value || "";
+  return name.slice(0, 1).toUpperCase() || "A";
+});
 
 const handleSearch = (val: string) => {
   if (!val) {
@@ -172,17 +187,16 @@ const handleCommand = (command: string) => {
       logout();
       break;
     case "profile":
-      // router.push('profile')
+      router.push({ path: '/settings', query: { tab: 'Profile' } });
       break;
     case "settings":
-      router.push('/settings')
+      router.push({ path: '/settings', query: { tab: 'General' } })
       break;
   }
 };
 
 const logout = () => {
-  localStorage.removeItem("token");
-  router.push("/login");
+  userStore.logout();
 };
 
 const onShowDrawer = () => {

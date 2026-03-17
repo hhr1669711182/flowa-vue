@@ -1,7 +1,4 @@
-// import { createApp } from 'vue'
-// import ElementPlus from 'element-plus'
-// import 'element-plus/dist/index.css'
-// import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import 'element-plus/dist/index.css'
 import 'animate.css'
 import 'virtual:uno.css'
 import 'virtual:svg-icons-register'
