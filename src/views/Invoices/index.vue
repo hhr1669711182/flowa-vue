@@ -1,438 +1,369 @@
-﻿﻿<template>
-  <div class="p-6 space-y-6">
-    <div class="space-y-1">
-      <h2 class="text-[28px] leading-9 font-bold text-black">Invoices</h2>
-      <p class="text-sm font-medium text-[#6B6B6B]">
-        Manage, download, and review all your billing from Flowa in one place.
-      </p>
-    </div>
-
-    <div class="bg-white rounded-xl border border-[#ECECEC] shadow-sm overflow-hidden">
-      <div class="px-4 py-3 bg-[#F1F1F1] border-b border-[#ECECEC] flex flex-wrap gap-3 items-center justify-between">
-        <div class="flex flex-wrap gap-3 items-center">
-          <el-input
-            v-model="filters.keyword"
-            class="!w-[368px] max-w-full"
-            placeholder="Search by Invoice ID, Reference..."
-            :prefix-icon="Search"
-            clearable
-            @input="handleDebouncedSearch"
-            @clear="handleImmediateSearch"
-          />
-          <el-select
-            v-model="filters.quickRange"
-            class="!w-[180px]"
-            @change="handleImmediateSearch"
-          >
-            <el-option label="Last 7 days" value="last7" />
-            <el-option label="Last 30 days" value="last30" />
-            <el-option label="This month" value="thisMonth" />
-            <el-option label="All time" value="all" />
-          </el-select>
-          <el-date-picker
-            v-model="filters.dateRange"
-            type="daterange"
-            range-separator="-"
-            start-placeholder="Start Date"
-            end-placeholder="End Date"
-            value-format="YYYY-MM-DD"
-            class="!w-[260px]"
-            @change="handleImmediateSearch"
-          />
-          <el-select
-            v-model="filters.status"
-            class="!w-[140px]"
-            placeholder="Status"
-            clearable
-            @change="handleImmediateSearch"
-          >
-            <el-option label="Paid" value="Paid" />
-            <el-option label="Pending" value="Pending" />
-            <el-option label="Overdue" value="Overdue" />
-          </el-select>
+﻿<template>
+  <div class="products h-full flex flex-col">
+    <div class="flex justify-between items-center mb-4 flex-shrink-0">
+      <div>
+        <div class="flex items-center gap-1 line-height-22px">
+          <div class="text-#000 text-28px line-height-36px">Invoices</div>
         </div>
-        <div class="flex items-center gap-2">
-          <el-button class="!h-10 !px-4 !border-[#16215B1A]" @click="handleDownloadAll">
-            <el-icon class="mr-1"><Download /></el-icon>
-            Download All
-          </el-button>
-          <el-dropdown trigger="click" @command="handleTopCommand">
-            <el-button class="!h-8 !w-8 !p-0 !border-[#16215B1A]">
-              <el-icon><MoreFilled /></el-icon>
-            </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="support" class="!text-[#C62828]">
-                  <el-icon class="mr-2"><Headset /></el-icon>
-                  Contact Support
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+        <div class="text-14px text-#6B6B6B">
+          Access, manage, and download all invoices generated for recharges and
+          services.
         </div>
       </div>
+    </div>
 
-      <el-table
-        v-loading="loading"
-        :data="listData"
-        row-key="id"
-        class="invoice-table"
-        :header-cell-style="{ background: '#F1F1F1', color: '#000000', fontWeight: '600' }"
-        @expand-change="handleExpandChange"
+    <ProductFilter ref="filterRef" @search="handleFilterSearch" />
+
+    <div class="flex-1 min-h-0 rounded-xl overflow-hidden">
+      <BaseTable
+        :data="tableData"
+        :columns="columns"
+        :loading="loading"
+        :pagination="true"
+        :total="total"
+        v-model:page="page"
+        v-model:limit="limit"
+        @pagination-change="fetchData"
       >
-        <el-table-column type="expand" width="44">
-          <template #default="{ row }">
-            <div v-loading="!!expandLoadingMap[row.id]" class="bg-[#FAFAFA] rounded-lg border border-[#ECECEC] m-4 p-4 space-y-3">
-              <div class="flex items-center justify-between">
-                <div class="text-sm text-[#6B6B6B]">
-                  {{ getExpandedDetail(row).periodStart }} - {{ getExpandedDetail(row).periodEnd }}
+        <template #expand="{ row }">
+          <div class="py-4 px-6 bg-#F7F7F7">
+            <div class="bg-#fff rounded-lg border border-gray-200">
+              <div
+                class="grid grid-cols-3 items-center gap-20 px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+              >
+                <div class="flex flex-col items-start gap-3">
+                  <span class="text-lg font-bold text-gray-900">
+                    {{ row.invoiceId }}
+                  </span>
                 </div>
-                <div class="text-sm font-semibold text-black">
-                  {{ getExpandedDetail(row).status }}
+
+                <div class="text-left text-sm">
+                  <div class="mb-1">
+                    <span class="text-gray-500 mr-2">Issued for Period</span>
+                    <span class="text-gray-900">{{
+                      getIssuedForPeriod(getDetailData(row))
+                    }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500 mr-2">Invoice Date</span>
+                    <span class="text-gray-900">{{
+                      formatDisplayDate(getDetailData(row).invoiceDate)
+                    }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500 mr-2">Due Date</span>
+                    <span class="text-gray-900">{{
+                      formatDisplayDate(getDetailData(row).dueDate)
+                    }}</span>
+                  </div>
+                </div>
+                <div class="text-left text-sm">
+                  <div class="mb-1">
+                    <span class="text-gray-500 mr-2">Bill To</span>
+                    <span class="text-gray-900 font-semibold">{{
+                      getDetailData(row).billToName || "Billy J"
+                    }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-900">{{
+                      getBillToAddress(getDetailData(row))[0]
+                    }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-900">{{
+                      getBillToAddress(getDetailData(row))[1]
+                    }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-900">{{
+                      getBillToAddress(getDetailData(row))[2]
+                    }}</span>
+                  </div>
                 </div>
               </div>
-              <el-table
-                :data="getExpandedDetail(row).lineItems || []"
-                size="small"
-                :header-cell-style="{ background: '#F7F7F7', color: '#000000' }"
-              >
-                <el-table-column prop="description" label="Description" min-width="220" />
-                <el-table-column prop="quantity" label="Qty" width="80" align="center" />
-                <el-table-column label="Unit Price" width="120" align="right">
-                  <template #default="{ row: detailRow }">
-                    {{ formatMoney(detailRow.unitPrice) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="Amount" width="120" align="right">
-                  <template #default="{ row: detailRow }">
-                    {{ formatMoney(detailRow.amount) }}
-                  </template>
-                </el-table-column>
-              </el-table>
-              <div class="flex items-center justify-end text-sm font-semibold text-black">
-                Total: {{ formatMoney(getExpandedDetail(row).total) }}
+              <div class="px-6 py-4">
+                <div class="mb-4 flex flex-col gap-2">
+                  <div
+                    v-for="item in getSummaryRows(getDetailData(row))"
+                    :key="item.label"
+                    class="pl-36% flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+                  >
+                    <span :class="item.labelClass">{{ item.label }}</span>
+                    <span :class="item.valueClass">{{ item.value }}</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="Invoice ID" min-width="240">
-          <template #default="{ row }">
-            <div class="font-semibold text-black">{{ row.invoiceId }}</div>
-            <div class="text-xs text-[#6B6B6B] mt-1">{{ row.reference }}</div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="invoiceDate" label="Invoice Date" width="120" align="center" />
-        <el-table-column label="Issued for Period" min-width="240" align="center">
-          <template #default="{ row }">
-            {{ row.periodStart }} - {{ row.periodEnd }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="dueDate" label="Due Date" width="120" align="center" />
-        <el-table-column label="Total" width="120" align="center">
-          <template #default="{ row }">
-            <div class="font-semibold">${{ row.total.toLocaleString() }}</div>
-            <el-tag
-              size="small"
-              effect="plain"
-              class="mt-1 !rounded-full"
-              :type="statusTagType(row.status)"
+          </div>
+        </template>
+
+        <template #invoiceId="{ row }">
+          <div class="flex items-center gap-2">
+            <span class="font-medium text-gray-900">{{ row.invoiceId }}</span>
+          </div>
+        </template>
+
+        <template #invoiceDate="{ row }">
+          <span class="text-gray-500">{{
+            formatDisplayDate(row.invoiceDate)
+          }}</span>
+        </template>
+
+        <template #issuedPeriod="{ row }">
+          <span class="text-gray-500">{{ getIssuedForPeriod(row) }}</span>
+        </template>
+
+        <template #dueDate="{ row }">
+          <span class="text-gray-500">{{
+            formatDisplayDate(row.dueDate)
+          }}</span>
+        </template>
+
+        <template #total="{ row }">
+          <span class="font-medium text-gray-900">{{
+            formatAmount(row.total)
+          }}</span>
+        </template>
+
+        <template #actions="{ row }">
+          <div class="flex flex-1 items-center">
+            <el-button class="w-8 h-8" @click="onDownLoadFile(row)">
+              <Icon icon="svg-icon:arrow-down-to-square" color="#16215B" />
+            </el-button>
+            <el-popover
+              placement="bottom-start"
+              trigger="click"
+              popper-class="!p-0 !px-6 !min-w-auto !rounded-lg !w-auto"
+              :show-arrow="false"
             >
-              {{ row.status }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="Actions" width="100" align="right">
-          <template #default="{ row }">
-            <el-dropdown trigger="click" @command="(command: string) => handleRowCommand(command, row)">
-              <el-button class="!h-8 !w-8 !p-0 !border-[#16215B1A]">
-                <el-icon><MoreFilled /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="view">
-                    <el-icon class="mr-2"><View /></el-icon>
-                    View Invoice
-                  </el-dropdown-item>
-                  <el-dropdown-item command="download">
-                    <el-icon class="mr-2"><Download /></el-icon>
-                    Download PDF
-                  </el-dropdown-item>
-                  <el-dropdown-item command="duplicate">
-                    <el-icon class="mr-2"><CopyDocument /></el-icon>
-                    Duplicate Invoice
-                  </el-dropdown-item>
-                  <el-dropdown-item command="support" class="!text-[#C62828]">
-                    <el-icon class="mr-2"><Headset /></el-icon>
-                    Contact Support
-                  </el-dropdown-item>
-                </el-dropdown-menu>
+              <template #reference>
+                <el-button class="w-8 h-8">
+                  <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
+                </el-button>
               </template>
-            </el-dropdown>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="p-4 border-t border-[#ECECEC] flex flex-wrap gap-4 items-center justify-between">
-        <div class="text-sm text-[#6B6B6B]">
-          {{ summaryText }}
-        </div>
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :total="total"
-          layout="prev, pager, next"
-          background
-          @current-change="fetchList"
-          @size-change="fetchList"
-        />
-      </div>
+              <div class="py-2 px-1">
+                <el-button
+                  link
+                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !px-3 !h-9"
+                >
+                  <span class="flex items-center gap-2">
+                    <Icon icon="svg-icon:headphones" />
+                    Contact Support
+                  </span>
+                </el-button>
+              </div>
+            </el-popover>
+          </div>
+        </template>
+      </BaseTable>
     </div>
-
-    <InvoiceDetailDialog
-      v-model="detailVisible"
-      :loading="detailLoading"
-      :invoice="selectedInvoice"
-      @download="handleDownloadOne"
-    />
-
-    <el-dialog
-      v-model="supportVisible"
-      title="Contact Support"
-      width="520px"
-      destroy-on-close
-    >
-      <el-form :model="supportForm" label-position="top">
-        <el-form-item label="Category">
-          <el-select v-model="supportForm.category" class="w-full">
-            <el-option label="Invoice Issue" value="Invoice Issue" />
-            <el-option label="Payment Inquiry" value="Payment Inquiry" />
-            <el-option label="Download Problem" value="Download Problem" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Message">
-          <el-input
-            v-model="supportForm.message"
-            type="textarea"
-            :rows="5"
-            placeholder="Describe your issue..."
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <el-button @click="supportVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="submitSupport">Submit</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref } from 'vue'
-import { useRequest } from 'alova/client'
-import { ElMessage } from 'element-plus'
-import { Search, Download, MoreFilled, View, CopyDocument, Headset } from '@element-plus/icons-vue'
+import { nextTick, onMounted, ref } from "vue";
+import ProductFilter from "./components/ProductFilter.vue";
 import {
-  downloadAllInvoices,
   downloadInvoiceById,
   getInvoiceDetail,
   getInvoiceList,
-  getInvoiceSummary,
   type InvoiceRecord,
-  type InvoiceStatus
-} from '@/api/invoices'
-import InvoiceDetailDialog from './components/InvoiceDetailDialog.vue'
+} from "@/api/invoices";
+import { ElMessage } from "element-plus";
 
-const pagination = reactive({
-  page: 1,
-  pageSize: 10
-})
+const filterRef = ref();
+const currentFilters = ref<Record<string, any>>({});
 
-const filters = reactive<{
-  keyword: string
-  quickRange: 'last7' | 'last30' | 'thisMonth' | 'all'
-  dateRange: [string, string] | []
-  status: InvoiceStatus | ''
-}>({
-  keyword: '',
-  quickRange: 'last7',
-  dateRange: [],
-  status: ''
-})
+const handleFilterSearch = (params: any) => {
+  currentFilters.value = params;
+  page.value = 1;
+  fetchData();
+};
 
-const selectedInvoice = ref<InvoiceRecord | null>(null)
-const detailVisible = ref(false)
-const supportVisible = ref(false)
-const expandLoadingMap = reactive<Record<string, boolean>>({})
-const expandDetailMap = reactive<Record<string, InvoiceRecord>>({})
-
-const supportForm = reactive({
-  category: 'Invoice Issue',
-  message: ''
-})
-
-const { data, loading, send: fetchList } = useRequest(
-  () =>
-    getInvoiceList({
-      page: pagination.page,
-      pageSize: pagination.pageSize,
-      keyword: filters.keyword,
-      quickRange: filters.quickRange,
-      status: filters.status,
-      dateRange: filters.dateRange
-    }),
+const columns = [
+  { type: "selection", width: 50 },
+  { type: "expand", width: 50, slot: "expand" },
+  { label: "Invoice ID", slot: "invoiceId", minWidth: 200 },
+  { label: "Invoice Date", slot: "invoiceDate", minWidth: 150 },
+  { label: "Issued for Period", slot: "issuedPeriod", minWidth: 200 },
+  { label: "Due Date", slot: "dueDate", minWidth: 150 },
+  { label: "Total", slot: "total", minWidth: 120, align: "right" },
   {
-    immediate: true,
-    initialData: { total: 0, list: [] }
+    label: "Actions",
+    slot: "actions",
+    width: 100,
+    fixed: "right",
+    align: "center",
+  },
+];
+
+const tableData = ref<InvoiceRecord[]>([]);
+const detailMap = ref<Record<string, InvoiceRecord>>({});
+const loading = ref(false);
+const total = ref(0);
+const page = ref(1);
+const limit = ref(20);
+
+const formatDisplayDate = (value?: string) => {
+  if (!value) return "00/00/2026";
+  const parts = value.split("-");
+  if (parts.length === 3) {
+    const [yyyy, mm, dd] = parts;
+    return `${mm}/${dd}/${yyyy}`;
   }
-)
+  return value;
+};
 
-const { data: summaryData } = useRequest(getInvoiceSummary, {
-  immediate: true,
-  initialData: {
-    totalInvoices: 0,
-    totalAmount: 0,
-    paidCount: 0,
-    pendingCount: 0,
-    overdueCount: 0
+const formatAmount = (value?: number) => {
+  const amount = Number.isFinite(Number(value)) ? Number(value) : 0;
+  return `$${amount.toLocaleString("de-DE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+const getIssuedForPeriod = (row: InvoiceRecord) => {
+  return `${formatDisplayDate(row.periodStart)} - ${formatDisplayDate(row.periodEnd)}`;
+};
+
+const getBillToAddress = (row: InvoiceRecord) => {
+  return (
+    row.billToAddress || [
+      "Unit 132 Hoepers Rd",
+      "Kunda Park QLD 4556",
+      "Australia",
+    ]
+  );
+};
+
+const getDetailData = (row: InvoiceRecord) => {
+  return detailMap.value[row.id] || row;
+};
+
+const getDiscount = (row: InvoiceRecord) => {
+  return Number(row.discount || 0);
+};
+
+const getSubtotalAfterDiscount = (row: InvoiceRecord) => {
+  return Math.max(0, Number(row.total || 0) - getDiscount(row));
+};
+
+const getTotalGST = (row: InvoiceRecord) => {
+  return getSubtotalAfterDiscount(row) * Number(row.gstRate || 0.1);
+};
+
+const getInvoiceTotal = (row: InvoiceRecord) => {
+  return getSubtotalAfterDiscount(row) + getTotalGST(row);
+};
+
+const getSecondarySubtotal = (row: InvoiceRecord) => {
+  return Number(row.secondarySubtotal || 0);
+};
+
+const getSecondaryGST = (row: InvoiceRecord) => {
+  const rate = Number(row.secondaryGstRate || 0.01);
+  if (getSecondarySubtotal(row) > 0) {
+    return getSecondarySubtotal(row) * rate;
   }
-})
+  return getInvoiceTotal(row);
+};
 
-const {
-  loading: detailLoading,
-  send: fetchInvoiceDetail
-} = useRequest((id: string) => getInvoiceDetail(id), {
-  immediate: false
-})
+const getSummaryRows = (row: InvoiceRecord) => {
+  return [
+    {
+      label: "Total Discount",
+      value: formatAmount(getDiscount(row)),
+      labelClass: "text-gray-500",
+      valueClass: "font-medium text-gray-500",
+    },
+    {
+      label: "Subtotal (After Discount)",
+      value: formatAmount(getSubtotalAfterDiscount(row)),
+      labelClass: "text-gray-500",
+      valueClass: "font-medium text-gray-500",
+    },
+    {
+      label: "Total GST 10%",
+      value: formatAmount(getTotalGST(row)),
+      labelClass: "text-gray-500",
+      valueClass: "font-medium text-gray-500",
+    },
+    {
+      label: "Invoice Total (AUD)",
+      value: formatAmount(getInvoiceTotal(row)),
+      labelClass: "text-gray-900 font-semibold",
+      valueClass: "font-semibold text-gray-900",
+    },
+    {
+      label: "Subtotal (After Discount)",
+      value: formatAmount(getSecondarySubtotal(row)),
+      labelClass: "text-gray-900 font-semibold",
+      valueClass: "font-semibold text-gray-900",
+    },
+    {
+      label: "Total GST 1%",
+      value: formatAmount(getSecondaryGST(row)),
+      labelClass: "text-gray-900 font-semibold",
+      valueClass: "font-semibold text-gray-900",
+    },
+  ];
+};
 
-const { send: sendDownloadAll } = useRequest(downloadAllInvoices, {
-  immediate: false
-})
+const loadDetails = async (rows: InvoiceRecord[]) => {
+  const pairs = await Promise.all(
+    rows.map(async (row) => {
+      try {
+        const detail = await getInvoiceDetail(row.id);
+        return [row.id, detail] as const;
+      } catch (error) {
+        console.error("Failed to fetch invoice detail:", error);
+        return [row.id, row] as const;
+      }
+    }),
+  );
+  detailMap.value = Object.fromEntries(pairs);
+};
 
-const { send: sendDownloadOne } = useRequest((id: string) => downloadInvoiceById(id), {
-  immediate: false
-})
-
-const listData = computed(() => data.value?.list || [])
-const total = computed(() => data.value?.total || 0)
-
-const summaryText = computed(() => {
-  const summary = summaryData.value
-  return `Total ${summary.totalInvoices} invoices · $${summary.totalAmount.toLocaleString()} · Paid ${summary.paidCount} · Pending ${summary.pendingCount} · Overdue ${summary.overdueCount}`
-})
-
-let searchTimer: ReturnType<typeof setTimeout> | null = null
-
-const handleDebouncedSearch = () => {
-  if (searchTimer) {
-    clearTimeout(searchTimer)
-  }
-  searchTimer = setTimeout(() => {
-    pagination.page = 1
-    fetchList()
-  }, 300)
-}
-
-const handleImmediateSearch = () => {
-  pagination.page = 1
-  fetchList()
-}
-
-const statusTagType = (status: InvoiceStatus) => {
-  if (status === 'Paid') {
-    return 'success'
-  }
-  if (status === 'Pending') {
-    return 'warning'
-  }
-  return 'danger'
-}
-
-const formatMoney = (value: number) => {
-  return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
-
-const getExpandedDetail = (row: InvoiceRecord) => {
-  return expandDetailMap[row.id] || row
-}
-
-const handleDownloadAll = async () => {
-  const result = await sendDownloadAll()
-  ElMessage.success(`Download ready: ${result.fileName}`)
-}
-
-const handleDownloadOne = async (invoice: InvoiceRecord) => {
-  const result = await sendDownloadOne(invoice.id)
-  ElMessage.success(`Download ready: ${result.fileName}`)
-}
-
-const handleRowCommand = async (command: string, row: InvoiceRecord) => {
-  if (command === 'view') {
-    const detail = await fetchInvoiceDetail(row.id)
-    selectedInvoice.value = detail || row
-    detailVisible.value = true
-    return
-  }
-
-  if (command === 'download') {
-    await handleDownloadOne(row)
-    return
-  }
-
-  if (command === 'duplicate') {
-    ElMessage.success(`Duplicated ${row.invoiceId}`)
-    return
-  }
-
-  ElMessage.warning('Support request created')
-}
-
-const handleTopCommand = (command: string) => {
-  if (command === 'support') {
-    supportVisible.value = true
-  }
-}
-
-const handleExpandChange = async (row: InvoiceRecord, expandedRows: InvoiceRecord[]) => {
-  const expanded = expandedRows.some((item) => item.id === row.id)
-  if (!expanded || expandDetailMap[row.id] || expandLoadingMap[row.id]) {
-    return
-  }
-  expandLoadingMap[row.id] = true
+const onDownLoadFile = async (row: InvoiceRecord) => {
   try {
-    const detail = await fetchInvoiceDetail(row.id)
-    if (detail) {
-      expandDetailMap[row.id] = detail
+    const res = await downloadInvoiceById(row.id);
+    if (res?.url) {
+      window.open(res.url, "_blank");
+      ElMessage.success("Download started");
     }
+  } catch (error) {
+    console.error("Download failed:", error);
+    ElMessage.error("Download failed");
+  }
+};
+
+const fetchData = async () => {
+  loading.value = true;
+  try {
+    const res = await getInvoiceList({
+      page: page.value,
+      pageSize: limit.value,
+      keyword: currentFilters.value.keyword || "",
+      status: currentFilters.value.status || "",
+      quickRange: currentFilters.value.quickRange || "all",
+      dateRange: currentFilters.value.dateRange || [],
+    });
+    tableData.value = (res.list || []) as InvoiceRecord[];
+    total.value = res.total || 0;
+    await loadDetails(tableData.value);
+    await nextTick();
+  } catch (error) {
+    console.error("Failed to fetch invoice list:", error);
   } finally {
-    expandLoadingMap[row.id] = false
+    loading.value = false;
   }
-}
+};
 
-const submitSupport = () => {
-  if (!supportForm.message.trim()) {
-    ElMessage.warning('Please enter your issue details')
-    return
+onMounted(async () => {
+  await nextTick();
+  if (filterRef.value) {
+    currentFilters.value = filterRef.value.getSearchParams();
   }
-  supportVisible.value = false
-  supportForm.message = ''
-  ElMessage.success('Support request created')
-}
-
-onBeforeUnmount(() => {
-  if (searchTimer) {
-    clearTimeout(searchTimer)
-  }
-})
+  fetchData();
+});
 </script>
-
-<style scoped>
-.invoice-table :deep(.el-table__inner-wrapper::before) {
-  display: none;
-}
-
-.invoice-table :deep(.el-table__row td) {
-  border-bottom: 1px solid #ececec;
-}
-</style>

@@ -22,6 +22,12 @@ export interface InvoiceRecord {
   currency: string
   status: InvoiceStatus
   lineItems: InvoiceLineItem[]
+  billToName?: string
+  billToAddress?: string[]
+  discount?: number
+  gstRate?: number
+  secondarySubtotal?: number
+  secondaryGstRate?: number
 }
 
 export interface InvoiceListResponse {

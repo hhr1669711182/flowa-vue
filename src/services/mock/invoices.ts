@@ -22,6 +22,12 @@ interface InvoiceRecord {
   currency: string
   status: InvoiceStatus
   lineItems: InvoiceLineItem[]
+  billToName?: string
+  billToAddress?: string[]
+  discount?: number
+  gstRate?: number
+  secondarySubtotal?: number
+  secondaryGstRate?: number
 }
 
 const statusPool: InvoiceStatus[] = ['Paid', 'Pending', 'Overdue']
@@ -83,6 +89,19 @@ const seedInvoices = (): InvoiceRecord[] => {
 
 const invoices = seedInvoices()
 
+const parseDateRange = (dateRange: unknown): [string, string] | [] => {
+  if (Array.isArray(dateRange) && dateRange.length === 2) {
+    return [String(dateRange[0]), String(dateRange[1])]
+  }
+  if (typeof dateRange === 'string') {
+    const parts = dateRange.split(',').map((item) => item.trim())
+    if (parts.length === 2 && parts[0] && parts[1]) {
+      return [parts[0], parts[1]]
+    }
+  }
+  return []
+}
+
 const inQuickRange = (invoiceDate: string, quickRange: string) => {
   if (!quickRange || quickRange === 'all') {
     return true
@@ -112,7 +131,7 @@ export const mockInvoices = defineMock({
     const keyword = (query.keyword || '').toLowerCase()
     const status = query.status || ''
     const quickRange = query.quickRange || 'all'
-    const dateRange = query.dateRange
+    const dateRange = parseDateRange(query.dateRange)
 
     let filtered = [...invoices]
 
@@ -130,7 +149,7 @@ export const mockInvoices = defineMock({
 
     filtered = filtered.filter((item) => inQuickRange(item.invoiceDate, quickRange))
 
-    if (Array.isArray(dateRange) && dateRange.length === 2) {
+    if (dateRange.length === 2) {
       const [from, to] = dateRange
       filtered = filtered.filter((item) => item.invoiceDate >= from && item.invoiceDate <= to)
     }
@@ -154,7 +173,34 @@ export const mockInvoices = defineMock({
   },
   '/api/invoices/detail': ({ query }) => {
     const current = invoices.find((item) => item.id === query.id) || invoices[0]
-    return current
+    const discount = 0
+    const gstRate = 0.1
+    const secondarySubtotal = 0
+    const secondaryGstRate = 1
+    const billToList = [
+      {
+        name: 'Billy J',
+        address: ['Unit 132 Hoepers Rd', 'Kunda Park QLD 4556', 'Australia']
+      },
+      {
+        name: 'Olivia Chen',
+        address: ['89 Market Street', 'South Brisbane QLD 4101', 'Australia']
+      },
+      {
+        name: 'Ethan Parker',
+        address: ['22 Riverside Ave', 'Richmond VIC 3121', 'Australia']
+      }
+    ]
+    const billTo = billToList[Number.parseInt(current.id.replace('INV_INTERNAL_', ''), 10) % billToList.length]
+    return {
+      ...current,
+      billToName: billTo.name,
+      billToAddress: billTo.address,
+      discount,
+      gstRate,
+      secondarySubtotal,
+      secondaryGstRate
+    }
   },
   '/api/invoices/download/all': () => {
     return {
