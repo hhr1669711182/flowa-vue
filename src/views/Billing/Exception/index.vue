@@ -143,6 +143,9 @@
         class="card position-relative w-full animate__animated animate__fadeInUp"
       >
         <div
+          class="position-absolute bottom-0 left-0 w-full h-85% box-border bg-[url('@/assets/svgs/bo-lang-blue.svg')] bg-no-repeat bg-contain bg-bottom"
+        />
+        <div
           class="flex items-center justify-between mb-2 p-6 position-absolute w-full box-border"
         >
           <div class="text-sm font-semibold opacity-80">
@@ -157,13 +160,6 @@
           <div class="flex items-center justify-end mb-1">
             <span class="text-3xl font-bold">{{ statsData.totalSavings }}</span>
           </div>
-        </div>
-        <div class="position-absolute bottom-1 left-0 w-full h-45 box-border">
-          <img
-            src="@/assets/svgs/bo-lang-blue.svg"
-            width="100%"
-            height="100%"
-          />
         </div>
       </div>
     </div>
