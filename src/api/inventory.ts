@@ -49,3 +49,8 @@ export const deleteBundle = (id: string) => {
   return alovaInstance.Delete<any>(`/api/inventory/bundles/${id}`);
 }
 
+export const deleteBundleItem = (bundleId: string, itemId: string) => {
+  return alovaInstance.Delete<any>(
+    `/api/inventory/bundles/${bundleId}/items/${itemId}`
+  )
+}

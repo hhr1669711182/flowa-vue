@@ -51,7 +51,6 @@
 import { reactive } from 'vue'
 import { downloadAllInvoices } from '@/api/invoices'
 import { ElMessage } from 'element-plus'
-import { Icon } from '@iconify/vue'
 
 const emit = defineEmits(['search'])
 

@@ -87,5 +87,27 @@ export default defineConfig(({ mode }) => {
           },
         },
     },
+    optimizeDeps: {
+      include: [
+        'vue',
+        'vue-router',
+        'vue-types',
+        'element-plus/es/locale/lang/zh-cn',
+        'element-plus/es/locale/lang/en',
+        '@iconify/iconify',
+        '@vueuse/core',
+        'axios',
+        'qs',
+        'echarts',
+        'echarts-wordcloud',
+        'qrcode',
+        '@wangeditor/editor',
+        '@wangeditor/editor-for-vue',
+        'vue-json-pretty',
+        '@zxcvbn-ts/core',
+        'dayjs',
+        'cropperjs'
+      ]
+    }
   }
 })

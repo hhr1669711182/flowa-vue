@@ -16,7 +16,7 @@
       <div class="flex items-center gap-3">
         <el-button @click="$emit('close')" class="w-11 !h-11 !p-0" size="large" type="default">
           <!-- <Icon icon="svg-icon:xmark" color="#16215B" size="22px" /> -->
-          <Icon icon="formkit:close" size="22px"  style="color: #16215B" />
+          <Icon icon="formkit:close" :size="22"  style="color: #16215B" />
         </el-button>
       </div>
     </div>
@@ -127,7 +127,6 @@
 import { ref, onMounted, reactive } from "vue";
 import { getBillingTransactions } from "@/api/billing/outbound";
 import BaseTable from "@/components/common/BaseTable.vue";
-import { Icon } from "@iconify/vue";
 
 defineEmits(["close"]);
 

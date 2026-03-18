@@ -1,6 +1,7 @@
 import { defineComponent, h, type PropType } from "vue";
 import { ElTooltip } from "element-plus";
-import { Icon } from "@iconify/vue";
+// import { Icon } from "@iconify/vue";
+import { Icon } from "@/components/base/Icon";
 
 export type HeaderHintPlacement =
   | "top"

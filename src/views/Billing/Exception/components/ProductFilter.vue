@@ -45,7 +45,6 @@
 import { reactive } from 'vue'
 import { exportExceptionBilling } from '@/api/billing/exception'
 import { ElMessage } from 'element-plus'
-import { Icon } from "@iconify/vue";
 
 const emit = defineEmits(['search'])
 

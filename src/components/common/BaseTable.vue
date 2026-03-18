@@ -6,13 +6,9 @@
       ref="tableRef"
       v-loading="loading"
       :data="data"
-      :header-cell-style="{
-        backgroundColor: '#F1F1F1',
-        color: '#6B6B6B',
-        fontWeight: '600',
-      }"
+      :header-cell-style="resolvedHeaderCellStyle"
       v-bind="$attrs"
-      height="calc(100% - 60px)"
+      :height="resolvedHeight"
       class="base-table w-full h-auto"
       @expand-change="handleExpandChange"
     >
@@ -148,6 +144,8 @@ interface Props {
   total?: number;
   page?: number;
   limit?: number;
+  height?: string | number | null;
+  headerCellStyle?: any | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -156,9 +154,16 @@ const props = withDefaults(defineProps<Props>(), {
   total: 0,
   page: 1,
   limit: 10,
+  height: null,
+  headerCellStyle: undefined,
 });
 
-const emit = defineEmits(["update:page", "update:limit", "pagination-change"]);
+const emit = defineEmits([
+  "update:page",
+  "update:limit",
+  "pagination-change",
+  "expand-change",
+]);
 const slots = useSlots();
 
 const getHeaderSlotRender = (slotName: string) => {
@@ -188,6 +193,7 @@ const expandedRows = ref<any[]>([]);
 
 const handleExpandChange = (row: any, expanded: any[]) => {
   expandedRows.value = expanded;
+  emit("expand-change", row, expanded);
 };
 
 const isExpanded = (row: any) => {
@@ -215,6 +221,22 @@ const handleSizeChange = (val: number) => {
 const handleCurrentChange = (val: number) => {
   emit("pagination-change", { page: val, limit: pageSize.value });
 };
+
+const resolvedHeight = computed(() => {
+  if (props.height === null) return undefined;
+  if (props.height !== undefined) return props.height;
+  return props.pagination ? "calc(100% - 60px)" : "100%";
+});
+
+const resolvedHeaderCellStyle = computed(() => {
+  if (props.headerCellStyle === null) return undefined;
+  if (props.headerCellStyle !== undefined) return props.headerCellStyle;
+  return {
+    backgroundColor: "#F1F1F1",
+    color: "#6B6B6B",
+    fontWeight: "600",
+  };
+});
 </script>
 
 <style scoped>

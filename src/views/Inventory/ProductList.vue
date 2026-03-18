@@ -12,14 +12,14 @@
       </div>
       <div class="flex items-center gap-3">
         <el-button type="default" size="large" @click="handleImport">
-          <span class="flex items-center gap-2">
+          <span class="flex items-center gap-1.5">
             <Icon icon="svg-icon:arrow-down-to-square" color="#16215B" />
             <span class="text-16px text-#16215B">Import SKU(s)</span>
           </span>
         </el-button>
         <el-button type="primary" size="large" @click="handleAddProduct">
-          <span class="flex items-center gap-2">
-            <img src="./Icons/plus.svg" alt="plus" class="w-3 h-3" />
+          <span class="flex items-center gap-1.5">
+            <Icon icon="svg-icon:plus" color="#fff" />
             <span>Add Product</span>
           </span>
         </el-button>
@@ -178,25 +178,7 @@
                   <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
                 </el-button>
               </template>
-              <div class="py-2 px-1 flex flex-col">
-                <el-button
-                  v-for="action in rowActions"
-                  :key="action.key"
-                  link
-                  :class="[
-                    'row-action-btn',
-                    action.tone === 'danger'
-                      ? 'row-action-btn-danger'
-                      : 'row-action-btn-primary',
-                  ]"
-                  @click="handleRowAction(action.key, row)"
-                >
-                  <span class="flex justify-center items-center gap-2">
-                    <Icon :icon="action.icon" />
-                    {{ action.label }}
-                  </span>
-                </el-button>
-              </div>
+              <rightButtons :row="row" @action="handleRowAction" />
             </el-popover>
           </div>
         </template>
@@ -246,59 +228,6 @@ const handleImport = async () => {
     }
   } catch (error) {
     ElMessage.error("Export failed");
-  }
-};
-
-const rowActions = [
-  {
-    key: "view",
-    label: "View",
-    icon: "svg-icon:eye",
-    tone: "primary",
-  },
-  {
-    key: "edit",
-    label: "Edit",
-    icon: "svg-icon:pencil",
-    tone: "primary",
-  },
-  {
-    key: "export",
-    label: "Export/Print",
-    icon: "svg-icon:printer",
-    tone: "primary",
-  },
-  {
-    key: "support",
-    label: "Contact Support",
-    icon: "svg-icon:headphones",
-    tone: "danger",
-  },
-  {
-    key: "delete",
-    label: "Delete",
-    icon: "svg-icon:trash-bin",
-    tone: "danger",
-  },
-];
-
-const handleRowAction = (action: string, row: any) => {
-  switch (action) {
-    case "view":
-    case "edit":
-      handleEditProduct(row);
-      break;
-    case "export":
-      handleImport();
-      break;
-    case "support":
-      ElMessage.info(`Contact support for SKU ${row.id}`);
-      break;
-    case "delete":
-      ElMessage.warning(`Delete action for SKU ${row.id}`);
-      break;
-    default:
-      break;
   }
 };
 
@@ -583,6 +512,26 @@ const fetchData = async () => {
   }
 };
 
+const handleRowAction = (action: string, row: any) => {
+  switch (action) {
+    case "view":
+    case "edit":
+      handleEditProduct(row);
+      break;
+    case "export":
+      ElMessage.info(`Export/Print for product ${row.id}`);
+      break;
+    case "support":
+      ElMessage.info(`Contact support for product ${row.id}`);
+      break;
+    case "delete":
+      ElMessage.warning(`Delete action for product ${row.id}`); 
+      break;
+    default:
+      break;
+  }
+};
+
 onMounted(async () => {
   await nextTick();
   if (filterRef.value) {
@@ -614,26 +563,5 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   background: linear-gradient(131deg, #16215b 26.84%, #0a123c 98.1%);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
-}
-
-.row-action-btn {
-  width: 100% !important;
-  justify-content: flex-start !important;
-  height: 36px !important;
-  padding: 0 8px !important;
-  font-weight: 600 !important;
-  margin-left: 0px !important;
-}
-
-.row-action-btn:hover {
-  background: #f4f6fa !important;
-}
-
-.row-action-btn-primary {
-  color: #2563eb !important;
-}
-
-.row-action-btn-danger {
-  color: #dc2626 !important;
 }
 </style>

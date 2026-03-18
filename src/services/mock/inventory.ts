@@ -160,7 +160,6 @@ export const mockInventory = defineMock({
     const pageSize = parseInt(query.pageSize || '10');
     const keyword = (query.keyword || '').toLowerCase();
     const status = query.status || '';
-    const type = query.type || '';
 
     let filtered = products.filter(p => p.type !== 'bundle'); // Only products
 
@@ -178,7 +177,10 @@ export const mockInventory = defineMock({
     const total = filtered.length;
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
-    const list = filtered.slice(start, end);
+    const list = filtered.slice(start, end).map((bundle: any) => {
+      const { items, ...rest } = bundle || {};
+      return rest;
+    });
 
     return {
       list,
@@ -248,6 +250,14 @@ export const mockInventory = defineMock({
 
   '[DELETE]/api/inventory/bundles/{id}': ({ params }) => {
     return { success: true, id: params.id };
+  },
+
+  '[DELETE]/api/inventory/bundles/{id}/items/{itemId}': ({ params }) => {
+    const bundle = products.find(p => p.id === params.id && p.type === 'bundle') as any
+    if (bundle?.items && Array.isArray(bundle.items)) {
+      bundle.items = bundle.items.filter((item: any) => item.id !== params.itemId)
+    }
+    return { success: true, id: params.id, itemId: params.itemId };
   },
   
   '[GET]/api/inventory/stats': () => {

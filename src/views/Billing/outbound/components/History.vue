@@ -127,7 +127,6 @@
 import { ref, onMounted, reactive } from "vue";
 import { getBillingTransactions } from "@/api/billing/outbound";
 import BaseTable from "@/components/common/BaseTable.vue";
-import { Icon } from "@iconify/vue";
 
 defineEmits(["close"]);
 

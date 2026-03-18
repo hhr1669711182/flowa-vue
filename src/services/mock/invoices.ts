@@ -172,7 +172,7 @@ export const mockInvoices = defineMock({
     }
   },
   '/api/invoices/detail': ({ query }) => {
-    const current = invoices.find((item) => item.id === query.id) || invoices[0]
+    const current = invoices.find((item) => item.id === query.id) ?? invoices[0]!
     const discount = 0
     const gstRate = 0.1
     const secondarySubtotal = 0
@@ -191,7 +191,11 @@ export const mockInvoices = defineMock({
         address: ['22 Riverside Ave', 'Richmond VIC 3121', 'Australia']
       }
     ]
-    const billTo = billToList[Number.parseInt(current.id.replace('INV_INTERNAL_', ''), 10) % billToList.length]
+    const billTo: any =
+      billToList[
+        Number.parseInt(current.id.replace('INV_INTERNAL_', ''), 10) %
+          billToList.length
+      ] || billToList[0]
     return {
       ...current,
       billToName: billTo.name,

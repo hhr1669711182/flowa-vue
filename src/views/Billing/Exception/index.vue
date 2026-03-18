@@ -294,7 +294,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from "vue";
-import { Icon } from "@iconify/vue";
 import * as echarts from "echarts";
 import ProductFilter from "./components/ProductFilter.vue";
 import AddCredit from "./components/addCredit.vue";
