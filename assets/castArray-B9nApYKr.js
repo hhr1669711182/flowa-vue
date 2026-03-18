@@ -1,0 +1,1 @@
+import{Nt as e}from"./css-2tM2KzOR.js";function t(){if(!arguments.length)return[];var t=arguments[0];return e(t)?t:[t]}export{t};

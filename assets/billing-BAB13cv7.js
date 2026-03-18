@@ -1,0 +1,1 @@
+import{t as e}from"./alova-0tQlaeFY.js";const t=()=>e.Get(`/api/billing/notifications`);export{t};
