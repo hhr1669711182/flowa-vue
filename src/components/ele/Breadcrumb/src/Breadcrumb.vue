@@ -7,7 +7,7 @@ import { filterBreadcrumb } from './helper'
 import { filter, treeToList } from '@/utils/tree'
 import type { RouteLocationNormalizedLoaded } from 'vue-router'
 import { useI18n } from '@/hooks/web/useI18n'
-import { Icon } from '@/components/Icon'
+import { Icon } from '@/components/base/Icon'
 import { useAppStore } from '@/store/modules/app'
 import { useDesign } from '@/hooks/web/useDesign'
 
@@ -37,7 +37,7 @@ export default defineComponent({
     })
 
     const getBreadcrumb = () => {
-      const currentPath = currentRoute.value.matched.slice(-1)[0].path
+      const currentPath = currentRoute.value.matched.slice(-1)[0]?.path
       levelList.value = filter<AppRouteRecordRaw>(unref(menuRouters), (node: AppRouteRecordRaw) => {
         return node.path === currentPath
       })

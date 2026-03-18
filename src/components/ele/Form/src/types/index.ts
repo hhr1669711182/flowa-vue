@@ -21,8 +21,8 @@ import {
   UploadProps
 } from 'element-plus'
 import { IEditorConfig } from '@wangeditor/editor'
-import { JsonEditorProps } from '@/components/JsonEditor'
-import { IAgreeProps } from '@/components/IAgree'
+import { JsonEditorProps } from '@/components/ele/JsonEditor'
+import { IAgreeProps } from '@/components/ele/IAgree'
 import { CSSProperties } from 'vue'
 
 export interface PlaceholderModel {

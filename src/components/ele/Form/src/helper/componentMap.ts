@@ -20,11 +20,11 @@ import {
   ElTreeSelect,
   ElUpload
 } from 'element-plus'
-import { InputPassword } from '@/components/InputPassword'
-import { Editor } from '@/components/Editor'
-import { JsonEditor } from '@/components/JsonEditor'
-import { IconPicker } from '@/components/IconPicker'
-import { IAgree } from '@/components/IAgree'
+import { InputPassword } from '@/components/ele/InputPassword'
+import { Editor } from '@/components/ele/Editor'
+import { JsonEditor } from '@/components/ele/JsonEditor'
+import { IconPicker } from '@/components/ele/IconPicker'
+import { IAgree } from '@/components/ele/IAgree'
 import { ComponentName } from '../types'
 
 const componentMap: Recordable<Component, ComponentName> = {

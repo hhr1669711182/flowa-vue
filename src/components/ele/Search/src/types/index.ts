@@ -1,4 +1,4 @@
-import { FormSchema } from '@/components/Form'
+import { FormSchema } from '@/components/ele/Form'
 
 export interface SearchProps {
   schema?: FormSchema[]

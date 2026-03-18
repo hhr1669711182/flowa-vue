@@ -5,7 +5,7 @@ import Cropper from 'cropperjs'
 import 'cropperjs/dist/cropper.min.css'
 import { ElDivider, ElUpload, UploadFile, ElMessage, ElTooltip } from 'element-plus'
 import { useDebounceFn } from '@vueuse/core'
-import { BaseButton } from '@/components/Button'
+import { BaseButton } from '@/components/ele/Button'
 
 const { getPrefixCls } = useDesign()
 

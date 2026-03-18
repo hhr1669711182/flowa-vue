@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ElCheckbox } from 'element-plus'
-import { Highlight } from '@/components/Highlight'
+import { Highlight } from '@/components/ele/Highlight'
 import { PropType, computed } from 'vue'
 import { LinkItem } from './types'
 

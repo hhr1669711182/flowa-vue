@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PropType } from 'vue'
-import { Highlight } from '@/components/Highlight'
+import { Highlight } from '@/components/ele/Highlight'
 import { useDesign } from '@/hooks/web/useDesign'
 import { propTypes } from '@/utils/propTypes'
 import { InfoTipSchema } from './types'

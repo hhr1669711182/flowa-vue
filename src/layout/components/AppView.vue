@@ -1,15 +1,7 @@
-<!--
- * @Author: huanghuanrong
- * @Date: 2025-10-30 14:05:57
- * @LastEditTime: 2025-11-03 19:38:15
- * @LastEditors: huanghuanrong
- * @Description: 文件描述
- * @FilePath: \pc\src\layout\components\AppView.vue
--->
 <script setup lang="ts">
 import { useTagsViewStore } from '@/store/modules/tagsView'
 import { useAppStore } from '@/store/modules/app'
-import { Footer } from '@/components/Footer'
+import { Footer } from '@/components/ele/Footer'
 import { computed } from 'vue'
 
 const appStore = useAppStore()
