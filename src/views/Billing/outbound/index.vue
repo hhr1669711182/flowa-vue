@@ -74,7 +74,6 @@
 
       <div
         class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-59.5 animate__animated animate__fadeInUp flex flex-col flex-justify-around"
-        style="animation-delay: 0.4s"
       >
         <div class="flex justify-between items-center mb-6">
           <div>

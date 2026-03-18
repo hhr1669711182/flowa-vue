@@ -3,28 +3,46 @@
     router
     :default-active="activeMenu"
     class="sidebar-menu border-none w-full bg-white"
-    :collapse-transition="false"
+    :collapse-transition="true"
+    unique-opened
   >
     <template v-for="item in sidebarMenu" :key="item.path">
-      <!-- Submenu -->
-      <el-sub-menu v-if="item.children && item.children.length > 0" :index="item.path">
+      <el-sub-menu
+        v-if="item.children && item.children.length > 0"
+        :index="item.path"
+      >
         <template #title>
-          <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
+          <Icon
+            v-if="
+              item.icon &&
+              typeof item.icon === 'string' &&
+              item.icon.includes(':')
+            "
+            :icon="item.icon"
+          />
+          <el-icon v-else-if="item.icon"><component :is="item.icon" /></el-icon>
           <span>{{ item.title }}</span>
         </template>
-        
-        <el-menu-item 
-          v-for="child in item.children" 
-          :key="child.path" 
+
+        <el-menu-item
+          v-for="child in item.children"
+          :key="child.path"
           :index="child.path"
         >
           <span>{{ child.title }}</span>
         </el-menu-item>
       </el-sub-menu>
 
-      <!-- Single Menu Item -->
       <el-menu-item v-else :index="item.path">
-        <el-icon v-if="item.icon"><component :is="item.icon" /></el-icon>
+        <Icon
+          v-if="
+            item.icon &&
+            typeof item.icon === 'string' &&
+            item.icon.includes(':')
+          "
+          :icon="item.icon"
+        />
+        <el-icon v-else-if="item.icon"><component :is="item.icon" /></el-icon>
         <span>{{ item.title }}</span>
       </el-menu-item>
     </template>
@@ -32,12 +50,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { sidebarMenu } from '../../config/menu'
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import { sidebarMenu } from "../../config/menu";
+import { Icon } from "@/components/base/Icon";
 
-const route = useRoute()
-const activeMenu = computed(() => route.path)
+const route = useRoute();
+const activeMenu = computed(() => route.path);
 </script>
 
 <style lang="less" scoped>
@@ -50,7 +69,9 @@ const activeMenu = computed(() => route.path)
     border-radius: 12px;
     margin: 2px 6px;
     padding: 10px 12px;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
   }
 
   :deep(.el-menu-item:hover),

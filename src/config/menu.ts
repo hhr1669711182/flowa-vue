@@ -5,7 +5,7 @@ import { routes } from '../router'
 export interface MenuItem {
   title: string
   path: string
-  icon?: Component
+  icon?: Component | string
   children?: MenuItem[]
 }
 

@@ -46,7 +46,7 @@
       v-show="showCards"
       class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 box"
     >
-      <div class="bg-white rounded-xl border border-gray-100 shadow-card p-6">
+      <div class="bg-white rounded-xl border border-gray-100 shadow-card p-6 animate__animated animate__fadeInUp">
         <div class="flex items-center justify-between mb-2">
           <div class="font-semibold">
             <div>Total Inventory</div>
@@ -64,7 +64,7 @@
         <div ref="invChartRef" class="w-full h-41"></div>
       </div>
       <div
-        class="bg-white rounded-xl border border-gray-100 shadow-card p-6 flex"
+        class="bg-white rounded-xl border border-gray-100 shadow-card p-6 flex animate__animated animate__fadeInUp"
       >
         <div class="font-semibold">
           <div class="whitespace-nowrap">Total Storage</div>
@@ -76,7 +76,7 @@
 
         <div ref="storageChartRef" class="w-full h-44 py-4"></div>
       </div>
-      <div class="card position-relative w-full">
+      <div class="card position-relative w-full animate__animated animate__fadeInUp">
         <div
           class="position-absolute bottom-0 left-0 w-full h-85% box-border bg-[url('@/assets/svgs/bo-lang-blue.svg')] bg-no-repeat bg-contain bg-bottom"
         />

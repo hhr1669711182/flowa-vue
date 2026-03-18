@@ -29,7 +29,8 @@ export const routes: Array<any> = [
         component: () => import('../views/dashboard/index.vue'),
         meta: {
           title: 'Dashboard',
-          icon: Odometer
+          // icon: Odometer
+          icon: 'svg-icon:rectangles-4'
         }
       },
       {
@@ -38,7 +39,7 @@ export const routes: Array<any> = [
         redirect: '/inventory/products',
         meta: {
           title: 'Inventory',
-          icon: Goods
+          icon: 'svg-icon:box'
         },
         children: [
           {
@@ -62,7 +63,7 @@ export const routes: Array<any> = [
         redirect: '/orders/list',
         meta: {
           title: 'Orders',
-          icon: List
+          icon: 'svg-icon:shopping-cart'
         },
         children: [
           {
@@ -116,7 +117,7 @@ export const routes: Array<any> = [
         redirect: '/billing/outbound',
         meta: {
           title: 'Billing',
-          icon: User
+          icon: 'svg-icon:rectangle-pulse'
         },
         children: [
           {
@@ -157,7 +158,7 @@ export const routes: Array<any> = [
         component: () => import('../views/Invoices/index.vue'),
         meta: {
           title: 'Invoices',
-          icon: TrendCharts
+          icon: 'svg-icon:receipt'
         }
       },
       // Support Hub
@@ -167,7 +168,7 @@ export const routes: Array<any> = [
         component: () => import('../views/Support/index.vue'),
         meta: {
           title: 'Support Hub',
-          icon: Shop
+          icon: 'svg-icon:headphones'
         }
       },
       // Settings
@@ -177,15 +178,20 @@ export const routes: Array<any> = [
         component: () => import('../views/system/Settings.vue'),
         meta: {
           title: 'Settings',
-          icon: Setting
+          icon: 'svg-icon:wrench'
         }
       }
     ]
   },
-  // Catch all 404
+  {
+    path: '/404',
+    name: '404Page',
+    component: () => import('../views/error/NotFound.vue'),
+    meta: { hidden: true }
+  },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/dashboard',
+    redirect: '/404',
     meta: { hidden: true }
   }
 ]
