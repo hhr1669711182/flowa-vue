@@ -198,12 +198,12 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from "vue";
 import * as echarts from "echarts";
-import BaseTable from "../../components/common/BaseTable.vue";
 import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
 import { exportInventoryProducts, getInventoryProducts } from "@/api/inventory";
 import { ElMessage } from "element-plus";
-import { createHeaderHintRenderer } from "../../components/common/TableHeaderHint";
+import { createHeaderHintRenderer } from "@/components/common/TableHeaderHint";
+import rightButtons from "./components/rightButtons.vue";
 
 // Product Detail State
 const detailVisible = ref(false);

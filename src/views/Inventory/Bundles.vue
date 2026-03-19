@@ -133,6 +133,7 @@ import BundleDetail from "./components/BundleDetail.vue";
 import BundleExpandDetail from "./components/BundleExpandDetail.vue";
 import { getBundleDetail, getInventoryBundles } from "@/api/inventory";
 import { ElMessage } from "element-plus";
+import rightButtons from "./components/rightButtons.vue";
 
 const filterRef = ref();
 const currentFilters = ref({});

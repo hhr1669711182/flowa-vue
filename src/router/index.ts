@@ -105,7 +105,7 @@ export const routes: Array<any> = [
           {
             path: 'cancelled',
             name: 'Cancelled',
-            component: () => import('../views/order/Cancelled.vue'),
+            component: () => import('../views/order/Cancelled/index.vue'),
             meta: { title: 'Cancelled' }
           }
         ]

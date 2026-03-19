@@ -9,6 +9,7 @@ export interface MenuButtonItem {
   label: string;
   icon?: string;
   tone?: MenuButtonTone;
+  color?: string;
   disabled?: boolean;
 }
 
@@ -41,10 +42,12 @@ export default defineComponent({
             disabled={item.disabled}
             class={[
               "row-action-btn",
-              item.tone === "danger"
-                ? "row-action-btn-danger"
-                : "row-action-btn-primary",
+              item.tone &&
+                (item.tone === "danger"
+                  ? "row-action-btn-danger"
+                  : "row-action-btn-primary"),
             ]}
+            style={{ color: item.color }}
             onClick={() => handleClick(item)}
           >
             <span class="flex justify-center items-center gap-2">

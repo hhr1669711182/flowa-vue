@@ -154,7 +154,7 @@ const props = withDefaults(defineProps<Props>(), {
   total: 0,
   page: 1,
   limit: 10,
-  height: null,
+  height: 'calc(100% - 65px)',
   headerCellStyle: undefined,
 });
 
@@ -233,8 +233,9 @@ const resolvedHeaderCellStyle = computed(() => {
   if (props.headerCellStyle !== undefined) return props.headerCellStyle;
   return {
     backgroundColor: "#F1F1F1",
-    color: "#6B6B6B",
+    color: "#000",
     fontWeight: "600",
+    fontSize: "14px",
   };
 });
 </script>

@@ -3,7 +3,7 @@ import type {
   CancelledOrderRecord,
   CancelledOrderStage,
   CancelledOrderStatus
-} from '@/api/orderCancelled'
+} from '@/api/order/cancelled'
 
 const stagePool: CancelledOrderStage[] = [
   'Review and Fix',
@@ -214,3 +214,4 @@ export default defineMock({
     return { success: true }
   }
 })
+
