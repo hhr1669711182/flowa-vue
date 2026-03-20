@@ -69,7 +69,7 @@ export const routes: Array<any> = [
           {
             path: 'list',
             name: 'AllOrders',
-            component: () => import('../views/order/OrderList.vue'),
+            component: () => import('../views/order/OrderList/index.vue'),
             meta: { title: 'All Orders' }
           },
           // {
@@ -81,25 +81,25 @@ export const routes: Array<any> = [
           {
             path: 'Required',
             name: 'Required',
-            component: () => import('../views/order/Required.vue'),
+            component: () => import('../views/order/Required/index.vue'),
             meta: { title: 'Action Required' }
           },
           {
             path: 'inProgress',
             name: 'inProgress',
-            component: () => import('../views/order/inProgress.vue'),
+            component: () => import('../views/order/inProgress/index.vue'),
             meta: { title: 'In Progress' }
           },
           {
             path: 'Delivered',
             name: 'Delivered',
-            component: () => import('../views/order/Delivered.vue'),
+            component: () => import('../views/order/Delivered/index.vue'),
             meta: { title: 'Delivered' }
           },
           {
             path: 'Blocked',
             name: 'Blocked',
-            component: () => import('../views/order/Blocked.vue'),
+            component: () => import('../views/order/Blocked/index.vue'),
             meta: { title: 'Blocked' }
           },
           {
