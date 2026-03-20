@@ -1,1 +1,0 @@
-import{t as e}from"./alova-BfQORZmv.js";const t=t=>e.Get(`/api/orders`,{params:t}),n=t=>e.Get(`/api/orders/in-progress`,{params:t}),r=t=>e.Get(`/api/orders/in-progress/detail`,{params:{id:t}}),i=t=>e.Post(`/api/orders/in-progress/review`,t),a=t=>e.Post(`/api/orders/in-progress/status`,t);export{a,i,n,t as r,r as t};

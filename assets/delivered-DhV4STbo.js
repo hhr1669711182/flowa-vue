@@ -1,0 +1,1 @@
+import{t as e}from"./alova-BBWNm5SW.js";const t=t=>e.Get(`/api/orders/delivered`,{params:t}),n=t=>e.Get(`/api/orders/delivered/detail`,{params:{id:t}}),r=t=>e.Post(`/api/orders/delivered/note`,t),i=t=>e.Post(`/api/orders/delivered/status`,t),a=t=>e.Post(`/api/orders/delivered/ticket`,t);export{i as a,r as i,n,t as r,a as t};
