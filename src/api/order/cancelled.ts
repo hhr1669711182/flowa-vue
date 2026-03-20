@@ -39,6 +39,13 @@ export interface CancelledOrderRecord {
   quantity: number
   cancelNote: string
   reopenable: boolean
+  title?: string
+  code?: string
+  deliveryStatus?: string
+  carrier?: string
+  method?: string
+  itemQuantity?: string
+  chargingWeight?: string
 }
 
 export interface CancelledOrderListParams {
@@ -97,4 +104,3 @@ export const createCancelledSupportTicket = (payload: {
 }) => {
   return alovaInstance.Post<{ success: boolean }>('/api/orders/cancelled/ticket', payload)
 }
-

@@ -4,11 +4,11 @@
       <div>
         <div class="flex items-center gap-1 line-height-22px">
           <div class="text-#000 text-28px line-height-36px">Orders</div>
-          <div class="text-#9A9A9A text-20px pt-1">/Cancelled</div>
+          <div class="text-#9A9A9A text-20px pt-1">/Blocked</div>
         </div>
         <div class="text-14px text-#6B6B6B">
-          Orders cancelled at any stage of fulfillment. Reactivation must be
-          done manually.
+          Orders manually placed on hold. Reactivate them at any time to resume
+          processing.
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -33,7 +33,81 @@
         v-model:page="page"
         v-model:limit="limit"
         @pagination-change="fetchData"
+        @expand-change="handleExpandChange"
       >
+        <template #expand="{ row }">
+          <div class="py-4 px-6 bg-#F7F7F7">
+            <div class="bg-#fff rounded-lg border border-gray-200">
+              <div
+                class="flex justify-between items-start px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+              >
+                <div>
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="text-lg font-bold text-gray-900">
+                      {{ getExpandRow(row).title }}
+                    </span>
+                    <span
+                      class="px-2 py-0.5 rounded text-xs font-medium bg-[#FDEAEA] text-[#C62828]"
+                    >
+                      {{ getExpandRow(row).deliveryStatus }}
+                    </span>
+                  </div>
+                  <div class="text-xs text-gray-500 flex gap-4">
+                    <span>Create {{ getExpandRow(row).code }}</span>
+                    <span>Fulfilled Date {{ getExpandRow(row).code }}</span>
+                  </div>
+                </div>
+
+                <div class="text-left text-sm">
+                  <div class="mb-1">
+                    <span class="text-gray-500 mr-2">Carrier</span>
+                    <span class="text-gray-900">{{
+                      getExpandRow(row).carrier
+                    }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500 mr-2">Method</span>
+                    <span class="text-gray-900">{{
+                      getExpandRow(row).method
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="px-6 py-4 bg-#FDEAEA border-0 border-l-15 border-solid border-[rgba(198,40,40,0.5)]"
+              >
+                <div class="text-#C62828 text-12px font-medium">
+                  Order Blocked. Reactivate it at any time to resume processing.
+                </div>
+              </div>
+
+              <div class="px-6 py-4">
+                <Steps
+                  class="mb-4"
+                  :steps="getTaskSteps(getExpandRow(row))"
+                  :active="getActiveStep(getExpandRow(row))"
+                />
+                <div class="flex justify-between items-center">
+                  <div class="text-lg font-bold text-sm">
+                    <span text="text-#6B6B6B">Tracking No.:</span>
+                    <span class="text-#000">{{ "0123456789" }}</span>
+                  </div>
+                  <el-button
+                    class="!font-semibold w-[166px] hover:!bg-#F4F6FA !px-4 !h-8 !color-[#F6540C]"
+                    @click="handleSupport(getExpandRow(row))"
+                  >
+                    <span class="flex items-center gap-2">
+                      <Icon icon="svg-icon:headphones" />
+                      Contact Support
+                    </span>
+                  </el-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <template #order="{ row }">
           <div class="flex items-center gap-3">
             <el-avatar :size="32" class="bg-gray-100 text-gray-700"
@@ -92,23 +166,35 @@
             <div class="mt-1">
               Update:
               <span class="text-gray-900 font-semibold ml-1">{{
-                row.cancelledDate
+                row.blockedDate
               }}</span>
             </div>
           </div>
         </template>
         <template #actions="{ row }">
           <div class="flex flex-1 justify-center gap-1">
-            <el-button
-              class="!w-22.5 h-8 !p-2 !rounded-lg box-border !color-#fff !bg-[#9A9A9A]"
-              @click="handleViewDetail(row)"
+            <el-popover
+              placement="bottom-start"
+              trigger="click"
+              popper-class="!p-0 !px-2 !min-w-auto !rounded-lg !w-auto"
+              :show-arrow="false"
             >
-              <Icon icon="svg-icon:circle-xmark" />
-              <span class="text-14px">Cancelled</span>
-            </el-button>
-            <el-button class="w-8 h-8 !ml-0" @click="handleViewDetail(row)">
-              <Icon icon="svg-icon:eye" color="#16215B" />
-            </el-button>
+              <template #reference>
+                <el-button
+                  class="!w-105px h-8 !p-2 !rounded-lg box-border !color-#fff !bg-[#9A9A9A]"
+                >
+                  <!-- @click="handleViewDetail(row)" -->
+                  <Icon icon="svg-icon:circle-minus" />
+                  <span class="text-14px">Blocked</span>
+                </el-button>
+              </template>
+              <rightButtons
+                :row="row"
+                :items="btnItems1"
+                @action="handleRowAction"
+              />
+            </el-popover>
+
             <el-popover
               placement="bottom-start"
               trigger="click"
@@ -122,7 +208,7 @@
               </template>
               <rightButtons
                 :row="row"
-                :items="btnItems"
+                :items="btnItems2"
                 @action="handleRowAction"
               />
             </el-popover>
@@ -146,18 +232,19 @@ import { ref, onMounted, nextTick } from "vue";
 import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
 import {
-  createCancelledSupportTicket,
-  getCancelledOrderDetail,
-  getCancelledOrderList,
-  reactivateCancelledOrder,
-  updateCancelledOrderStatus,
-  type CancelledOrderListParams,
-  type CancelledOrderStage,
-  type CancelledOrderStatus,
-  type CancelledInventoryStatus,
-} from "@/api/order/cancelled";
+  createBlockedSupportTicket,
+  getBlockedOrderDetail,
+  getBlockedOrderList,
+  reactivateBlockedOrder,
+  updateBlockedOrderStatus,
+  type BlockedInventoryStatus,
+  type BlockedOrderListParams,
+  type BlockedOrderStage,
+  type BlockedOrderStatus,
+} from "@/api/order/blocked";
 import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
+import { Steps } from "@/components/base/Steps";
 
 // Product Detail State
 const detailVisible = ref(false);
@@ -171,7 +258,7 @@ const handleAddProduct = () => {
 const handleViewDetail = async (row: any) => {
   if (!row?.id) return;
   try {
-    const res = await getCancelledOrderDetail(row.id);
+    const res = await getBlockedOrderDetail(row.id);
     await ElMessageBox.alert(
       `${res.orderId}\n${res.platformId}\n${res.stage}\n${res.status}\n${res.customerName} · ${res.customerRegion}\nSKU ${res.sku}`,
       "Order Detail",
@@ -203,16 +290,31 @@ const handleFilterSearch = (params: any) => {
 const columns = [
   { type: "selection", width: 50 },
   { type: "expand", width: 50, slot: "expand" },
-  { label: "Order ID / Platform ID", slot: "order", width: 180 },
+  { label: "Order ID / Platform ID", slot: "order", width: "auto" },
   { label: "Stages", slot: "stage", width: 120 },
   { label: "Status", slot: "status", width: 120, align: "center" },
   { label: "Customer", slot: "customer", width: 150 },
   { label: "Inventory", slot: "inventory", width: 120, align: "center" },
   { label: "Date", slot: "date", width: 180 },
-  { label: "Actions", slot: "actions", width: 200, fixed: "right" },
+  { label: "Actions", slot: "actions", width: 150, fixed: "right", align: "center" },
 ];
 
-const btnItems = [
+const btnItems1 = [
+  {
+    key: "unblock",
+    label: "Unblock Order",
+    icon: "svg-icon:circle-minus",
+    tone: "primary",
+  },
+  {
+    key: "cancel",
+    label: "Cancel Order",
+    icon: "svg-icon:trash-bin",
+    tone: "danger",
+  },
+] as any;
+
+const btnItems2 = [
   {
     key: "view",
     label: "View Details",
@@ -233,8 +335,10 @@ const loading = ref(false);
 const total = ref(0);
 const page = ref(1);
 const limit = ref(10);
+const expandDetailMap = ref<Record<string, any>>({});
+const expandLoadingMap = ref<Record<string, boolean>>({});
 
-const mapStage = (stage: string): CancelledOrderStage | "" => {
+const mapStage = (stage: string): BlockedOrderStage | "" => {
   if (!stage || stage === "all") return "";
   if (stage === "fix") return "Review and Fix";
   if (stage === "redelivery") return "Return Processing";
@@ -243,21 +347,21 @@ const mapStage = (stage: string): CancelledOrderStage | "" => {
   return "";
 };
 
-const mapStatus = (status: string): CancelledOrderStatus | "" => {
+const mapStatus = (status: string): BlockedOrderStatus | "" => {
   if (!status || status === "all") return "";
-  if (status === "cancelled") return "Cancelled";
-  if (status === "not") return "Reactivated";
+  if (status === "cancelled") return "Blocked";
+  if (status === "not") return "Resolved";
   return "";
 };
 
-const mapInventory = (stock: string): CancelledInventoryStatus | "" => {
+const mapInventory = (stock: string): BlockedInventoryStatus | "" => {
   if (!stock || stock === "all") return "";
   if (stock === "low") return "Reserved";
   if (stock === "out") return "Out of Stock";
   return "";
 };
 
-const buildParams = (): CancelledOrderListParams => {
+const buildParams = (): BlockedOrderListParams => {
   const p: any = currentFilters.value || {};
   const keyword = (p.sku || p.keyword || "").toString().trim();
   const stage = mapStage(p.stage);
@@ -272,9 +376,7 @@ const buildParams = (): CancelledOrderListParams => {
     const dd = `${d.getDate()}`.padStart(2, "0");
     return `${d.getFullYear()}-${mm}-${dd}`;
   };
-  const dateRange: CancelledOrderListParams["dateRange"] = Array.isArray(
-    p.range,
-  )
+  const dateRange: BlockedOrderListParams["dateRange"] = Array.isArray(p.range)
     ? ([toDateText(p.range[0]), toDateText(p.range[1])] as [string, string])
     : [];
   return {
@@ -285,15 +387,13 @@ const buildParams = (): CancelledOrderListParams => {
     status,
     inventory,
     dateRange,
-    // dateRange:
-    //   Array.isArray(dateRange) && dateRange.length === 2 ? dateRange : [],
   };
 };
 
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await getCancelledOrderList(buildParams());
+    const res = await getBlockedOrderList(buildParams());
     tableData.value = res.list;
     total.value = res.total;
     await nextTick();
@@ -304,35 +404,67 @@ const fetchData = async () => {
   }
 };
 
+const handleExpandChange = async (row: any, expanded: any[]) => {
+  if (!row?.id) return;
+  const isExpanded = Array.isArray(expanded) && expanded.includes(row);
+  if (!isExpanded) return;
+  if (expandDetailMap.value[row.id]) return;
+  expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: true };
+  try {
+    const res = await getBlockedOrderDetail(row.id);
+    expandDetailMap.value = { ...expandDetailMap.value, [row.id]: res };
+  } catch (error) {
+    console.error("Failed to fetch blocked order detail:", error);
+  } finally {
+    expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: false };
+  }
+};
+
+const getExpandRow = (row: any) => {
+  if (!row?.id) return row;
+  return expandDetailMap.value[row.id] || row;
+};
+
+const handleSupport = async (row: any) => {
+  if (!row?.id) return;
+  try {
+    await createBlockedSupportTicket({
+      id: row.id,
+      subject: `Order support: ${row.orderId}`,
+      message: "Need help with this blocked order.",
+      priority: "High",
+    });
+    ElMessage.success("Support ticket created");
+  } catch (error) {
+    ElMessage.error("Failed to create ticket");
+  }
+};
+
 const handleRowAction = (action: string, row: any) => {
   switch (action) {
-    case "view":
-      handleViewDetail(row);
-      break;
-    case "reactivate":
-      reactivateCancelledOrder({
+    case "unblock":
+      reactivateBlockedOrder({
         id: row.id,
-        note: "Manual reactivation requested.",
-        targetStage: (row.stage || "Review and Fix") as CancelledOrderStage,
+        note: "Unblocked by operator.",
       }).then(() => {
-        ElMessage.success("Reactivation requested");
+        ElMessage.success("Order unblocked");
         fetchData();
       });
       break;
-    case "status":
-      updateCancelledOrderStatus({
+    case "cancel":
+      updateBlockedOrderStatus({
         id: row.id,
-        status: "Archived",
+        status: "Cancelled",
       }).then(() => {
         ElMessage.success("Status updated");
         fetchData();
       });
       break;
     case "support":
-      createCancelledSupportTicket({
+      createBlockedSupportTicket({
         id: row.id,
         subject: `Order support: ${row.orderId}`,
-        message: "Need help with this cancelled order.",
+        message: "Need help with this blocked order.",
         priority: "High",
       }).then(() => {
         ElMessage.success("Support ticket created");
@@ -341,6 +473,26 @@ const handleRowAction = (action: string, row: any) => {
     default:
       break;
   }
+};
+
+const getTaskSteps = (row: any) => {
+  const subtitle = row?.status || "Blocked";
+  return [
+    { title: "Review & Fix", subtitle },
+    { title: "Warehouse", subtitle },
+    { title: "Export", subtitle },
+    { title: "Local Delivery", subtitle },
+    { title: "Delivered", subtitle },
+  ];
+};
+
+const getActiveStep = (row: any) => {
+  const stage = String(row?.stage || "");
+  if (stage.includes("Review")) return 0;
+  if (stage.includes("Warehouse")) return 1;
+  if (stage.includes("Export")) return 2;
+  if (stage.includes("Return")) return 3;
+  return 0;
 };
 
 onMounted(async () => {

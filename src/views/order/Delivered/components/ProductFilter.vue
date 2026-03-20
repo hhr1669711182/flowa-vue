@@ -35,28 +35,6 @@
         <el-option label="Clearance" value="clearance" />
         <el-option label="Discontinued" value="discontinued" />
       </el-select>
-      <el-select
-        v-model="filters.status"
-        class="!w-50"
-        placeholder="Status"
-        @change="handleSearch"
-        clearable
-      >
-        <el-option label="All" value="all" />
-        <el-option label="Cancelled" value="cancelled" />
-        <el-option label="Not Cancelled" value="not" />
-      </el-select>
-      <el-select
-        v-model="filters.stock"
-        class="!w-50"
-        placeholder="Stock"
-        @change="handleSearch"
-        clearable
-      >
-        <el-option label="All" value="all" />
-        <el-option label="Low" value="low" />
-        <el-option label="Out of stock" value="out" />
-      </el-select>
       <el-button plain @click="showFilter = !showFilter">
         <span class="flex items-center gap-2">
           <Icon icon="svg-icon:sliders" color="#000" />

@@ -51,6 +51,8 @@ const seedCancelledOrders = (): CancelledOrderRecord[] => {
     due.setDate(cancelled.getDate() + ((index % 7) + 2))
     const stage = stagePool[index % stagePool.length]!
     const status = statusPool[index % statusPool.length]!
+    const createdText = formatDate(created)
+    const cancelledText = formatDate(cancelled)
     return {
       id: `CO-${1600 + index}`,
       orderId: `Order X${(330000 + index).toString().padStart(6, '0')}`,
@@ -61,8 +63,8 @@ const seedCancelledOrders = (): CancelledOrderRecord[] => {
       customerName: ['Amelia Clark', 'Benjamin Adams', 'Mia Turner', 'James Green', 'Harper Lewis'][index % 5]!,
       customerRegion: ['UK/London', 'US/Boston', 'DE/Berlin', 'CA/Toronto', 'AU/Sydney'][index % 5]!,
       inventoryStatus: inventoryPool[index % inventoryPool.length]!,
-      createDate: formatDate(created),
-      cancelledDate: formatDate(cancelled),
+      createDate: createdText,
+      cancelledDate: cancelledText,
       dueDate: formatDate(due),
       sku: `SKU-${11200 + index}`,
       productName: ['Label Bundle', 'Paper Mailer', 'Priority Box', 'Thermal Label', 'Return Pouch'][index % 5]!,
@@ -71,7 +73,14 @@ const seedCancelledOrders = (): CancelledOrderRecord[] => {
         status === 'Reactivated'
           ? 'Reactivation completed and returned to processing.'
           : 'Order cancelled and pending manual review.',
-      reopenable: status !== 'Archived'
+      reopenable: status !== 'Archived',
+      title: `Order X${(12345 + (index % 50)).toString().padStart(6, '0')}`,
+      code: '00/00/2026',
+      deliveryStatus: 'Cancelled',
+      carrier: ['Australia Post / 3J85', 'DHL / 8H12', 'FedEx / 2A31'][index % 3]!,
+      method: ['Regular Shipping', 'Express Shipping'][index % 2]!,
+      itemQuantity: `${(index % 7) + 1}`.padStart(2, '0'),
+      chargingWeight: `${(index % 8) + 1},0 kg`
     }
   })
 }
@@ -214,4 +223,3 @@ export default defineMock({
     return { success: true }
   }
 })
-
