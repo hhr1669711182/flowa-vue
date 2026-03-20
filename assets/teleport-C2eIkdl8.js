@@ -1,0 +1,1 @@
+import{Ct as e,Mt as t,jt as n}from"./css-BbfZRrRx.js";import{E as r,R as i,at as a,j as o,nt as s}from"./index-ChQ8iN0o.js";var c=n({to:{type:t([String,Object]),required:!0},disabled:Boolean}),l=e(i({__name:`teleport`,props:c,setup(e){return(e,t)=>e.disabled?a(e.$slots,`default`,{key:0}):(s(),o(r,{key:1,to:e.to},[a(e.$slots,`default`)],8,[`to`]))}}));export{c as n,l as t};
