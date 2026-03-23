@@ -1,1 +1,0 @@
-import{t as e}from"./alova-CFWQfXuS.js";const t=(t={})=>e.Get(`/api/tickets`,{params:t}),n=t=>e.Get(`/api/tickets/${t}`),r=t=>e.Post(`/api/tickets`,t),i=(t,n)=>e.Put(`/api/tickets/${t}/status`,{status:n}),a=t=>e.Delete(`/api/tickets/${t}`),o=(t,n)=>e.Post(`/api/tickets/${t}/messages`,{content:n});export{o as a,t as i,a as n,i as o,n as r,r as t};
