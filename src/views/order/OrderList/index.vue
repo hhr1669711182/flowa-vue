@@ -4,11 +4,10 @@
       <div>
         <div class="flex items-center gap-1 line-height-22px">
           <div class="text-#000 text-28px line-height-36px">Orders</div>
-          <div class="text-#9A9A9A text-20px pt-1">/Cancelled</div>
+          <div class="text-#9A9A9A text-20px pt-1">/All Orders</div>
         </div>
         <div class="text-14px text-#6B6B6B">
-          Orders cancelled at any stage of fulfillment. Reactivation must be
-          done manually.
+          View and manage all synced orders across every stage of fulfillment.
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -18,6 +17,58 @@
             <span>Create Order</span>
           </span>
         </el-button>
+      </div>
+    </div>
+
+    <div class="w-full h-20px flex justify-end">
+      <el-button
+        link
+        class="!text-gray-600 !px-2"
+        @click="showCards = !showCards"
+      >
+        <span class="flex items-center gap-1">
+          <Icon
+            :icon="showCards ? 'svg-icon:eye-slash' : 'svg-icon:eye'"
+            color="#16215B"
+          />
+          <span>{{ showCards ? "Hide Data" : "View Data" }}</span>
+        </span>
+      </el-button>
+    </div>
+
+    <div
+      v-show="showCards"
+      class="flex gap-4 mb-4"
+    >
+      <div
+        class="boxShadow bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-59.5 animate__animated animate__fadeInUp flex flex-col"
+        style="animation-delay: 0.5s"
+      >
+        <div class="flex-1 w-full min-h-0">
+          <CategoryChart />
+        </div>
+      </div>
+
+      <div
+        class="card position-relative w-full animate__animated animate__fadeInUp"
+      >
+        <div
+          class="position-absolute bottom-0 left-0 w-full h-85% box-border bg-[url('@/assets/svgs/bo-lang-blue.svg')] bg-no-repeat bg-contain bg-bottom"
+        />
+        <div
+          class="flex items-center justify-between mb-2 p-6 position-absolute w-full box-border"
+        >
+          <div class="text-sm font-semibold opacity-80">
+            <div class="text-16px">Total Savings</div>
+            <div class="flex items-center gap-1">
+              <Icon icon="svg-icon:circle-arrow-up" color="#BDBDBD" />
+              <div class="text-#BDBDBD">12% vs. Traditional Method</div>
+            </div>
+          </div>
+          <div class="flex items-center justify-end mb-1">
+            <span class="text-3xl font-bold">$2,430</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -158,10 +209,12 @@ import {
 } from "@/api/order/cancelled";
 import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
+import CategoryChart from "./components/CategoryChart.vue";
 
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
+const showCards = ref(true);
 
 const handleAddProduct = () => {
   currentProductId.value = undefined;
@@ -357,6 +410,10 @@ onMounted(async () => {
   color: #fff;
   border-radius: 12px;
   background: linear-gradient(131deg, #16215b 26.84%, #0a123c 98.1%);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+}
+
+.boxShadow {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
 }
 </style>

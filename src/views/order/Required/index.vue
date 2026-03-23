@@ -4,11 +4,11 @@
       <div>
         <div class="flex items-center gap-1 line-height-22px">
           <div class="text-#000 text-28px line-height-36px">Orders</div>
-          <div class="text-#9A9A9A text-20px pt-1">/Cancelled</div>
+          <div class="text-#9A9A9A text-20px pt-1">/ Action Required</div>
         </div>
         <div class="text-14px text-#6B6B6B">
-          Orders cancelled at any stage of fulfillment. Reactivation must be
-          done manually.
+          Review and resolve orders that require your approval or intervention
+          to continue processing.
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -100,7 +100,7 @@
         <template #actions="{ row }">
           <div class="flex flex-1 justify-center gap-1">
             <el-button
-              class="!w-22.5 h-8 !p-2 !rounded-lg box-border !color-#fff !bg-[#9A9A9A]"
+              class="!w-26 h-8 !p-2 !rounded-lg box-border !color-#fff !bg-[#9A9A9A]"
               @click="handleViewDetail(row)"
             >
               <Icon icon="svg-icon:circle-xmark" />
@@ -209,7 +209,13 @@ const columns = [
   { label: "Customer", slot: "customer", width: 150 },
   { label: "Inventory", slot: "inventory", width: 120, align: "center" },
   { label: "Date", slot: "date", width: 180 },
-  { label: "Actions", slot: "actions", width: 200, fixed: "right" },
+  {
+    label: "Actions",
+    slot: "actions",
+    width: 200,
+    fixed: "right",
+    align: "center",
+  },
 ];
 
 const btnItems = [
