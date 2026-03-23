@@ -222,7 +222,7 @@ const createForm = reactive({
 
 const columns = [
   { type: 'selection', width: 55 },
-  { label: 'Ticket ID', slot: 'ticketId', width: 180 },
+  { label: 'Ticket ID', slot: 'ticketId' },
   { label: 'Type of enquire', prop: 'type', width: 150 },
   { label: 'Type ID', prop: 'stageDetail', width: 180 },
   { label: 'Status', slot: 'status', width: 120 },

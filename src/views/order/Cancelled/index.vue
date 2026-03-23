@@ -274,7 +274,7 @@ const handleFilterSearch = (params: any) => {
 const columns = [
   { type: "selection", width: 50 },
   { type: "expand", width: 50, slot: "expand" },
-  { label: "Order ID / Platform ID", slot: "order", width: 180 },
+  { label: "Order ID / Platform ID", slot: "order" },
   { label: "Stages", slot: "stage", width: 120 },
   { label: "Status", slot: "status", width: 120, align: "center" },
   { label: "Customer", slot: "customer", width: 150 },

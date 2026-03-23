@@ -51,7 +51,7 @@
         <el-main
           class="bg-gray-50/50 p-2 sm:p-6 overflow-hidden overflow-y-scroll max-h-full"
         >
-          <div class="max-w-7xl mx-auto w-full h-full">
+          <div class="mx-auto w-full h-full">
             <router-view v-slot="{ Component }">
               <transition
                 enter-active-class="animate__animated animate__fadeIn animate__faster"
