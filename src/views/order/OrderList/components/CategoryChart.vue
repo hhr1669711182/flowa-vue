@@ -35,7 +35,7 @@
 import { ref } from 'vue'
 
 const orderStatus = ref([
-  { label: 'Pending', percent: 70, orders: 45, color: '#0211A3' },
+  { label: 'To Approve', percent: 70, orders: 45, color: '#0211A3' },
   { label: 'In Process', percent: 70, orders: 160, color: '#0211A3' },
   { label: 'Delivered', percent: 80, orders: 225, color: '#0211A3' }
 ])

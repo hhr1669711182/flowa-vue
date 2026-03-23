@@ -671,5 +671,6 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   background: linear-gradient(131deg, #16215b 26.84%, #0a123c 98.1%);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+  overflow: hidden;
 }
 </style>

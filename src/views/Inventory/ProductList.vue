@@ -76,7 +76,7 @@
 
         <div ref="storageChartRef" class="w-full h-44 py-4"></div>
       </div>
-      <div class="card position-relative w-full animate__animated animate__fadeInUp">
+      <div class="card overflow-hidden position-relative w-full animate__animated animate__fadeInUp">
         <div
           class="position-absolute bottom-0 left-0 w-full h-85% box-border bg-[url('@/assets/svgs/bo-lang-blue.svg')] bg-no-repeat bg-contain bg-bottom"
         />
