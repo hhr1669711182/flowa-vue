@@ -20,7 +20,19 @@
       </div>
     </div>
 
-    <div class="w-full h-20px flex justify-end">
+    <div class="w-full flex justify-between items-end">
+      <el-select
+        v-model="dateRange"
+        class="!w-30 mb-1"
+        placeholder="Status"
+        @change="() => {}"
+        clearable
+      >
+        <el-option label="this week" value="1" />
+        <el-option label="this month" value="2" />
+        <el-option label="this year" value="3" />
+      </el-select>
+
       <el-button
         link
         class="!text-gray-600 !px-2"
@@ -36,10 +48,7 @@
       </el-button>
     </div>
 
-    <div
-      v-show="showCards"
-      class="flex gap-4 mb-4"
-    >
+    <div v-show="showCards" class="flex gap-4 mb-4">
       <div
         class="boxShadow bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-59.5 animate__animated animate__fadeInUp flex flex-col"
         style="animation-delay: 0.5s"
@@ -215,6 +224,7 @@ import CategoryChart from "./components/CategoryChart.vue";
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
 const showCards = ref(true);
+const dateRange = ref('');
 
 const handleAddProduct = () => {
   currentProductId.value = undefined;
