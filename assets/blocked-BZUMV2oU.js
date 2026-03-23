@@ -1,1 +1,0 @@
-import{t as e}from"./alova-BBWNm5SW.js";const t=t=>e.Get(`/api/orders/blocked`,{params:t}),n=t=>e.Get(`/api/orders/blocked/detail`,{params:{id:t}}),r=t=>e.Post(`/api/orders/blocked/reactivate`,t),i=t=>e.Post(`/api/orders/blocked/status`,t),a=t=>e.Post(`/api/orders/blocked/ticket`,t);export{i as a,r as i,n,t as r,a as t};
