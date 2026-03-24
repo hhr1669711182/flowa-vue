@@ -145,7 +145,9 @@
                 <div class="flex justify-between items-center">
                   <div class="text-lg font-bold text-sm">
                     <span text="text-#6B6B6B">Tracking No.:</span>
-                    <span class="text-#000">{{ getExpandRow(row).trackingNo }}</span>
+                    <span class="text-#000">{{
+                      getExpandRow(row).trackingNo
+                    }}</span>
                   </div>
                   <el-button
                     class="!font-semibold w-[166px] hover:!bg-#F4F6FA !px-4 !h-8 !color-[#F6540C]"
@@ -201,7 +203,10 @@
                     }}</span>
                   </template>
                   <template #itemActions="{ row: item }">
-                    <el-button class="w-8 h-8 !ml-0" @click="handleDeleteItem(getExpandRow(row), item)">
+                    <el-button
+                      class="w-8 h-8 !ml-0"
+                      @click="handleDeleteItem(getExpandRow(row), item)"
+                    >
                       <Icon icon="svg-icon:trash-bin" color="#C62828" />
                     </el-button>
                   </template>
@@ -353,7 +358,10 @@ const handleViewDetail = async (row: any) => {
   if (!row?.id) return;
   try {
     const res = await getOrderDetail(row.id);
-    const firstSku = Array.isArray(res.items) && res.items.length ? res.items[0]?.sku : undefined;
+    const firstSku =
+      Array.isArray(res.items) && res.items.length
+        ? res.items[0]?.sku
+        : undefined;
     await ElMessageBox.alert(
       `${res.orderId}\n${res.platformId}\n${res.stage}\n${res.status}\n${res.customerName} · ${res.customerRegion}${
         firstSku ? `\n${firstSku}` : ""
@@ -477,7 +485,12 @@ const buildParams = (): OrderListParams => {
     status,
     inventory,
     dateRange: range,
-    quickRange: dateRange.value === "1" ? "last7" : dateRange.value === "2" ? "thisMonth" : "all",
+    quickRange:
+      dateRange.value === "1"
+        ? "last7"
+        : dateRange.value === "2"
+          ? "thisMonth"
+          : "all",
   };
 };
 
@@ -582,11 +595,31 @@ const getTaskSteps = (row: any) => {
   const active = getActiveStep(row);
   const subtitle = row?.status || "Awaiting";
   return [
-    { title: "Review & Fix", subtitle, state: active > 0 ? "completed" : active === 0 ? "active" : "pending" },
-    { title: "Warehouse", subtitle, state: active > 1 ? "completed" : active === 1 ? "active" : "pending" },
-    { title: "Export", subtitle, state: active > 2 ? "completed" : active === 2 ? "active" : "pending" },
-    { title: "Local Delivery", subtitle, state: active > 3 ? "completed" : active === 3 ? "active" : "pending" },
-    { title: "Delivered", subtitle: active >= 4 ? "Completed" : "Awaiting", state: active >= 4 ? "completed" : "pending" },
+    {
+      title: "Review & Fix",
+      subtitle,
+      state: active > 0 ? "completed" : active === 0 ? "active" : "pending",
+    },
+    {
+      title: "Warehouse",
+      subtitle,
+      state: active > 1 ? "completed" : active === 1 ? "active" : "pending",
+    },
+    {
+      title: "Export",
+      subtitle,
+      state: active > 2 ? "completed" : active === 2 ? "active" : "pending",
+    },
+    {
+      title: "Local Delivery",
+      subtitle,
+      state: active > 3 ? "completed" : active === 3 ? "active" : "pending",
+    },
+    {
+      title: "Delivered",
+      subtitle: active >= 4 ? "Completed" : "Awaiting",
+      state: active >= 4 ? "completed" : "pending",
+    },
   ] as any;
 };
 
