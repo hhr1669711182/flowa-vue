@@ -16,7 +16,7 @@
       <div class="flex items-center gap-3">
         <el-button @click="$emit('close')" class="w-11 !h-11 !p-0" size="large" type="default">
           <!-- <Icon icon="svg-icon:xmark" color="#16215B" size="22px" /> -->
-          <Icon icon="formkit:close" size="22px"  style="color: #16215B" />
+          <Icon icon="formkit:close" :size="5.5"  style="color: #16215B" />
         </el-button>
       </div>
     </div>

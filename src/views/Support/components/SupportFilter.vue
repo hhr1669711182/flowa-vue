@@ -17,6 +17,8 @@
 
     <el-radio-group v-model="filters.quickDate" size="default" @change="handleQuickDateChange">
       <el-radio-button label="7">Last 7 days</el-radio-button>
+      <el-radio-button label="30">Last 30 days</el-radio-button>
+      <el-radio-button label="">All</el-radio-button>
     </el-radio-group>
 
     <el-date-picker

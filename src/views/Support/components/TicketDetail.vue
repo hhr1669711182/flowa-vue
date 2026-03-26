@@ -28,15 +28,29 @@
       </div>
     </template>
 
-    <div class="flex h-full bg-gray-50/50" v-if="ticket">
-      <!-- Chat Area -->
-      <div class="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full">
-        <div class="flex-1 overflow-y-auto mb-4 space-y-6 pr-4 custom-scroll" ref="chatContainer">
+    <div class="flex h-full bg-#F9FAFB" v-if="ticket">
+      <div class="flex-1 flex flex-col p-4 w-full">
+        <div class="bg-white rounded-xl border border-#ECECEC p-4 h-full flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="text-12px text-#9CA3AF">All Tickets / {{ ticket.ticketId }}</div>
+              <div class="text-18px font-700 text-#111827">Support Center</div>
+            </div>
+            <el-tag effect="light" class="!border-none !bg-[#EEF2FF] !text-[#1D4ED8]">In Progress</el-tag>
+          </div>
+
+          <div class="flex-1 overflow-y-auto mb-4 space-y-6 pr-2 custom-scroll chat-dot-bg rounded-lg" ref="chatContainer">
           <div class="flex justify-center my-4">
             <span class="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">Jan 15</span>
           </div>
 
-          <div v-for="msg in messages" :key="msg.id" class="flex gap-4" :class="{ 'flex-row-reverse': msg.sender === 'support' }">
+          <div v-if="messages.length === 0" class="h-full flex items-center justify-center">
+            <el-button type="primary" class="!bg-[#1e3a8a] !border-none !px-6" @click="startConversation">
+              Start Conversation
+            </el-button>
+          </div>
+
+          <div v-for="msg in messages" :key="msg.id" class="flex gap-3 px-4" :class="{ 'flex-row-reverse': msg.sender === 'support' }">
             <div v-if="msg.sender === 'user'" class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
               <img v-if="msg.avatar" :src="msg.avatar" class="w-full h-full object-cover" />
               <div v-else class="w-full h-full flex items-center justify-center bg-green-600 text-white text-xs">U</div>
@@ -45,12 +59,12 @@
               S
             </div>
 
-            <div class="max-w-[70%]">
+            <div class="max-w-[74%]">
               <div 
-                class="p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm"
-                :class="msg.sender === 'user' ? 'bg-white text-gray-800 rounded-tl-none' : 'bg-orange-50 text-gray-800 rounded-tr-none'"
+                class="p-3 rounded-xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm"
+                :class="msg.sender === 'user' ? 'bg-white text-gray-800 rounded-tl-none border border-#EEF2F7' : 'bg-[#EEF6FF] text-gray-800 rounded-tr-none'"
               >
-                <div v-if="msg.sender === 'support'" class="font-bold mb-1 text-xs text-gray-500">You</div>
+                <div v-if="msg.sender === 'support'" class="font-700 mb-1 text-12px text-#0A123C">Flowa Support Center</div>
                 {{ msg.content }}
               </div>
               <div class="text-xs text-gray-400 mt-1" :class="{ 'text-right': msg.sender === 'support' }">
@@ -58,10 +72,9 @@
               </div>
             </div>
           </div>
-        </div>
+          </div>
 
-        <!-- Input Area -->
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex gap-4 items-center">
+          <div class="bg-white p-3 rounded-xl border border-gray-100 flex gap-3 items-center">
           <el-input
             v-model="newMessage"
             placeholder="Write your message..."
@@ -71,21 +84,21 @@
             resize="none"
             @keyup.enter.prevent="handleSend"
           />
-          <div class="flex gap-2 text-gray-400">
-            <el-button circle text><el-icon><Files /></el-icon></el-button>
-            <el-button circle text><el-icon><Paperclip /></el-icon></el-button>
-            <el-button type="primary" class="!bg-[#1e3a8a] !w-10 !h-10 !p-0 !rounded-lg" @click="handleSend">
+          <div class="flex gap-1 text-gray-400">
+            <el-button class="!w-8 !h-8 !p-0 !border-none"><el-icon><Files /></el-icon></el-button>
+            <el-button class="!w-8 !h-8 !p-0 !border-none"><el-icon><Paperclip /></el-icon></el-button>
+            <el-button type="primary" class="!bg-[#1e3a8a] !w-8 !h-8 !p-0 !rounded-lg !border-none" @click="handleSend">
               <el-icon><Position /></el-icon>
             </el-button>
           </div>
         </div>
       </div>
+      </div>
 
-      <!-- Ticket Details Sidebar -->
-      <div class="w-96 bg-white border-l border-gray-100 p-6 overflow-y-auto h-full hidden lg:block">
+      <div class="w-96 bg-white border-l border-gray-100 p-5 overflow-y-auto h-full hidden lg:block">
         <div class="flex justify-between items-start mb-6">
           <div>
-            <h2 class="text-xl font-bold text-gray-900">{{ ticket.ticketId }}</h2>
+            <h2 class="text-24px font-700 text-gray-900">{{ ticket.ticketId }}</h2>
             <div class="flex items-center gap-2 mt-1">
               <span class="text-xs text-gray-500">Due Date</span>
               <span class="text-xs text-red-500 bg-red-50 px-2 py-0.5 rounded flex items-center gap-1">
@@ -93,14 +106,16 @@
               </span>
             </div>
           </div>
-          <el-dropdown trigger="click">
+          <el-dropdown trigger="click" @command="handleCommand">
             <el-button circle plain>
               <el-icon><MoreFilled /></el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item>Edit Ticket</el-dropdown-item>
-                <el-dropdown-item class="text-red-500">Delete</el-dropdown-item>
+                <el-dropdown-item command="edit">Edit Ticket</el-dropdown-item>
+                <el-dropdown-item command="close">Close Ticket</el-dropdown-item>
+                <el-dropdown-item command="open">Open Ticket</el-dropdown-item>
+                <el-dropdown-item command="delete" class="text-red-500">Delete</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -110,13 +125,13 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <div class="text-xs text-gray-500 mb-1">Status</div>
-              <el-tag :type="getStatusType(ticket.status)" effect="plain" size="small" class="!bg-opacity-10 !border-none">
+              <el-tag :type="getStatusType(ticket.status)" effect="light" size="small" class="!border-none">
                 {{ ticket.status }}
               </el-tag>
             </div>
             <div>
               <div class="text-xs text-gray-500 mb-1">Priority</div>
-              <el-tag :type="getPriorityType(ticket.priority)" effect="plain" size="small" class="!bg-opacity-10 !border-none">
+              <el-tag :type="getPriorityType(ticket.priority)" effect="light" size="small" class="!border-none">
                 {{ ticket.priority }}
               </el-tag>
             </div>
@@ -183,7 +198,7 @@ const props = defineProps<{
   ticket: Ticket | null
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'command'])
 
 const visible = ref(props.modelValue)
 const newMessage = ref('')
@@ -193,8 +208,14 @@ const chatContainer = ref<HTMLElement | null>(null)
 watch(() => props.modelValue, (val) => {
   visible.value = val
   if (val && props.ticket) {
-    // Load messages
     messages.value = props.ticket.messages || []
+    scrollToBottom()
+  }
+})
+
+watch(() => props.ticket, (val) => {
+  if (visible.value && val) {
+    messages.value = val.messages || []
     scrollToBottom()
   }
 })
@@ -207,10 +228,14 @@ const close = () => {
   visible.value = false
 }
 
+const handleCommand = (command: string) => {
+  if (!props.ticket) return
+  emit('command', command, props.ticket)
+}
+
 const handleSend = async () => {
   if (!newMessage.value.trim() || !props.ticket) return
   
-  // Optimistic UI update
   const tempMsg: ChatMessage = {
     id: Date.now(),
     sender: 'support',
@@ -223,8 +248,16 @@ const handleSend = async () => {
   newMessage.value = ''
   scrollToBottom()
 
-  // API Call simulation
-  await sendMessage(props.ticket.id, content)
+  try {
+    await sendMessage(props.ticket.id, content)
+  } catch (error) {
+    messages.value = messages.value.filter((m) => m.id !== tempMsg.id)
+  }
+}
+
+const startConversation = async () => {
+  if (!props.ticket) return
+  emit('command', 'startConversation', props.ticket)
 }
 
 const scrollToBottom = () => {
@@ -274,5 +307,11 @@ const getPriorityType = (priority: string) => {
 .custom-scroll::-webkit-scrollbar-thumb {
   background-color: #e5e7eb;
   border-radius: 20px;
+}
+
+.chat-dot-bg {
+  background-image: radial-gradient(#e8edf8 1px, transparent 1px);
+  background-size: 14px 14px;
+  background-position: 0 0;
 }
 </style>

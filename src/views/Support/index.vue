@@ -12,7 +12,7 @@
         type="primary"
         class="!bg-[#16215B] !border-none !rounded-lg"
         :icon="Plus"
-        @click="createVisible = true"
+        @click="openCreate"
         >Create Ticket</el-button
       >
     </div>
@@ -154,11 +154,23 @@
       </BaseTable>
     </div>
 
-    <TicketDetail v-model="detailVisible" :ticket="selectedTicket" />
+    <TicketDetail
+      v-model="detailVisible"
+      :ticket="selectedTicket"
+      @command="handleDetailCommand"
+    />
 
     <TicketCreate
-      v-model:visible="createVisible"
-      @success="() => { pagination.page = 1; fetchTickets(); }"
+      v-model:visible="ticketModalVisible"
+      :mode="ticketModalMode"
+      :ticket="ticketModalTicket"
+      @success="handleTicketModalSuccess"
+    />
+
+    <StartConversationDialog
+      :visible="conversationVisible"
+      @update:visible="conversationVisible = $event"
+      @done="handleConversationDone"
     />
   </div>
 </template>
@@ -167,7 +179,6 @@
 import { onMounted, reactive, ref } from "vue";
 import {
   Plus,
-  Clock,
   View,
   MoreFilled,
   CircleCloseFilled,
@@ -178,10 +189,12 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import SupportFilter from "./components/SupportFilter.vue";
 import TicketDetail from "./components/TicketDetail.vue";
 import TicketCreate from "./components/TicketCreate.vue";
+import StartConversationDialog from "./components/StartConversationDialog.vue";
 import {
   deleteTicket,
   getTicketDetail,
   getTickets,
+  startTicketConversation,
   updateTicketStatus,
   type Ticket,
   type TicketPriority,
@@ -212,13 +225,11 @@ const currentFilters = reactive({
 const detailVisible = ref(false);
 const selectedTicket = ref<Ticket | null>(null);
 
-const createVisible = ref(false);
-const createForm = reactive({
-  stage: "Order",
-  stageDetail: "Order ID X12345",
-  type: "General Issue",
-  priority: "High" as TicketPriority,
-});
+const ticketModalVisible = ref(false);
+const ticketModalMode = ref<"create" | "edit">("create");
+const ticketModalTicket = ref<Ticket | null>(null);
+const conversationVisible = ref(false);
+const pendingConversationTicket = ref<Ticket | null>(null);
 
 const columns = [
   { type: 'selection', width: 55 },
@@ -256,9 +267,10 @@ onMounted(() => {
 
 const handleFilterChange = (filters: any) => {
   currentFilters.search = filters.search || "";
-  currentFilters.quickRange = (filters.quickDate === "7" ? "last7" : "") as any;
+  currentFilters.quickRange = (filters.quickDate === "7" ? "last7" : filters.quickDate === "30" ? "last30" : "") as any;
   currentFilters.dateRange = filters.dateRange || null;
-  currentFilters.type = filters.type || "";
+  currentFilters.stage = filters.type || "";
+  currentFilters.type = "";
   currentFilters.status = (filters.status || "") as TicketStatus | "";
   pagination.page = 1;
   fetchTickets();
@@ -271,20 +283,46 @@ const setPriority = (p: TicketPriority) => {
 };
 
 const handleView = async (row: Ticket) => {
-  const detail = await getTicketDetail(row.id);
-  selectedTicket.value = detail || row;
-  detailVisible.value = true;
+  try {
+    const detail = await getTicketDetail(row.id);
+    selectedTicket.value = detail || row;
+    detailVisible.value = true;
+  } catch (error) {
+    ElMessage.error("Failed to load ticket detail");
+  }
 };
 
-const handleRowCommand = async (cmd: string, row: Ticket) => {
+const openCreate = () => {
+  ticketModalMode.value = "create";
+  ticketModalTicket.value = null;
+  ticketModalVisible.value = true;
+};
+
+const openEdit = async (row: Ticket) => {
+  const detail = await getTicketDetail(row.id);
+  ticketModalMode.value = "edit";
+  ticketModalTicket.value = detail || row;
+  ticketModalVisible.value = true;
+};
+
+const executeCommand = async (cmd: string, row: Ticket) => {
   if (cmd === "view") {
     await handleView(row);
+    return;
+  }
+
+  if (cmd === "edit") {
+    await openEdit(row);
     return;
   }
 
   if (cmd === "close") {
     await updateTicketStatus(row.id, "Closed");
     ElMessage.success("Ticket closed");
+    if (selectedTicket.value?.id === row.id) {
+      const detail = await getTicketDetail(row.id);
+      selectedTicket.value = detail || selectedTicket.value;
+    }
     fetchTickets();
     return;
   }
@@ -292,6 +330,10 @@ const handleRowCommand = async (cmd: string, row: Ticket) => {
   if (cmd === "open") {
     await updateTicketStatus(row.id, "Open");
     ElMessage.success("Ticket opened");
+    if (selectedTicket.value?.id === row.id) {
+      const detail = await getTicketDetail(row.id);
+      selectedTicket.value = detail || selectedTicket.value;
+    }
     fetchTickets();
     return;
   }
@@ -307,9 +349,55 @@ const handleRowCommand = async (cmd: string, row: Ticket) => {
       return;
     }
     await deleteTicket(row.id);
+    if (selectedTicket.value?.id === row.id) {
+      detailVisible.value = false;
+      selectedTicket.value = null;
+    }
     ElMessage.success("Deleted");
     fetchTickets();
+    return;
   }
+
+  if (cmd === "startConversation") {
+    pendingConversationTicket.value = row;
+    conversationVisible.value = true;
+    return;
+  }
+};
+
+const handleRowCommand = async (cmd: string, row: Ticket) => {
+  await executeCommand(cmd, row);
+};
+
+const handleDetailCommand = async (cmd: string, row: Ticket) => {
+  await executeCommand(cmd, row);
+};
+
+const handleTicketModalSuccess = async () => {
+  ticketModalVisible.value = false;
+  if (ticketModalMode.value === "create") {
+    pagination.page = 1;
+  }
+  if (ticketModalMode.value === "edit" && ticketModalTicket.value?.id) {
+    const detail = await getTicketDetail(ticketModalTicket.value.id);
+    selectedTicket.value = detail || selectedTicket.value;
+  }
+  fetchTickets();
+};
+
+const handleConversationDone = async () => {
+  if (!pendingConversationTicket.value) {
+    conversationVisible.value = false;
+    return;
+  }
+  const row = pendingConversationTicket.value;
+  const msg = await startTicketConversation(row.id);
+  if (selectedTicket.value?.id === row.id) {
+    const old = selectedTicket.value.messages || [];
+    selectedTicket.value = { ...selectedTicket.value, messages: [...old, msg] };
+  }
+  conversationVisible.value = false;
+  ElMessage.success("Conversation started");
 };
 
 const getStatusType = (status: string) => {

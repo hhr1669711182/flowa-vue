@@ -50,6 +50,14 @@ const nowTime = () => {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
+const randomDateText = (daysAgo: number) => {
+  const d = new Date()
+  d.setDate(d.getDate() - daysAgo)
+  const mm = `${d.getMonth() + 1}`.padStart(2, '0')
+  const dd = `${d.getDate()}`.padStart(2, '0')
+  return `${d.getFullYear()}-${mm}-${dd}`
+}
+
 const seedTickets = (): Ticket[] => {
   const base: Omit<Ticket, 'id' | 'priority' | 'status' | 'dueUrgent'>[] = [
     {
@@ -178,11 +186,17 @@ const seedTickets = (): Ticket[] => {
     const t = base[i % base.length]
     const priority = priorities[i]!
     const status = statuses[i % statuses.length]!
+    const createDate = randomDateText(i % 40)
+    const updateDate = randomDateText(Math.max(0, (i % 40) - 2))
+    const dueDate = randomDateText(Math.max(0, (i % 40) - 5))
     list.push({
       ...(t as Ticket),
       id: String(i + 1),
       priority,
       status,
+      createDate,
+      updateDate,
+      dueDate,
       dueUrgent: priority === 'High' || status === 'Info. Required',
     })
   }
@@ -190,6 +204,7 @@ const seedTickets = (): Ticket[] => {
 }
 
 let ticketsDb: Ticket[] = seedTickets()
+const uploadStore: Record<string, { fileName: string; status: 'uploading' | 'completed' | 'done' }> = {}
 
 const calcStats = (tickets: Ticket[]): TicketsStats => {
   return tickets.reduce(
@@ -202,7 +217,7 @@ const calcStats = (tickets: Ticket[]): TicketsStats => {
 }
 
 const applyFilters = (tickets: Ticket[], query: any) => {
-  const { search, stage, type, status } = query
+  const { search, stage, type, status, quickRange, dateRange } = query
   let filtered = [...tickets]
 
   if (stage) filtered = filtered.filter((t) => t.stage === stage)
@@ -221,6 +236,23 @@ const applyFilters = (tickets: Ticket[], query: any) => {
         )
       })
     }
+  }
+
+  if (quickRange === 'last7') {
+    const from = new Date()
+    from.setDate(from.getDate() - 7)
+    filtered = filtered.filter((t) => new Date(t.createDate) >= from)
+  }
+
+  if (quickRange === 'last30') {
+    const from = new Date()
+    from.setDate(from.getDate() - 30)
+    filtered = filtered.filter((t) => new Date(t.createDate) >= from)
+  }
+
+  if (Array.isArray(dateRange) && dateRange.length === 2) {
+    const [from, to] = dateRange
+    filtered = filtered.filter((t) => t.createDate >= from && t.createDate <= to)
   }
 
   return filtered
@@ -260,6 +292,7 @@ export const mockSupport = defineMock({
   // POST /tickets
   '[POST]/api/tickets': ({ data }) => {
     const id = String(Date.now());
+    const nowDate = randomDateText(0)
     const ticket: Ticket = {
       id,
       ticketId: 'Ticket X0123',
@@ -268,19 +301,44 @@ export const mockSupport = defineMock({
       type: data.type,
       status: 'Open',
       priority: data.priority,
-      createDate: '00/00/2026',
-      updateDate: '00/00/2026',
-      dueDate: '00/00/2026',
-      dueTime: '20:12:05',
+      createDate: nowDate,
+      updateDate: nowDate,
+      dueDate: data.dueDate || nowDate,
+      dueTime: data.dueTime || '20:12:05',
       dueUrgent: data.priority === 'High',
       typeOfInquiry: data.type,
-      typeId: data.stageDetail,
-      typeDetails: 'N/A',
-      notes: 'Additional notes regarding the ticket.',
+      typeId: data.typeId || data.stageDetail,
+      typeDetails: data.typeDetails || 'N/A',
+      notes: data.notes || 'Additional notes regarding the ticket.',
       messages: [],
     };
     ticketsDb = [ticket, ...ticketsDb];
     return ticket;
+  },
+
+  '[PUT]/api/tickets/{id}': ({ params, data }) => {
+    const index = ticketsDb.findIndex((t) => t.id === params.id)
+    if (index < 0) return null
+    const current = ticketsDb[index]!
+    const next: Ticket = {
+      ...current,
+      stage: data.stage || current.stage,
+      stageDetail: data.stageDetail || current.stageDetail,
+      type: data.type || current.type,
+      status: data.status || current.status,
+      priority: data.priority || current.priority,
+      dueDate: data.dueDate || current.dueDate,
+      dueTime: data.dueTime || current.dueTime,
+      typeId: data.typeId || current.typeId,
+      typeDetails: data.typeDetails || current.typeDetails,
+      notes: data.notes || current.notes,
+      updateDate: randomDateText(0),
+      dueUrgent:
+        (data.priority || current.priority) === 'High' ||
+        (data.status || current.status) === 'Info. Required'
+    }
+    ticketsDb[index] = next
+    return next
   },
   
   // PUT /tickets/:id/status
@@ -318,5 +376,61 @@ export const mockSupport = defineMock({
     }
     
     return msg;
+  },
+
+  '[POST]/api/tickets/{id}/conversation/start': ({ params }) => {
+    const msg: ChatMessage = {
+      id: Date.now(),
+      sender: 'support',
+      senderName: 'You',
+      content: 'Hi 👋 We have started this conversation. Please share any details needed to resolve your ticket.',
+      timestamp: nowTime(),
+    };
+    const ticket = ticketsDb.find((t) => t.id === params.id);
+    if (ticket) {
+      if (!ticket.messages) ticket.messages = [];
+      ticket.messages.push(msg);
+      ticket.updateDate = randomDateText(0)
+    }
+    return msg;
+  },
+
+  '[POST]/api/tickets/upload/start': ({ data }) => {
+    const uploadId = `UP-${Date.now()}`
+    uploadStore[uploadId] = {
+      fileName: data.fileName || 'Document.pdf',
+      status: 'uploading'
+    }
+    return {
+      uploadId,
+      fileName: uploadStore[uploadId]!.fileName,
+      status: uploadStore[uploadId]!.status
+    }
+  },
+
+  '[POST]/api/tickets/upload/complete': ({ data }) => {
+    const uploadId = data.uploadId
+    if (!uploadStore[uploadId]) {
+      uploadStore[uploadId] = { fileName: 'Document.pdf', status: 'uploading' }
+    }
+    uploadStore[uploadId]!.status = 'completed'
+    return {
+      uploadId,
+      fileName: uploadStore[uploadId]!.fileName,
+      status: 'completed'
+    }
+  },
+
+  '[POST]/api/tickets/upload/overwrite': ({ data }) => {
+    const uploadId = data.uploadId
+    if (!uploadStore[uploadId]) {
+      uploadStore[uploadId] = { fileName: 'Document.pdf', status: 'uploading' }
+    }
+    uploadStore[uploadId]!.status = 'done'
+    return {
+      uploadId,
+      fileName: uploadStore[uploadId]!.fileName,
+      status: 'done'
+    }
   }
 });
