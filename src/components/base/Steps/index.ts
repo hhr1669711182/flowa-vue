@@ -1,4 +1,4 @@
-import Steps from './src/Steps.vue'
+import Steps, { StepItem } from './src/Steps.vue'
 
-export { Steps }
+export { Steps, StepItem }
 
