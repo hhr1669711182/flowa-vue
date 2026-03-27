@@ -1,1 +1,0 @@
-import{t as e}from"./alova-Ce8IOw07.js";const t=t=>e.Get(`/api/billing/recent-orders`,{params:t}),n=t=>e.Get(`/api/billing/recent-orders/${t}`);export{t as n,n as t};

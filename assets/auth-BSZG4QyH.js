@@ -1,1 +1,0 @@
-import{t as e}from"./alova-Ce8IOw07.js";const t=t=>e.Post(`/api/auth/login`,t),n=()=>e.Get(`/user/loginOut`),r=t=>e.Post(`/api/auth/reset`,t),i=t=>e.Post(`/api/auth/verify`,t),a=t=>e.Post(`/api/auth/resend`,t),o=t=>e.Post(`/api/auth/register`,t);export{a,r as i,n,i as o,o as r,t};
