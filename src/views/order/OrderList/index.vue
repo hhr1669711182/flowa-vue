@@ -50,7 +50,7 @@
 
     <div v-show="showCards" class="flex gap-4 mb-4">
       <div
-        class="boxShadow bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-59.5 animate__animated animate__fadeInUp flex flex-col"
+        class="boxShadow bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-59.5 animate__animated animate__fadeInUp flex flex-col min-w-60%"
         style="animation-delay: 0.5s"
       >
         <div class="flex-1 w-full min-h-0">
@@ -62,7 +62,7 @@
         class="card overflow-hidden position-relative w-full animate__animated animate__fadeInUp"
       >
         <div
-          class="position-absolute bottom-0 left-0 w-full h-85% box-border bg-[url('@/assets/svgs/bo-lang-blue.svg')] bg-no-repeat bg-contain bg-bottom"
+          class="position-absolute bottom-0 left-0 w-full h-85% box-border bg-[url('@/assets/svgs/bo-lang-blue.svg')] bg-no-repeat bg-cover bg-bottom"
         />
         <div
           class="flex items-center justify-between mb-2 p-6 position-absolute w-full box-border"

@@ -46,7 +46,9 @@
       v-show="showCards"
       class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 box"
     >
-      <div class="bg-white rounded-xl border border-gray-100 shadow-card p-6 animate__animated animate__fadeInUp">
+      <div
+        class="bg-white rounded-xl border border-gray-100 shadow-card p-6 animate__animated animate__fadeInUp"
+      >
         <div class="flex items-center justify-between mb-2">
           <div class="font-semibold">
             <div>Total Inventory</div>
@@ -76,9 +78,11 @@
 
         <div ref="storageChartRef" class="w-full h-44 py-4"></div>
       </div>
-      <div class="card overflow-hidden position-relative w-full animate__animated animate__fadeInUp">
+      <div
+        class="card overflow-hidden position-relative w-full animate__animated animate__fadeInUp"
+      >
         <div
-          class="position-absolute bottom-0 left-0 w-full h-85% box-border bg-[url('@/assets/svgs/bo-lang-blue.svg')] bg-no-repeat bg-contain bg-bottom"
+          class="position-absolute bottom-0 left-0 w-full h-85% box-border bg-[url('@/assets/svgs/bo-lang-blue.svg')] bg-no-repeat bg-cover bg-bottom"
         />
         <div
           class="flex items-center justify-between mb-2 p-6 position-absolute w-full box-border"
@@ -525,7 +529,7 @@ const handleRowAction = (action: string, row: any) => {
       ElMessage.info(`Contact support for product ${row.id}`);
       break;
     case "delete":
-      ElMessage.warning(`Delete action for product ${row.id}`); 
+      ElMessage.warning(`Delete action for product ${row.id}`);
       break;
     default:
       break;
