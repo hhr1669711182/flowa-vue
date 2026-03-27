@@ -13,9 +13,13 @@
       </template>
     </el-input>
 
-    <div class="h-8 w-[1px] bg-gray-200 mx-1"></div>
+    <!-- <div class="h-8 w-[1px] bg-gray-200 mx-1"></div> -->
 
-    <el-radio-group v-model="filters.quickDate" size="default" @change="handleQuickDateChange">
+    <el-radio-group
+      v-model="filters.quickDate"
+      size="default"
+      @change="handleQuickDateChange"
+    >
       <el-radio-button label="7">Last 7 days</el-radio-button>
       <el-radio-button label="30">Last 30 days</el-radio-button>
       <el-radio-button label="">All</el-radio-button>
@@ -33,9 +37,9 @@
       @change="handleSearch"
     />
 
-    <el-select 
-      v-model="filters.type" 
-      class="!w-44" 
+    <el-select
+      v-model="filters.type"
+      class="!w-44"
       placeholder="Type of enquire"
       clearable
       @change="handleSearch"
@@ -50,9 +54,9 @@
       <el-option label="Settings" value="Settings" />
     </el-select>
 
-    <el-select 
-      v-model="filters.status" 
-      class="!w-40" 
+    <el-select
+      v-model="filters.status"
+      class="!w-40"
       placeholder="Status"
       clearable
       @change="handleSearch"
@@ -67,44 +71,45 @@
       <el-option label="Awaiting Support" value="Awaiting Support" />
     </el-select>
   </div>
+  <div class="h-1px w-full bg-gray-200 mb-1"></div>
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
-import { Search, Grid, InfoFilled } from '@element-plus/icons-vue'
+import { reactive } from "vue";
+import { Search, Grid, InfoFilled } from "@element-plus/icons-vue";
 
-const emit = defineEmits(['search'])
+const emit = defineEmits(["search"]);
 
 const searchForm = reactive({
-  search: ''
-})
+  search: "",
+});
 
 const filters = reactive({
-  quickDate: '7',
+  quickDate: "7",
   dateRange: null as [string, string] | null,
-  type: '',
-  status: ''
-})
+  type: "",
+  status: "",
+});
 
 const handleQuickDateChange = () => {
   // Logic to set filters.dateRange based on quickDate could go here
-  handleSearch()
-}
+  handleSearch();
+};
 
 const getSearchParams = () => {
   return {
     ...searchForm,
-    ...filters
-  }
-}
+    ...filters,
+  };
+};
 
 const handleSearch = () => {
-  emit('search', getSearchParams())
-}
+  emit("search", getSearchParams());
+};
 
 defineExpose({
-  getSearchParams
-})
+  getSearchParams,
+});
 </script>
 
 <style scoped>
@@ -115,7 +120,7 @@ defineExpose({
   height: 32px;
   line-height: 32px;
   font-weight: 600;
-  color: #6B7280;
+  color: #6b7280;
 }
 :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
   background-color: transparent;

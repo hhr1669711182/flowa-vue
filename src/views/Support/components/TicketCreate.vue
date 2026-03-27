@@ -22,7 +22,7 @@
       </div>
     </template>
 
-    <el-form :model="form" label-position="top" class="mt-1">
+    <el-form :model="form" label-position="top" class="mt-1 box-border">
       <el-form-item label="Ticket ID">
         <el-input v-model="form.ticketId" />
       </el-form-item>
@@ -42,7 +42,7 @@
         <el-input v-model="form.notes" type="textarea" :rows="4" placeholder="Additional notes..." />
       </el-form-item>
 
-      <div v-if="attachmentState === 'idle'" class="w-full border-1.5 border-dashed border-#5B7CFA rounded-xl py-3 px-4">
+      <div v-if="attachmentState === 'idle'" class="w-full border-1.5 border-dashed border-#979EF0 rounded-xl py-3 px-4 box-border">
         <button class="w-full bg-transparent border-none p-0 cursor-pointer" @click="openUpload">
           <div class="flex items-center justify-center gap-2">
             <el-icon class="text-#1E3A8A"><UploadFilled /></el-icon>
@@ -52,7 +52,7 @@
         </button>
       </div>
 
-      <div v-else-if="attachmentState === 'uploading'" class="w-full border border-#E5E7EB rounded-xl px-3 py-3">
+      <div v-else-if="attachmentState === 'uploading'" class="w-full border border-#E5E7EB rounded-xl px-3 py-3 box-border">
         <div class="flex items-center gap-3">
           <span class="text-#6B7280 text-14px">{{ uploadProgress }}%</span>
           <el-progress :percentage="uploadProgress" :stroke-width="4" :show-text="false" class="flex-1" />
@@ -62,7 +62,7 @@
         </div>
       </div>
 
-      <div v-else-if="attachmentState === 'completed'" class="w-full border border-#E5E7EB rounded-xl px-3 py-3">
+      <div v-else-if="attachmentState === 'completed'" class="w-full border border-#E5E7EB rounded-xl px-3 py-3 box-border">
         <div class="flex items-center gap-3">
           <span class="text-#6B7280 text-14px">100%</span>
           <el-progress :percentage="100" :stroke-width="4" :show-text="false" class="flex-1" />
@@ -70,7 +70,7 @@
         </div>
       </div>
 
-      <div v-if="form.attachmentName && attachmentState === 'completed'" class="w-full border border-#E5E7EB rounded-xl px-3 py-2 mt-3">
+      <div v-if="form.attachmentName && attachmentState === 'completed'" class="w-full border border-#E5E7EB rounded-xl px-3 py-2 mt-3 box-border">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 min-w-0">
             <el-icon class="text-#1E3A8A"><Document /></el-icon>
