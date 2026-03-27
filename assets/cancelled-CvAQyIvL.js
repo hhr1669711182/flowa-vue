@@ -1,1 +1,0 @@
-import{t as e}from"./alova-iIsAzQpc.js";const t=t=>e.Get(`/api/orders/cancelled`,{params:t}),n=t=>e.Get(`/api/orders/cancelled/detail`,{params:{id:t}}),r=t=>e.Post(`/api/orders/cancelled/reactivate`,t),i=t=>e.Post(`/api/orders/cancelled/status`,t),a=t=>e.Post(`/api/orders/cancelled/ticket`,t);export{i as a,r as i,n,t as r,a as t};
