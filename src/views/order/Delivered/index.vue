@@ -7,7 +7,8 @@
           <div class="text-#9A9A9A text-20px pt-1">/Delivered</div>
         </div>
         <div class="text-14px text-#6B6B6B">
-          Orders delivered successfully. View delivery progress and item details.
+          Orders delivered successfully. View delivery progress and item
+          details.
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -60,7 +61,9 @@
                 <div class="text-left text-sm">
                   <div class="mb-1">
                     <span class="text-gray-500 mr-2">Sending to</span>
-                    <span class="text-gray-900">{{ getExpandRow(row).destination }}</span>
+                    <span class="text-gray-900">{{
+                      getExpandRow(row).destination
+                    }}</span>
                   </div>
                   <!-- <div class="mb-1">
                     <span class="text-gray-500 mr-2">Carrier</span>
@@ -72,7 +75,9 @@
                   </div> -->
                   <div class="mt-2 text-xs text-gray-500">
                     <span>Estimated arrived at</span>
-                    <span class="text-gray-900 font-semibold ml-1">{{ getExpandRow(row).etaText }}</span>
+                    <span class="text-gray-900 font-semibold ml-1">{{
+                      getExpandRow(row).etaText
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -112,24 +117,38 @@
                 >
                   <template #product="{ row: item }">
                     <div class="flex items-center gap-3">
-                      <el-avatar :size="32" class="bg-gray-100 text-gray-700">P</el-avatar>
+                      <img
+                        :src="productImage"
+                        alt="Product Image"
+                        class="w-10 h-10 rounded-lg"
+                      />
                       <div class="flex flex-col">
-                        <span class="text-sm font-medium text-gray-800">{{ item.name }}</span>
-                        <span class="text-xs text-gray-500">{{ item.sku }}</span>
+                        <span class="text-sm font-medium text-gray-800">{{
+                          item.name
+                        }}</span>
+                        <span class="text-xs text-gray-500">{{
+                          item.sku
+                        }}</span>
                       </div>
                     </div>
                   </template>
                   <template #details="{ row: item }">
-                    <span class="text-xs text-gray-500">{{ item.details }}</span>
+                    <span class="text-xs text-gray-500">{{
+                      item.details
+                    }}</span>
                   </template>
                   <template #quantity="{ row: item }">
-                    <span class="text-sm text-gray-700">{{ item.quantity }}</span>
+                    <span class="text-sm text-gray-700">{{
+                      item.quantity
+                    }}</span>
                   </template>
                   <template #price="{ row: item }">
                     <span class="text-sm text-gray-700">{{ item.price }}</span>
                   </template>
                   <template #warehouse="{ row: item }">
-                    <span class="text-xs text-gray-500">{{ item.warehouse }}</span>
+                    <span class="text-xs text-gray-500">{{
+                      item.warehouse
+                    }}</span>
                   </template>
                 </BaseTable>
               </div>
@@ -139,9 +158,11 @@
 
         <template #order="{ row }">
           <div class="flex items-center gap-3">
-            <el-avatar :size="32" class="bg-gray-100 text-gray-700"
-              >O</el-avatar
-            >
+            <img
+              :src="productImage"
+              alt="Product Image"
+              class="w-10 h-10 rounded-lg"
+            />
             <div class="flex flex-col">
               <span class="text-sm font-medium text-gray-800">{{
                 row.orderId
@@ -244,7 +265,9 @@ import rightButtons from "./components/rightButtons.vue";
 import { Steps } from "@/components/base/Steps";
 import BaseTable from "@/components/common/BaseTable.vue";
 import { StepItem } from "@/components/base/Steps/src/Steps.vue";
-
+// ----------------- 临时数据
+import productImage from "@/views/icon/yf.png";
+// -----------------
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
@@ -294,7 +317,13 @@ const columns = [
   { label: "Status", slot: "status", width: 120, align: "center" },
   { label: "Customer", slot: "customer", width: 150 },
   { label: "Date", slot: "date", width: 180 },
-  { label: "Actions", slot: "actions", width: 100, fixed: "right", align: "center" },
+  {
+    label: "Actions",
+    slot: "actions",
+    width: 100,
+    fixed: "right",
+    align: "center",
+  },
 ];
 
 const itemColumns = [
@@ -359,7 +388,9 @@ const buildParams = (): DeliveredOrderListParams => {
     const dd = `${d.getDate()}`.padStart(2, "0");
     return `${d.getFullYear()}-${mm}-${dd}`;
   };
-  const dateRange: DeliveredOrderListParams["dateRange"] = Array.isArray(p.range)
+  const dateRange: DeliveredOrderListParams["dateRange"] = Array.isArray(
+    p.range,
+  )
     ? ([toDateText(p.range[0]), toDateText(p.range[1])] as [string, string])
     : [];
   return {
@@ -444,13 +475,30 @@ const handleRowAction = (action: string, row: any) => {
 
 const getTaskSteps = (row: any): StepItem[] => {
   const active = getActiveStep(row);
-  const subtitle = row?.status === "Delivered" ? "Completed" : row?.status || "Completed";
+  const subtitle =
+    row?.status === "Delivered" ? "Completed" : row?.status || "Completed";
   return [
-    { title: "Review & Fix", subtitle, state: active >= 0 ? "completed" : "pending" },
-    { title: "Warehouse", subtitle, state: active >= 1 ? "completed" : "pending" },
+    {
+      title: "Review & Fix",
+      subtitle,
+      state: active >= 0 ? "completed" : "pending",
+    },
+    {
+      title: "Warehouse",
+      subtitle,
+      state: active >= 1 ? "completed" : "pending",
+    },
     { title: "Export", subtitle, state: active >= 2 ? "completed" : "pending" },
-    { title: "Local Delivery", subtitle, state: active >= 3 ? "completed" : "pending" },
-    { title: "Delivered", subtitle, state: active >= 4 ? "completed" : "pending" },
+    {
+      title: "Local Delivery",
+      subtitle,
+      state: active >= 3 ? "completed" : "pending",
+    },
+    {
+      title: "Delivered",
+      subtitle,
+      state: active >= 4 ? "completed" : "pending",
+    },
   ];
 };
 

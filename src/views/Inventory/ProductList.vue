@@ -116,9 +116,10 @@
       >
         <template #product="{ row }">
           <div class="flex items-center gap-3">
-            <el-avatar :size="32" class="bg-gray-100 text-gray-700"
+            <!-- <el-avatar :size="32" class="bg-gray-100 text-gray-700"
               >P</el-avatar
-            >
+            > -->
+            <img :src="productImage" alt="Product Image" class="w-10 h-10 rounded-lg" />
             <div class="flex flex-col">
               <span class="text-sm font-medium text-gray-800">{{
                 row.name
@@ -209,6 +210,10 @@ import { ElMessage } from "element-plus";
 import { createHeaderHintRenderer } from "@/components/common/TableHeaderHint";
 import rightButtons from "./components/rightButtons.vue";
 
+// ----------------- 临时数据
+import productImage from "@/views/icon/yf.png";
+// -----------------
+
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
@@ -257,7 +262,7 @@ const columns = [
   { type: "selection", width: 50 },
   { type: "expand", width: 50, slot: "expand" },
   { label: "Product / SKU ID", slot: "product", width: 260 },
-  { label: "Details", slot: "details" },
+  { label: "Details", slot: "details", showOverflowTooltip: true },
   {
     label: "Incoming",
     slot: "incoming",
@@ -273,7 +278,7 @@ const columns = [
     width: 110,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "Units that are currently reserved for sale but not yet available for purchase.",
+      "Units that have been allocated to existing orders and cannot be used for new orders.",
     ),
   },
   {
@@ -282,7 +287,7 @@ const columns = [
     width: 110,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "Units that are available for purchase.",
+      "Units currently in stock and ready to be allocated to new orders.",
     ),
   },
   {
@@ -291,7 +296,7 @@ const columns = [
     width: 80,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "Total stock quantity, including incoming, reserved, and available units.",
+      "Total number of units stored in the warehouse, including reserved and available stock.",
     ),
   },
   {
@@ -300,7 +305,7 @@ const columns = [
     width: 80,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "Cost of Goods Sold (COG) is the total cost of the goods that have been sold.",
+      "The cost per unit of the product, used to calculate inventory value and margins.",
     ),
   },
   { label: "Actions", slot: "actions", width: 100, fixed: "right" },

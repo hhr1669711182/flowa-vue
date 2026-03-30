@@ -110,9 +110,11 @@
 
         <template #order="{ row }">
           <div class="flex items-center gap-3">
-            <el-avatar :size="32" class="bg-gray-100 text-gray-700"
-              >O</el-avatar
-            >
+            <img
+              :src="productImage"
+              alt="Product Image"
+              class="w-10 h-10 rounded-lg"
+            />
             <div class="flex flex-col">
               <span class="text-sm font-medium text-gray-800">{{
                 row.orderId
@@ -245,7 +247,9 @@ import {
 import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
 import { Steps } from "@/components/base/Steps";
-
+// ----------------- 临时数据
+import productImage from "@/views/icon/yf.png";
+// -----------------
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
@@ -296,7 +300,13 @@ const columns = [
   { label: "Customer", slot: "customer", width: 150 },
   { label: "Inventory", slot: "inventory", width: 120, align: "center" },
   { label: "Date", slot: "date", width: 180 },
-  { label: "Actions", slot: "actions", width: 150, fixed: "right", align: "center" },
+  {
+    label: "Actions",
+    slot: "actions",
+    width: 150,
+    fixed: "right",
+    align: "center",
+  },
 ];
 
 const btnItems1 = [

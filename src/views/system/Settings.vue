@@ -97,7 +97,7 @@
                 class="relative group w-full aspect-square rounded-xl overflow-hidden bg-yellow-400"
               >
                 <img
-                  src="./icons/avator.png"
+                  :src="avatarImg"
                   alt="Profile"
                   class="w-full h-full object-cover"
                 />
@@ -441,15 +441,18 @@ import {
   Headset,
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
+import { useUserStore } from "@/store/modules/user";
 import {
   getGeneralSettings,
   updateGeneralSetting,
+  uploadProfileAvatar,
   getOperationLogs,
   type GeneralSetting,
   type OperationLog,
 } from "@/api/settings";
 
 const route = useRoute();
+const userStore = useUserStore();
 const title = computed(() => route.meta.title || "Settings");
 
 const hasPermission = ref(true);
@@ -473,6 +476,16 @@ const formData = reactive({
   phone: "000 000 000 000",
   password: "password123",
 });
+
+const defaultAvatarImg = new URL("./icons/avator.png", import.meta.url).href;
+const avatarImg = ref<string>(userStore.getAvatarImg || defaultAvatarImg);
+
+watch(
+  () => userStore.getAvatarImg,
+  (val) => {
+    avatarImg.value = val || defaultAvatarImg;
+  },
+);
 
 const passwordForm = reactive({
   newPassword: "",
@@ -525,6 +538,7 @@ const logColumns = [
 // --- Initialization & Watchers ---
 onMounted(() => {
   fetchGeneralSettings();
+  userStore.fetchAvatarImg();
 
   activeTab.value = (route.query.tab as string) || "Profile";
 });
@@ -590,8 +604,40 @@ const handleSearch = () => {
 };
 
 // Profile Methods
-const handleFileChange = (file: any) => {
-  ElMessage.success(`File selected: ${file.name}`);
+const fileToDataUrl = (raw: File) => {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = reject;
+    reader.readAsDataURL(raw);
+  });
+};
+
+// const handleFileChange = async (file: any) => {
+//   const raw = file?.raw as File | undefined;
+//   if (!raw) return;
+//   const avatarDataUrl = await fileToDataUrl(raw);
+//   await uploadProfileAvatar({
+//     avatarImg: avatarDataUrl,
+//     fileName: file.name || "avatar.png",
+//   });
+//   // 逻辑一
+//   // const res: any = await uploadProfileAvatar({
+//   // userStore.setAvatarImg(res.avatarImg);
+//   // 逻辑二
+//   userStore.setAvatarImg(raw);
+//   ElMessage.success("Avatar updated");
+// };
+
+const handleFileChange = async (file: any) => {
+  const raw = file?.raw as File | undefined;
+  if (!raw) return;
+  const avatarDataUrl = await fileToDataUrl(raw);
+  await userStore.uploadAvatarImg({
+    avatarImg: avatarDataUrl,
+    fileName: file.name || "avatar.png",
+  });
+  ElMessage.success("Avatar updated");
 };
 
 const cancelEdit = () => {

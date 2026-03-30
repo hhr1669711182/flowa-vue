@@ -61,11 +61,15 @@
                 <div class="text-left text-sm">
                   <div class="mb-1">
                     <span class="text-gray-500 mr-2">Carrier</span>
-                    <span class="text-gray-900">{{ getExpandRow(row).carrier }}</span>
+                    <span class="text-gray-900">{{
+                      getExpandRow(row).carrier
+                    }}</span>
                   </div>
                   <div>
                     <span class="text-gray-500 mr-2">Method</span>
-                    <span class="text-gray-900">{{ getExpandRow(row).method }}</span>
+                    <span class="text-gray-900">{{
+                      getExpandRow(row).method
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -106,9 +110,11 @@
 
         <template #order="{ row }">
           <div class="flex items-center gap-3">
-            <el-avatar :size="32" class="bg-gray-100 text-gray-700"
-              >O</el-avatar
-            >
+            <img
+              :src="productImage"
+              alt="Product Image"
+              class="w-10 h-10 rounded-lg"
+            />
             <div class="flex flex-col">
               <span class="text-sm font-medium text-gray-800">{{
                 row.orderId
@@ -229,7 +235,9 @@ import {
 import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
 import { Steps } from "@/components/base/Steps";
-
+// ----------------- 临时数据
+import productImage from "@/views/icon/yf.png";
+// -----------------
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);

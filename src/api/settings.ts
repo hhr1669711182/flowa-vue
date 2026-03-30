@@ -18,6 +18,10 @@ export interface OperationLog {
   date: string
 }
 
+export interface AvatarResource {
+  avatarImg: string
+}
+
 export const getGeneralSettings = () => {
   return alovaInstance.Get<GeneralSetting[]>('/api/settings/general');
 }
@@ -35,4 +39,12 @@ export const getOperationLogs = (params: {
   return alovaInstance.Get<{ list: OperationLog[], total: number }>('/api/settings/logs', {
     params
   });
+}
+
+export const getProfileAvatar = () => {
+  return alovaInstance.Get<AvatarResource>('/api/settings/profile/avatar');
+}
+
+export const uploadProfileAvatar = (payload: { avatarImg: string; fileName: string }) => {
+  return alovaInstance.Post<AvatarResource>('/api/settings/profile/avatar', payload);
 }

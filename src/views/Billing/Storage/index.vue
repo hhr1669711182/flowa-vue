@@ -183,16 +183,20 @@
                     <span class="text-lg font-bold text-gray-900">
                       Storage
                     </span>
-                  </div>                      
+                  </div>
                 </div>
                 <div class="text-left text-sm">
                   <div>
                     <span class="text-gray-500 mr-2">Date</span>
-                    <span class="text-gray-900 font-semibold">{{  row.date }}</span>
+                    <span class="text-gray-900 font-semibold">{{
+                      row.date
+                    }}</span>
                   </div>
                   <div>
                     <span class="text-gray-500 mr-2">Warehouse</span>
-                    <span class="text-gray-900 font-semibold">{{  row.warehouse }}</span>
+                    <span class="text-gray-900 font-semibold">{{
+                      row.warehouse
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -208,32 +212,66 @@
                     >
                       Bin
                     </div>
-                    <div class="p-2 border-solid border-0">
-                      Pallet
-                    </div>
+                    <div class="p-2 border-solid border-0">Pallet</div>
                   </div>
 
                   <div
                     class="grid grid-cols-7 text-xs text-gray-500 bg-gray-50 border-b border-gray-200 text-center border-solid border-0"
                   >
-                    <div class="p-1 border-r border-gray-200 border-solid border-0">Type</div>
-                    <div class="p-1 border-r border-gray-200 border-solid border-0">QTY</div>
-                    <div class="p-1 border-r border-gray-200 border-solid border-0">Price</div>
-                    <div class="p-1 border-r border-gray-200 border-solid border-0">Subtotal</div>
-                    <div class="p-1 border-r border-gray-200 border-solid border-0">QTY</div>
-                    <div class="p-1 border-r border-gray-200 border-solid border-0">Price</div>
+                    <div
+                      class="p-1 border-r border-gray-200 border-solid border-0"
+                    >
+                      Type
+                    </div>
+                    <div
+                      class="p-1 border-r border-gray-200 border-solid border-0"
+                    >
+                      QTY
+                    </div>
+                    <div
+                      class="p-1 border-r border-gray-200 border-solid border-0"
+                    >
+                      Price
+                    </div>
+                    <div
+                      class="p-1 border-r border-gray-200 border-solid border-0"
+                    >
+                      Subtotal
+                    </div>
+                    <div
+                      class="p-1 border-r border-gray-200 border-solid border-0"
+                    >
+                      QTY
+                    </div>
+                    <div
+                      class="p-1 border-r border-gray-200 border-solid border-0"
+                    >
+                      Price
+                    </div>
                     <div class="p-1 border-solid border-0">Subtotal</div>
                   </div>
 
                   <div
                     class="grid grid-cols-7 text-sm text-gray-900 bg-white text-center"
                   >
-                    <div class="p-3 border-r border-gray-200 text-gray-500">Pick Bin NO.1</div>
-                    <div class="p-3 border-r border-gray-200 text-gray-500">02</div>
-                    <div class="p-3 border-r border-gray-200 text-gray-500">$0,00</div>
-                    <div class="p-3 border-r border-gray-200 text-gray-500">$0,00</div>
-                    <div class="p-3 border-r border-gray-200 text-gray-500">03</div>
-                    <div class="p-3 border-r border-gray-200 text-gray-500">$0,00</div>
+                    <div class="p-3 border-r border-gray-200 text-gray-500">
+                      Pick Bin NO.1
+                    </div>
+                    <div class="p-3 border-r border-gray-200 text-gray-500">
+                      02
+                    </div>
+                    <div class="p-3 border-r border-gray-200 text-gray-500">
+                      $0,00
+                    </div>
+                    <div class="p-3 border-r border-gray-200 text-gray-500">
+                      $0,00
+                    </div>
+                    <div class="p-3 border-r border-gray-200 text-gray-500">
+                      03
+                    </div>
+                    <div class="p-3 border-r border-gray-200 text-gray-500">
+                      $0,00
+                    </div>
                     <div class="p-3 text-gray-500">$0,00</div>
                   </div>
                 </div>
@@ -241,7 +279,7 @@
                 <div class="flex justify-between items-center">
                   <span class="text-lg font-bold text-gray-900">Total</span>
                   <span class="text-lg font-bold text-gray-900">{{
-                    row.total || '$0,00'
+                    row.total || "$0,00"
                   }}</span>
                 </div>
               </div>
@@ -254,25 +292,15 @@
             <el-popover
               placement="bottom-start"
               trigger="click"
-              popper-class="!p-0 !px-6 !min-w-auto !rounded-lg !w-auto"
+              popper-class="!p-0 !px-2 !min-w-auto !rounded-lg !w-auto"
               :show-arrow="false"
             >
               <template #reference>
-                <el-button class="w-8 h-8">
+                <el-button class="w-8 h-8 !ml-0">
                   <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
                 </el-button>
               </template>
-              <div class="py-2 px-1">
-                <el-button
-                  link
-                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !px-3 !h-9"
-                >
-                  <span class="flex items-center gap-2">
-                    <Icon icon="svg-icon:headphones" />
-                    Contact Support
-                  </span>
-                </el-button>
-              </div>
+              <rightButtons :row="row" @action="handleRowAction" />
             </el-popover>
           </div>
         </template>
@@ -324,6 +352,8 @@ import { getStorageList } from "@/api/billing/storage";
 import { ElMessage } from "element-plus";
 import { MoreFilled } from "@element-plus/icons-vue";
 import productImage from "@/views/icon/yf.png";
+import { createTicket } from "@/api";
+import rightButtons from "../components/rightButtons.vue";
 
 const price = ref("$0");
 const editVisible = ref(false);
@@ -425,8 +455,35 @@ const columns = [
   { label: "Bins", prop: "bins", minWidth: 100, align: "center" },
   { label: "Pallets", prop: "pallets", minWidth: 100, align: "center" },
   { label: "Total", prop: "total", minWidth: 100, align: "center" },
-  { label: "Actions", slot: "actions", width: 80, fixed: "right", align: "center" },
+  {
+    label: "Actions",
+    slot: "actions",
+    width: 80,
+    fixed: "right",
+    align: "center",
+  },
 ];
+
+const handleRowAction = async (action: string, row: any) => {
+  const orderKeyword = row?.orderId || row?.title || "";
+  switch (action) {
+    case "support":
+      await createTicket({
+        stage: "Billing",
+        stageDetail: row?.title || "Outbound Service",
+        type: "Outbound Shipping Inquiry",
+        priority: "High",
+        typeId: orderKeyword || "Order ID",
+        typeDetails: `Shipping ${row?.shipping || "-"}, Tax ${row?.tax || "-"}, Total ${row?.grandTotal || "-"}`,
+        notes:
+          "Need help to verify outbound billing line items and charge details.",
+      });
+      ElMessage.success("Support ticket created");
+      return;
+    default:
+      return;
+  }
+};
 
 // Data Logic
 const tableData = ref([]) as any;

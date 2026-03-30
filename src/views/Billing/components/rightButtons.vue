@@ -15,36 +15,36 @@ const emit = defineEmits<{
 }>();
 
 const defaultActions: MenuButtonItem[] = [
-  {
-    key: "view",
-    label: "View",
-    icon: "svg-icon:eye",
-    tone: "primary",
-  },
-  {
-    key: "edit",
-    label: "Edit",
-    icon: "svg-icon:pencil",
-    tone: "primary",
-  },
-  {
-    key: "export",
-    label: "Export/Print",
-    icon: "svg-icon:printer",
-    tone: "primary",
-  },
+  // {
+  //   key: "view",
+  //   label: "View",
+  //   icon: "svg-icon:eye",
+  //   tone: "primary",
+  // },
+  // {
+  //   key: "edit",
+  //   label: "Edit",
+  //   icon: "svg-icon:pencil",
+  //   tone: "primary",
+  // },
+  // {
+  //   key: "export",
+  //   label: "Export/Print",
+  //   icon: "svg-icon:printer",
+  //   tone: "primary",
+  // },
   {
     key: "support",
     label: "Contact Support",
     icon: "svg-icon:headphones",
     tone: "danger",
   },
-  {
-    key: "delete",
-    label: "Delete",
-    icon: "svg-icon:trash-bin",
-    tone: "danger",
-  },
+  // {
+  //   key: "delete",
+  //   label: "Delete",
+  //   icon: "svg-icon:trash-bin",
+  //   tone: "danger",
+  // },
 ];
 
 const resolvedItems = computed(() => props.items || defaultActions);

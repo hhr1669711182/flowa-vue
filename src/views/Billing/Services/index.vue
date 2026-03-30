@@ -282,25 +282,18 @@
             <el-popover
               placement="bottom-start"
               trigger="click"
-              popper-class="!p-0 !px-6 !min-w-auto !rounded-lg !w-auto"
+              popper-class="!p-0 !px-2 !min-w-auto !rounded-lg !w-auto"
               :show-arrow="false"
             >
               <template #reference>
-                <el-button class="w-8 h-8">
+                <el-button class="w-8 h-8 !ml-0">
                   <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
                 </el-button>
               </template>
-              <div class="py-2 px-1">
-                <el-button
-                  link
-                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !px-3 !h-9"
-                >
-                  <span class="flex items-center gap-2">
-                    <Icon icon="svg-icon:headphones" />
-                    Contact Support
-                  </span>
-                </el-button>
-              </div>
+              <rightButtons
+                :row="row"
+                @action="handleRowAction"
+              />
             </el-popover>
           </div>
         </template>
@@ -354,6 +347,8 @@ import { exportInventoryProducts, getInventoryProducts } from "@/api/inventory";
 import { getServicesList } from "@/api/billing/services";
 import { ElMessage } from "element-plus";
 import productImage from "@/views/icon/yf.png";
+import { createTicket } from "@/api";
+import rightButtons from "../components/rightButtons.vue";
 
 const price = ref("$0");
 const editVisible = ref(false);
@@ -456,6 +451,26 @@ const columns = [
   { label: "Total", slot: "total", minWidth: 150 },
   { label: "Actions", slot: "actions", width: 80, fixed: "right", align: "center" },
 ];
+
+const handleRowAction = async (action: string, row: any) => {
+  const orderKeyword = row?.orderId || row?.title || "";
+  switch (action) {
+    case "support":
+      await createTicket({
+        stage: "Billing",
+        stageDetail: row?.title || "Outbound Service",
+        type: "Outbound Shipping Inquiry",
+        priority: "High",
+        typeId: orderKeyword || "Order ID",
+        typeDetails: `Shipping ${row?.shipping || "-"}, Tax ${row?.tax || "-"}, Total ${row?.grandTotal || "-"}`,
+        notes: "Need help to verify outbound billing line items and charge details.",
+      });
+      ElMessage.success("Support ticket created");
+      return;
+    default:
+      return;
+  }
+};
 
 // Data Logic
 const tableData = ref([]) as any;
