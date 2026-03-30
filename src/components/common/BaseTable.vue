@@ -102,6 +102,7 @@
       class="flex justify-end p-4 border-t border-gray-50 h-12"
     >
       <el-pagination
+        size="small"
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :page-sizes="[10, 20, 50, 100]"
