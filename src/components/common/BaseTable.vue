@@ -3,12 +3,14 @@
     class="bg-white overflow-hidden animate__animated animate__fadeIn h-full"
   >
     <el-table
+      row-key="id"
       ref="tableRef"
       v-loading="loading"
       :data="data"
       :header-cell-style="resolvedHeaderCellStyle"
       v-bind="$attrs"
       :height="resolvedHeight"
+      :expand-row-keys="expandRowKeys"
       class="base-table w-full h-auto"
       @expand-change="handleExpandChange"
     >
@@ -30,8 +32,13 @@
 
           <el-table-column v-bind="col" type="">
             <template #header>
-              <div class="flex flex-1">
-                <Icon icon="svg-icon:circle-plus" color="#000" />
+              <div class="flex flex-1" @click="handleHeaderClick(col)">
+                <Icon
+                  v-if="!isAllExpanded"
+                  icon="svg-icon:circle-plus"
+                  color="#000"
+                />
+                <Icon v-else icon="svg-icon:circle-minus-fill" color="#000" />
               </div>
             </template>
             <template #default="{ row }">
@@ -154,7 +161,7 @@ const props = withDefaults(defineProps<Props>(), {
   total: 0,
   page: 1,
   limit: 10,
-  height: 'calc(100% - 65px)',
+  height: "calc(100% - 65px)",
   headerCellStyle: undefined,
 });
 
@@ -165,6 +172,8 @@ const emit = defineEmits([
   "expand-change",
 ]);
 const slots = useSlots();
+
+const expandRowKeys = ref<string[]>([]);
 
 const getHeaderSlotRender = (slotName: string) => {
   return (scope: any) => slots[slotName]?.(scope);
@@ -191,7 +200,23 @@ const RenderVNode = defineComponent({
 const tableRef = ref();
 const expandedRows = ref<any[]>([]);
 
+const isAllExpanded = ref(false);
+const handleHeaderClick = (col: any) => {
+  // console.log("🚀 ~ handleHeaderClick ~ col:", col)
+  isAllExpanded.value = !isAllExpanded.value;
+  if (isAllExpanded.value) {
+    expandedRows.value = props.data.map((item) => item);
+    expandRowKeys.value = props.data.map((item) => item.id);
+  } else {
+    expandedRows.value = [];
+    expandRowKeys.value = [];
+  }
+};
+
 const handleExpandChange = (row: any, expanded: any[]) => {
+  expanded?.length === 0
+    ? (isAllExpanded.value = false)
+    : (isAllExpanded.value = true);
   expandedRows.value = expanded;
   emit("expand-change", row, expanded);
 };
@@ -273,5 +298,9 @@ const resolvedHeaderCellStyle = computed(() => {
 .base-table :deep(.expand-col-ghost .cell) {
   display: none;
   padding: 0;
+}
+
+.base-table :deep(.el-button) {
+  border-radius: 6px !important;
 }
 </style>

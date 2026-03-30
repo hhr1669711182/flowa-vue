@@ -39,6 +39,7 @@ export interface Ticket {
   typeId?: string
   typeDetails?: string
   notes?: string
+  infos?: Array<{ id: string; field: string; value: string }>
   messages?: ChatMessage[]
 }
 

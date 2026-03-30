@@ -181,7 +181,6 @@
             :data="recentOrders"
             :columns="recentOrderColumns"
             :pagination="false"
-            height="calc(100vh - 585px)"
           >
             <template #order="{ row }">
               <div class="flex items-center gap-3">
@@ -331,8 +330,8 @@ const recentOrders = ref<any[]>([]);
 
 const recentOrderColumns = [
   { label: "Order ID", slot: "order", minWidth: 100 },
-  { label: "Stages", slot: "stage", width: "auto" },
-  { label: "Status", slot: "status", width: 150 },
+  { label: "Stages", slot: "stage", width: 200 },
+  { label: "Status", slot: "status", width: 200 },
   { label: "Actions", slot: "actions", width: 180, align: "center", fixed: "right" },
 ];
 
@@ -425,6 +424,8 @@ onMounted(() => {
 .notification-list {
   display: grid;
   gap: 4px;
+  height: calc(100% - 52px);
+  overflow: auto;
 }
 
 .notification-item {

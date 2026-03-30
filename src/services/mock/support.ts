@@ -36,6 +36,7 @@ interface Ticket {
   typeId?: string
   typeDetails?: string
   notes?: string
+  infos?: Array<{ id: string; field: string; value: string }>
   messages?: ChatMessage[]
 }
 
@@ -206,6 +207,17 @@ const seedTickets = (): Ticket[] => {
 let ticketsDb: Ticket[] = seedTickets()
 const uploadStore: Record<string, { fileName: string; status: 'uploading' | 'completed' | 'done' }> = {}
 
+const withInfos = (ticket: Ticket): Ticket => {
+  return {
+    ...ticket,
+    infos: [
+      { id: `${ticket.id}-stage`, field: 'Stage', value: ticket.stage || '-' },
+      { id: `${ticket.id}-type-id`, field: ticket.typeId || 'Type ID', value: ticket.stageDetail || '-' },
+      { id: `${ticket.id}-notes`, field: 'Notes', value: ticket.notes || 'Additional notes...' }
+    ]
+  }
+}
+
 const calcStats = (tickets: Ticket[]): TicketsStats => {
   return tickets.reduce(
     (acc, t) => {
@@ -275,7 +287,10 @@ export const mockSupport = defineMock({
     const total = filtered.length;
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
-    const list = filtered.slice(start, end);
+    const list = filtered.slice(start, end).map((item) => {
+      const { messages, infos, ...rest } = item;
+      return rest;
+    });
     
     return {
       list,
@@ -286,7 +301,8 @@ export const mockSupport = defineMock({
   
   // GET /tickets/:id
   '[GET]/api/tickets/{id}': ({ params }) => {
-    return ticketsDb.find((t) => t.id === params.id) || null;
+    const found = ticketsDb.find((t) => t.id === params.id);
+    return found ? withInfos(found) : null;
   },
   
   // POST /tickets
@@ -313,7 +329,7 @@ export const mockSupport = defineMock({
       messages: [],
     };
     ticketsDb = [ticket, ...ticketsDb];
-    return ticket;
+    return withInfos(ticket);
   },
 
   '[PUT]/api/tickets/{id}': ({ params, data }) => {
@@ -338,7 +354,7 @@ export const mockSupport = defineMock({
         (data.status || current.status) === 'Info. Required'
     }
     ticketsDb[index] = next
-    return next
+    return withInfos(next)
   },
   
   // PUT /tickets/:id/status

@@ -381,13 +381,27 @@
         </template>
 
         <template #actions="{ row }">
-          <div class="flex flex-1">
+          <div class="flex flex-1 gap-1">
             <el-button class="w-8 h-8" @click="handleViewDetail(row)">
-              <Icon icon="svg-icon:eye" color="#16215B"/>
+              <Icon icon="svg-icon:eye" color="#16215B" />
             </el-button>
-            <el-button class="w-8 h-8" @click="handleMoreActions(row)">
-              <Icon icon="svg-icon:ellipsis-vertical" color="#16215B"/>
-            </el-button>
+            <el-popover
+              placement="bottom-start"
+              trigger="click"
+              popper-class="!p-0 !px-2 !min-w-auto !rounded-lg !w-auto"
+              :show-arrow="false"
+            >
+              <template #reference>
+                <el-button class="w-8 h-8 !ml-0">
+                  <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
+                </el-button>
+              </template>
+              <rightButtons
+                :row="row"
+                :items="btnItems2"
+                @action="handleRowAction"
+              />
+            </el-popover>
           </div>
         </template>
       </BaseTable>
@@ -401,10 +415,7 @@
       @close="detailVisible = false"
     />
 
-    <AddCredit
-      v-model:visible="addCreditVisible"
-      @success="loadData"
-    />
+    <AddCredit v-model:visible="addCreditVisible" @success="loadData" />
   </div>
   <div v-show="showHistory">
     <History ref="historyRef" @close="showHistory = false" />
@@ -413,6 +424,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from "vue";
+import { useRouter } from "vue-router";
 import {
   Plus,
   Edit,
@@ -438,7 +450,9 @@ import {
   markBillingNotificationAsRead,
 } from "@/api/billing";
 import { ElMessage } from "element-plus";
+import { createTicket } from "@/api/support";
 import productImage from "@/views/icon/yf.png";
+import rightButtons from "../components/rightButtons.vue";
 
 const price = ref("$0");
 const editVisible = ref(false);
@@ -446,6 +460,7 @@ const progressItems = ref<any[]>([]);
 const notifications = ref<any[]>([]);
 const recentOrders = ref<any[]>([]);
 const showHistory = ref(false);
+const router = useRouter();
 
 // Product Detail State
 const detailVisible = ref(false);
@@ -494,11 +509,6 @@ const handleViewDetail = (row: any) => {
   detailVisible.value = true;
 };
 
-const handleMoreActions = (row: any) => {
-  // Logic for more actions (e.g. dropdown menu)
-  console.log('More actions for', row);
-};
-
 const handleAddCredit = () => {
   addCreditVisible.value = true;
 };
@@ -535,15 +545,75 @@ const handleFilterSearch = (params: any) => {
 const columns = [
   { type: "selection", width: 50 },
   { type: "expand", width: 50, slot: "expand" },
-  { label: "Order ID", slot: "serviceId", width: 200 },
+  { label: "Order ID", slot: "serviceId", width: "auto" },
   { label: "Fulfilled Date", slot: "date", width: 200 },
   { label: "Picking", slot: "type", width: 120 },
   { label: "Packaging", slot: "total", width: 120 },
   { label: "Shipping", slot: "shipping", width: 120 },
   { label: "TAX", slot: "tax", width: 120 },
-  { label: "Total", slot: "grandTotal", width: "auto" },
-  { label: "Actions", slot: "actions", width: 100, fixed: "right", align: "center" },
+  { label: "Total", slot: "grandTotal", width: 120 },
+  {
+    label: "Actions",
+    slot: "actions",
+    width: 100,
+    fixed: "right",
+    align: "center",
+  },
 ];
+
+const btnItems2 = [
+  {
+    key: "view",
+    label: "View Details",
+    icon: "svg-icon:eye",
+    tone: "primary",
+  },
+  {
+    key: "order",
+    label: "View Order",
+    icon: "svg-icon:shopping-cart",
+    tone: "primary",
+  },
+  {
+    key: "support",
+    label: "Contact Support",
+    icon: "svg-icon:headphones",
+    tone: "danger",
+  },
+] as any;
+
+const handleRowAction = async (action: string, row: any) => {
+  const orderKeyword = row?.orderId || row?.title || "";
+  switch (action) {
+    case "view":
+      handleViewDetail(row);
+      return;
+    case "order":
+      await router.push({
+        path: "/orders/list",
+        query: {
+          keyword: orderKeyword,
+          from: "billing-outbound",
+        },
+      });
+      ElMessage.success("Redirected to All Orders");
+      return;
+    case "support":
+      await createTicket({
+        stage: "Billing",
+        stageDetail: row?.title || "Outbound Service",
+        type: "Outbound Shipping Inquiry",
+        priority: "High",
+        typeId: orderKeyword || "Order ID",
+        typeDetails: `Shipping ${row?.shipping || "-"}, Tax ${row?.tax || "-"}, Total ${row?.grandTotal || "-"}`,
+        notes: "Need help to verify outbound billing line items and charge details.",
+      });
+      ElMessage.success("Support ticket created");
+      return;
+    default:
+      return;
+  }
+};
 
 // Data Logic
 const tableData = ref([]) as any;

@@ -239,47 +239,24 @@
         </template>
 
         <template #actions="{ row }">
-          <div class="flex flex-1">
+          <div class="flex flex-1 justify-center">
             <el-popover
               placement="bottom-start"
               trigger="click"
-              popper-class="!p-0 !px-6 !min-w-auto !rounded-lg !w-auto"
+              popper-class="!p-0 !px-2 !min-w-auto !rounded-lg !w-auto"
               :show-arrow="false"
             >
               <template #reference>
-                <el-button class="w-8 h-8">
+                <el-button class="w-8 h-8 !ml-0">
                   <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
                 </el-button>
               </template>
-              <div class="py-2 px-1">
-                <el-button
-                  link
-                  class="!text-blue-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !h-9"
-                >
-                  <span class="flex justify-center items-center gap-2">
-                    <Icon icon="svg-icon:shopping-cart" />
-                    View Order
-                  </span>
-                </el-button>
-                <el-button
-                  link
-                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !h-9"
-                >
-                  <span class="flex justify-center items-center gap-2">
-                    <Icon icon="svg-icon:headphones" />
-                    Contact Support
-                  </span>
-                </el-button>
-              </div>
-            </el-popover>
-            <!-- <el-button class="w-8 h-8" @click="handleMoreActions(row)">
-              <Icon
-                icon="gravity-ui:ellipsis-vertical"
-                width="16"
-                height="16"
-                style="color: #16215b"
+              <rightButtons
+                :row="row"
+                :items="btnItems2"
+                @action="handleRowAction"
               />
-            </el-button> -->
+            </el-popover>
           </div>
         </template>
       </BaseTable>
@@ -299,7 +276,10 @@ import AddCredit from "./components/addCredit.vue";
 import History from "./components/History.vue";
 import { getExceptionStats, getExceptionList } from "@/api/billing/exception";
 import BaseTable from "@/components/common/BaseTable.vue";
+import rightButtons from "../components/rightButtons.vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const statsData = reactive({
   creditRemaining: "$0",
   creditTotal: "$0",
@@ -351,6 +331,52 @@ const columns = [
   { label: "Total", slot: "total", minWidth: 100 },
   { label: "Actions", slot: "actions", width: 80, align: "center" },
 ];
+
+const btnItems2 = [
+  {
+    key: "order",
+    label: "View Order",
+    icon: "svg-icon:shopping-cart",
+    tone: "primary",
+  },
+  {
+    key: "support",
+    label: "Contact Support",
+    icon: "svg-icon:headphones",
+    tone: "danger",
+  },
+] as any;
+
+const handleRowAction = async (action: string, row: any) => {
+  const orderKeyword = row?.orderId || row?.title || "";
+  switch (action) {
+    case "order":
+      await router.push({
+        path: "/orders/list",
+        query: {
+          keyword: orderKeyword,
+          from: "billing-outbound",
+        },
+      });
+      ElMessage.success("Redirected to All Orders");
+      return;
+    case "support":
+      // await createTicket({
+      //   stage: "Billing",
+      //   stageDetail: row?.title || "Outbound Service",
+      //   type: "Outbound Shipping Inquiry",
+      //   priority: "High",
+      //   typeId: orderKeyword || "Order ID",
+      //   typeDetails: `Shipping ${row?.shipping || "-"}, Tax ${row?.tax || "-"}, Total ${row?.grandTotal || "-"}`,
+      //   notes:
+      //     "Need help to verify outbound billing line items and charge details.",
+      // });
+      ElMessage.success("Support ticket created");
+      return;
+    default:
+      return;
+  }
+};
 
 // Data Logic
 const tableData = ref([]) as any;

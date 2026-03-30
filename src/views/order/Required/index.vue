@@ -91,7 +91,9 @@
                 <div class="flex justify-between items-center">
                   <div class="text-lg font-bold text-sm">
                     <span text="text-#6B6B6B">Tracking No.:</span>
-                    <span class="text-#000">{{ getExpandRow(row).trackingNo }}</span>
+                    <span class="text-#000">{{
+                      getExpandRow(row).trackingNo
+                    }}</span>
                   </div>
                   <el-button
                     class="!font-semibold w-[166px] hover:!bg-#F4F6FA !px-4 !h-8 !color-[#F6540C]"
@@ -122,12 +124,12 @@
           </div>
         </template>
         <template #stage="{ row }">
-          <span class="text-sm text-gray-700">{{ row.stage }}</span>
+          <span class="text-xs text-gray-700">{{ row.stage }}</span>
         </template>
         <template #status="{ row }">
           <el-tag
             effect="dark"
-            class="!rounded-full !px-3 !border-none !bg-[#FCE8E6] !text-[#D93025]"
+            class="text-xs !rounded-full !px-3 !border-none !bg-[#FCE8E6] !text-[#D93025]"
           >
             {{ row.status }}
           </el-tag>
@@ -172,17 +174,17 @@
           </div>
         </template>
         <template #actions="{ row }">
-          <div class="flex flex-1 justify-center gap-1">
+          <div class="flex flex-1 justify-end gap-1">
             <el-button
-              class="!w-26 h-8 !p-2 !rounded-lg box-border !color-#fff !bg-[#9A9A9A]"
+              class="h-8 !p-2 !rounded-lg box-border !color-#fff !bg-[#9A9A9A]"
               @click="handleNeedAction(row)"
             >
               <Icon icon="svg-icon:circle-xmark" />
               <span class="text-14px">{{ row.status }}</span>
             </el-button>
-            <el-button class="w-8 h-8 !ml-0" @click="handleViewDetail(row)">
+            <!-- <el-button class="w-8 h-8 !ml-0" @click="handleViewDetail(row)">
               <Icon icon="svg-icon:eye" color="#16215B" />
-            </el-button>
+            </el-button> -->
             <el-popover
               placement="bottom-start"
               trigger="click"
@@ -242,19 +244,19 @@ const handleAddProduct = () => {
   detailVisible.value = true;
 };
 
-const handleViewDetail = async (row: any) => {
-  if (!row?.id) return;
-  try {
-    const res: any = await getRequiredOrderDetail(row.id);
-    await ElMessageBox.alert(
-      `${res.orderId}\n${res.platformId}\n${res.stage}\n${res.status}\n${res.customerName} · ${res.customerRegion}\nSKU ${res.sku}`,
-      "Order Detail",
-      { confirmButtonText: "Close" },
-    );
-  } catch (error) {
-    ElMessage.error("Failed to load detail");
-  }
-};
+// const handleViewDetail = async (row: any) => {
+//   if (!row?.id) return;
+//   try {
+//     const res: any = await getRequiredOrderDetail(row.id);
+//     await ElMessageBox.alert(
+//       `${res.orderId}\n${res.platformId}\n${res.stage}\n${res.status}\n${res.customerName} · ${res.customerRegion}\nSKU ${res.sku}`,
+//       "Order Detail",
+//       { confirmButtonText: "Close" },
+//     );
+//   } catch (error) {
+//     ElMessage.error("Failed to load detail");
+//   }
+// };
 
 const handleSaveProduct = async (data: any) => {
   // Mock save logic
@@ -274,13 +276,13 @@ const handleFilterSearch = (params: any) => {
 
 const columns = [
   { type: "selection", width: 50 },
-  { type: "expand", width: 50, slot: "expand" },
-  { label: "Order ID / Platform ID", slot: "order" },
+  { type: "expand", width: 40, slot: "expand" },
+  { label: "Order ID / Platform ID", slot: "order", minWidth: 180 },
   { label: "Stages", slot: "stage", width: 120 },
-  { label: "Status", slot: "status", width: 120, align: "center" },
-  { label: "Customer", slot: "customer", width: 150 },
+  { label: "Status", slot: "status", width: 150, align: "center" },
+  { label: "Customer", slot: "customer", width: 120 },
   { label: "Inventory", slot: "inventory", width: 120, align: "center" },
-  { label: "Date", slot: "date", width: 180 },
+  { label: "Date", slot: "date", width: 150 },
   {
     label: "Actions",
     slot: "actions",
@@ -436,7 +438,7 @@ const handleSupport = async (row: any) => {
 const handleRowAction = (action: string, row: any) => {
   switch (action) {
     case "view":
-      handleViewDetail(row);
+      // handleViewDetail(row);
       break;
     case "approve":
       approveRequiredOrder({
@@ -489,9 +491,21 @@ const getTaskSteps = (row: any): StepItem[] => {
       subtitle: row?.status || "Need Attention",
       state: active > 0 ? "completed" : "active",
     },
-    { title: "Warehouse", subtitle: "Awaiting", state: active > 1 ? "completed" : active === 1 ? "active" : "pending" },
-    { title: "Export", subtitle: "Awaiting", state: active > 2 ? "completed" : active === 2 ? "active" : "pending" },
-    { title: "Local Delivery", subtitle: "Awaiting", state: active > 3 ? "completed" : active === 3 ? "active" : "pending" },
+    {
+      title: "Warehouse",
+      subtitle: "Awaiting",
+      state: active > 1 ? "completed" : active === 1 ? "active" : "pending",
+    },
+    {
+      title: "Export",
+      subtitle: "Awaiting",
+      state: active > 2 ? "completed" : active === 2 ? "active" : "pending",
+    },
+    {
+      title: "Local Delivery",
+      subtitle: "Awaiting",
+      state: active > 3 ? "completed" : active === 3 ? "active" : "pending",
+    },
     { title: "Delivered", subtitle: "Awaiting", state: "pending" },
   ];
 };

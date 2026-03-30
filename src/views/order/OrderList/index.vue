@@ -280,9 +280,9 @@
           </div>
         </template>
         <template #actions="{ row }">
-          <div class="flex flex-1 justify-center gap-1">
+          <div class="flex flex-1 justify-end gap-1">
             <el-button
-              class="!w-22.5 h-8 !p-2 !rounded-lg box-border !color-#fff !bg-[#9A9A9A]"
+              class="h-8 !p-2 !rounded-lg box-border !color-#fff !bg-[#9A9A9A]"
               @click="handleRowAction('await', row)"
             >
               <Icon icon="svg-icon:circle-xmark" />
@@ -401,7 +401,7 @@ const columns = [
   { label: "Customer", slot: "customer", width: 150 },
   { label: "Inventory", slot: "inventory", width: 120, align: "center" },
   { label: "Date", slot: "date", width: 180 },
-  { label: "Actions", slot: "actions", width: 200, fixed: "right" },
+  { label: "Actions", slot: "actions", width: 240, fixed: "right", align: "center" },
 ];
 
 const itemColumns = [

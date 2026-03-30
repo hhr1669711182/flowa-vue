@@ -325,30 +325,15 @@
               :show-arrow="false"
             >
               <template #reference>
-                <el-button class="w-8 h-8">
+                <el-button class="w-8 h-8 !ml-0">
                   <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
                 </el-button>
               </template>
-              <div class="py-2 px-1 flex flex-col">
-                <el-button
-                  link
-                  class="!text-blue-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !h-9 !px-2"
-                >
-                  <span class="flex justify-center items-center gap-2">
-                    <Icon icon="svg-icon:shopping-cart" />
-                    View Order
-                  </span>
-                </el-button>
-                <el-button
-                  link
-                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !h-9 !ml0 !px2"
-                >
-                  <span class="flex justify-center items-center gap-2">
-                    <Icon icon="svg-icon:headphones" />
-                    Contact Support
-                  </span>
-                </el-button>
-              </div>
+              <rightButtons
+                :row="row"
+                :items="btnItems2"
+                @action="handleRowAction"
+              />
             </el-popover>
           </div>
         </template>
@@ -400,6 +385,7 @@ import { getInboundList } from "@/api/billing/inbound";
 import { ElMessage } from "element-plus";
 import { MoreFilled } from "@element-plus/icons-vue";
 import productImage from "@/views/icon/yf.png";
+import rightButtons from "../components/rightButtons.vue";
 
 const price = ref("$0");
 const editVisible = ref(false);
@@ -513,6 +499,35 @@ const columns = [
     align: "center",
   },
 ];
+
+const btnItems2 = [
+  {
+    key: "support",
+    label: "Contact Support",
+    icon: "svg-icon:headphones",
+    tone: "danger",
+  },
+] as any;
+
+const handleRowAction = async (action: string, row: any) => {
+  const orderKeyword = row?.orderId || row?.title || "";
+  switch (action) {
+    case "support":
+      // await createTicket({
+      //   stage: "Billing",
+      //   stageDetail: row?.title || "Outbound Service",
+      //   type: "Outbound Shipping Inquiry",
+      //   priority: "High",
+      //   typeId: orderKeyword || "Order ID",
+      //   typeDetails: `Shipping ${row?.shipping || "-"}, Tax ${row?.tax || "-"}, Total ${row?.grandTotal || "-"}`,
+      //   notes: "Need help to verify outbound billing line items and charge details.",
+      // });
+      ElMessage.success("Support ticket created");
+      return;
+    default:
+      return;
+  }
+};
 
 // Data Logic
 const tableData = ref([]) as any;

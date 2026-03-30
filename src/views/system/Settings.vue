@@ -498,12 +498,12 @@ const pagination = reactive({
 });
 
 const logColumns = [
-  { prop: "id", label: "ID", width: 60, align: "center" },
-  { prop: "sku", label: "SKU", width: 120, className: "font-medium" },
+  { prop: "id", label: "ID", width: 80, align: "center" },
+  { prop: "sku", label: "SKU", width: 150, className: "font-medium" },
   {
     prop: "actionInfo",
     label: "Action Info",
-    minWidth: 200,
+    minWidth: 180,
     slot: "actionInfo",
   },
   {
@@ -515,11 +515,11 @@ const logColumns = [
   {
     prop: "operator",
     label: "Operator",
-    width: 100,
+    width: 120,
     align: "center",
     className: "font-bold text-gray-900",
   },
-  { prop: "date", label: "Date", width: 120, align: "center", slot: "date" },
+  { prop: "date", label: "Date", width: 150, align: "center", slot: "date" },
 ];
 
 // --- Initialization & Watchers ---

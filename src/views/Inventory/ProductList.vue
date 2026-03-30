@@ -264,7 +264,7 @@ const columns = [
     width: 110,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "50 units are currently being received or processed in the warehouse but are not yet available for fulfillment.",
+      "Units that are currently being received or processed in the warehouse but are not yet available for fulfillment.",
     ),
   },
   {
@@ -273,7 +273,7 @@ const columns = [
     width: 110,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "50 units are currently reserved for sale but not yet available for purchase.",
+      "Units that are currently reserved for sale but not yet available for purchase.",
     ),
   },
   {
@@ -282,7 +282,7 @@ const columns = [
     width: 110,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "50 units are available for purchase.",
+      "Units that are available for purchase.",
     ),
   },
   {
