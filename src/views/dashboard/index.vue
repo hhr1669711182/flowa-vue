@@ -1,22 +1,25 @@
 <template>
   <div class="dashboard flex flex-col gap-4">
-    <div class="mb-2 flex flex-col gap-2">
-      <div class="flex justify-between w-full h-17 items-center">
-        <div>
-          <h1 class="text-2xl font-700 font-bold text-gray-800 tracking-tight">
-            Welcome Evan
-          </h1>
-          <p class="text-gray-500 mt-1 text-sm font-500">
-            View and manage all your individual products and their stock status.
-          </p>
-        </div>
-        <el-button class="!rounded-lg text-[#16215B]" :icon="Plus"
-          >Create Order</el-button
-        >
-      </div>
-    </div>
-
     <div>
+      <div class="flex flex-col gap-2">
+        <div class="flex justify-between w-full h-17 items-center">
+          <div>
+            <div
+              class="text-2xl font-700 font-bold text-gray-800 tracking-tight"
+            >
+              Welcome Evan
+            </div>
+            <div class="text-gray-500 mt-1 text-sm font-500">
+              View and manage all your individual products and their stock
+              status.
+            </div>
+          </div>
+          <el-button class="!rounded-lg text-[#16215B]" :icon="Plus"
+            >Create Order</el-button
+          >
+        </div>
+      </div>
+
       <div class="flex justify-end space-x-3 px-3 py-2">
         <EditPopover
           v-model="editVisible"
@@ -136,7 +139,9 @@
                 height="24"
                 style="color: #1e7f4e"
               />
-              <span class="text-[14px] text-#1E7F4E" @click="markAllAsRead">Mark all as read</span>
+              <span class="text-[14px] text-#1E7F4E" @click="markAllAsRead"
+                >Mark all as read</span
+              >
             </el-button>
           </div>
           <el-divider class="!my-2"></el-divider>
@@ -208,18 +213,26 @@
                 >
                   {{ row.status }}
                 </el-tag>
-                <span class="text-xs text-gray-400">{{
-                  row.statusNote
-                }}</span>
+                <span class="text-xs text-gray-400">{{ row.statusNote }}</span>
               </div>
             </template>
             <template #actions="{ row }">
               <div class="flex items-center justify-end gap-2">
-                <el-button size="small" plain class="!rounded-full !px-3" @click="handleReview(row)">
+                <el-button
+                  size="small"
+                  plain
+                  class="!rounded-full !px-3"
+                  @click="handleReview(row)"
+                >
                   <el-icon class="mr-1"><CircleCheck /></el-icon>
                   Review & Fix
                 </el-button>
-                <el-button size="small" circle class="!rounded-full" @click="handleView(row)">
+                <el-button
+                  size="small"
+                  circle
+                  class="!rounded-full"
+                  @click="handleView(row)"
+                >
                   <el-icon><View /></el-icon>
                 </el-button>
               </div>
@@ -249,7 +262,12 @@ import {
   View,
 } from "@element-plus/icons-vue";
 import productImage from "../icon/yf.png";
-import { getDashboardStats, getDashboardNotifications, getDashboardRecentOrders, markNotificationAsRead } from "@/api/dashboard";
+import {
+  getDashboardStats,
+  getDashboardNotifications,
+  getDashboardRecentOrders,
+  markNotificationAsRead,
+} from "@/api/dashboard";
 import { ElMessage } from "element-plus";
 
 const price = ref("$0");
@@ -332,7 +350,13 @@ const recentOrderColumns = [
   { label: "Order ID", slot: "order", minWidth: 100 },
   { label: "Stages", slot: "stage", width: 200 },
   { label: "Status", slot: "status", width: 200 },
-  { label: "Actions", slot: "actions", width: 180, align: "center", fixed: "right" },
+  {
+    label: "Actions",
+    slot: "actions",
+    width: 180,
+    align: "center",
+    // fixed: "right",
+  },
 ];
 
 const getStatusType = (status: string) => {
@@ -351,22 +375,22 @@ const loadData = async () => {
     const [statsRes, notifRes, ordersRes] = await Promise.all([
       getDashboardStats(),
       getDashboardNotifications(),
-      getDashboardRecentOrders()
+      getDashboardRecentOrders(),
     ]);
-    
+
     price.value = statsRes.price;
     progressItems.value = statsRes.progressItems;
-    
+
     // Process notifications icons
-    notifications.value = notifRes.map(n => ({
+    notifications.value = notifRes.map((n) => ({
       ...n,
-      icon: getIconComponent(n.iconType)
+      icon: getIconComponent(n.iconType),
     }));
-    
+
     // Process orders images
-    recentOrders.value = ordersRes.map(o => ({
+    recentOrders.value = ordersRes.map((o) => ({
       ...o,
-      image: o.image.includes('placeholder') ? productImage : o.image
+      image: o.image.includes("placeholder") ? productImage : o.image,
     }));
   } catch (error) {
     console.error("Failed to load dashboard data:", error);
@@ -380,7 +404,7 @@ const getIconComponent = (type: string) => {
     CreditCard,
     Document,
     Message,
-    Lock
+    Lock,
   };
   return markRaw(map[type] || Message);
 };
@@ -388,7 +412,7 @@ const getIconComponent = (type: string) => {
 const markAllAsRead = async () => {
   try {
     await markNotificationAsRead();
-    notifications.value.forEach(n => n.unread = false);
+    notifications.value.forEach((n) => (n.unread = false));
     ElMessage.success("All notifications marked as read");
   } catch (error) {
     ElMessage.error("Failed to update notifications");
