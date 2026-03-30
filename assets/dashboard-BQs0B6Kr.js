@@ -1,1 +1,0 @@
-import{t as e}from"./alova-Bi6weASw.js";const t=()=>e.Get(`/api/dashboard/stats`),n=()=>e.Get(`/api/dashboard/notifications`),r=()=>e.Get(`/api/dashboard/recent-orders`),i=t=>e.Post(`/api/dashboard/notifications/read`,{id:t});export{i,r as n,t as r,n as t};

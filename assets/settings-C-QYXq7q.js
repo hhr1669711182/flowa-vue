@@ -1,1 +1,0 @@
-import{t as e}from"./alova-Bi6weASw.js";const t=()=>e.Get(`/api/settings/general`),n=(t,n)=>e.Post(`/api/settings/general`,{key:t,value:n}),r=t=>e.Get(`/api/settings/logs`,{params:t}),i=()=>e.Get(`/api/settings/profile/avatar`),a=t=>e.Post(`/api/settings/profile/avatar`,t);export{a,n as i,r as n,i as r,t};
