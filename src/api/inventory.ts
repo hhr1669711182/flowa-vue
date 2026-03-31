@@ -28,6 +28,13 @@ export const deleteProduct = (id: string) => {
   return alovaInstance.Delete<any>(`/api/inventory/products/${id}`);
 }
 
+export const removeProductVirtualName = (id: string, name: string) => {
+  return alovaInstance.Post<{ success: boolean; virtualNames: string[] }>(
+    `/api/inventory/products/${id}/virtual-name/remove`,
+    { name }
+  );
+}
+
 // Bundle API
 export const getInventoryBundles = (params: any) => {
   return alovaInstance.Get<any>('/api/inventory/bundles', { params });

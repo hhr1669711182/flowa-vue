@@ -113,13 +113,147 @@
         v-model:page="page"
         v-model:limit="limit"
         @pagination-change="fetchData"
+        @expand-change="handleExpandChange"
       >
+        <template #expand="{ row }">
+          <div class="py-4 px-6 bg-#F7F7F7">
+            <div class="bg-#fff rounded-lg border border-gray-200">
+              <div
+                class="grid grid-cols-2 gap-4 px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
+              >
+                <div>
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="text-xl font-bold text-gray-900">
+                      {{ getExpandRow(row).name }}
+                    </span>
+                    <el-tag
+                      :type="getStatusType(getExpandRow(row).status)"
+                      effect="light"
+                      round
+                      size="small"
+                      class="!border-0 font-medium"
+                    >
+                      {{ getExpandRow(row).status }}
+                    </el-tag>
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    <span class="text-#000"
+                      >SKU
+                      {{ getExpandRow(row).sku || getExpandRow(row).id }}</span
+                    >
+                    <span class="mx-2">Last Update:</span>
+                    <span>{{ getExpandRow(row).lastUpdated || "-" }}</span>
+                  </div>
+                </div>
+
+                <div class="text-left text-sm">
+                  <div class="mb-1">
+                    <span class="text-gray-500 mr-2">Product</span>
+                    <span class="text-#000 font-600">{{
+                      getExpandRow(row).name
+                    }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-500 mr-2">SKU</span>
+                    <span class="text-#000 font-600">{{
+                      getExpandRow(row).sku || getExpandRow(row).id
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="px-6 py-4">
+                <div class="grid grid-cols-12 gap-4 mb-4">
+                  <div class="col-span-4">
+                    <img
+                      :src="getExpandRow(row).image || productImage"
+                      alt="Product Image"
+                      class="w-350px !h-350px rounded-lg object-cover"
+                    />
+                  </div>
+                  <div class="col-span-8 h-full">
+                    <div class="flex flex-col h-full gap-y-3">
+                      <div class="col-span-2">
+                        <div class="text-gray-500 text-sm">Product Name CN</div>
+                        <div class="text-#000 text-16px">
+                          {{
+                            getExpandRow(row).nameCn || getExpandRow(row).name
+                          }}
+                        </div>
+                      </div>
+                      <div class="col-span-2">
+                        <div class="text-gray-500 text-sm">Product Name EN</div>
+                        <div class="text-#000 text-16px">
+                          {{
+                            getExpandRow(row).nameEn || getExpandRow(row).name
+                          }}
+                        </div>
+                      </div>
+                      <div class="col-span-2">
+                        <div class="text-gray-500 text-sm mb-2">
+                          Virtual Name
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                          <el-tag
+                            v-for="tag in getVirtualNames(getExpandRow(row))"
+                            :key="tag"
+                            effect="plain"
+                            class="!rounded-full !border-gray-200 !text-gray-600"
+                            closable
+                            @close="handleClose(row, tag)"
+                            size="large"
+                          >
+                            {{ tag }}
+                          </el-tag>
+                        </div>
+                      </div>
+                      <div
+                        class="grid grid-cols-2 items-center justify-start gap-2 mt-auto pt-2"
+                      >
+                        <div>
+                          <div class="text-gray-500 text-sm">Cost of Good</div>
+                          <div class="text-#000 text-16px">
+                            {{
+                              formatMoney(
+                                getExpandRow(row).cost ||
+                                  getExpandRow(row).price,
+                              )
+                            }}
+                          </div>
+                        </div>
+                        <div>
+                          <div class="text-gray-500 text-sm">Best Before</div>
+                          <div class="text-#000 text-16px">
+                            {{ getExpandRow(row).bestBefore || "-" }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div class="text-gray-500 text-sm mb-1">Product Details</div>
+                  <div class="text-#6b6b6b text-sm">
+                    {{
+                      getExpandRow(row).description ||
+                      `${getExpandRow(row).name} details are not available.`
+                    }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <template #product="{ row }">
           <div class="flex items-center gap-3">
             <!-- <el-avatar :size="32" class="bg-gray-100 text-gray-700"
               >P</el-avatar
             > -->
-            <img :src="productImage" alt="Product Image" class="w-10 h-10 rounded-lg" />
+            <img
+              :src="productImage"
+              alt="Product Image"
+              class="w-10 h-10 rounded-lg"
+            />
             <div class="flex flex-col">
               <span class="text-sm font-medium text-gray-800">{{
                 row.name
@@ -205,7 +339,12 @@ import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from "vue";
 import * as echarts from "echarts";
 import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
-import { exportInventoryProducts, getInventoryProducts } from "@/api/inventory";
+import {
+  exportInventoryProducts,
+  getInventoryProducts,
+  getProductDetail,
+  removeProductVirtualName,
+} from "@/api/inventory";
 import { ElMessage } from "element-plus";
 import { createHeaderHintRenderer } from "@/components/common/TableHeaderHint";
 import rightButtons from "./components/rightButtons.vue";
@@ -331,6 +470,31 @@ const stats = reactive({
 });
 const totalInventory = ref(0);
 const showCards = ref(true);
+const expandDetailMap = ref<Record<string, any>>({});
+const expandLoadingMap = ref<Record<string, boolean>>({});
+
+const getExpandRow = (row: any) => {
+  return expandDetailMap.value[row.id] || row;
+};
+
+const getVirtualNames = (row: any) => {
+  if (Array.isArray(row.virtualNames) && row.virtualNames.length > 0)
+    return row.virtualNames;
+  const name = row.name || "Product";
+  return [name, `${name} S`, `${name} M`, `${name} L`];
+};
+
+const formatMoney = (value: number | string) => {
+  const num = typeof value === "number" ? value : Number(value || 0);
+  return `$ ${num.toFixed(2)}`;
+};
+
+const getStatusType = (status: string) => {
+  if (status === "In Stock") return "success";
+  if (status === "Low Stock") return "warning";
+  if (status === "Out of Stock") return "danger";
+  return "info";
+};
 
 const updateStatsAndChart = () => {
   const data = (tableData.value as any[]) || [];
@@ -519,6 +683,39 @@ const fetchData = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const handleExpandChange = async (row: any, expandedRows: any[]) => {
+  if (!row?.id) return;
+  const expanded =
+    Array.isArray(expandedRows) &&
+    expandedRows.some((item) => item.id === row.id);
+  if (!expanded) return;
+  if (expandDetailMap.value[row.id]) return;
+  expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: true };
+  try {
+    const detail = await getProductDetail(row.id);
+    if (detail) {
+      expandDetailMap.value = { ...expandDetailMap.value, [row.id]: detail };
+    }
+  } finally {
+    expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: false };
+  }
+};
+
+const handleClose = async (row: any, tag: string) => {
+  if (!row?.id || !tag) return;
+  const res = await removeProductVirtualName(row.id, tag);
+  if (!res?.success) return;
+  const current = getExpandRow(row);
+  expandDetailMap.value = {
+    ...expandDetailMap.value,
+    [row.id]: {
+      ...current,
+      virtualNames: res.virtualNames || [],
+    },
+  };
+  ElMessage.success("Virtual name removed");
 };
 
 const handleRowAction = (action: string, row: any) => {
