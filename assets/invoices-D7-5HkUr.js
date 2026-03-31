@@ -1,0 +1,1 @@
+import{t as e}from"./alova-Q7v-wd9F.js";const t=t=>e.Get(`/api/invoices`,{params:t}),n=t=>e.Get(`/api/invoices/detail`,{params:{id:t}}),r=()=>e.Get(`/api/invoices/download/all`),i=t=>e.Get(`/api/invoices/download/one`,{params:{id:t}});export{t as i,i as n,n as r,r as t};
