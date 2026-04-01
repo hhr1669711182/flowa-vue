@@ -11,7 +11,7 @@
           clearable
           class="filter-chip-select"
           :style="{ width: item.width || '140px' }"
-          @change="toggleOption"
+          @change="handleControlChange"
         >
           <template #prefix v-if="item.label">
             <span class="text-gray-800 font-medium mr-1">{{ item.label }}</span>
@@ -32,24 +32,23 @@
             v-model="modelValue[item.prop + 'Min']"
             class="w-16 text-center outline-none text-sm"
             placeholder="000"
-            @change="toggleOption"
+            @change="handleControlChange"
           />
           <span class="mx-1 text-gray-400">-</span>
           <input
             v-model="modelValue[item.prop + 'Max']"
             class="w-16 text-center outline-none text-sm"
             placeholder="000"
+            @change="handleControlChange"
           />
         </div>
       </template>
 
       <el-button
-        circle
-        size="small"
-        class="!ml-auto !border-gray-200 !text-gray-500 hover:!text-gray-700 hover:!bg-gray-100"
+        class="w-8 !h-8 !ml-auto !border-gray-200 !text-gray-500 hover:!text-gray-700 hover:!bg-gray-100"
         @click="$emit('close')"
       >
-        <el-icon><Close /></el-icon>
+        <Icon icon="svg-icon:xmark" color="#000" />
       </el-button>
     </div>
 
@@ -57,11 +56,7 @@
       <template v-for="item in bottomOptions" :key="item.prop">
         <div
           class="cursor-pointer px-4 py-1.5 rounded-full text-sm transition-colors border"
-          :class="[
-            modelValue[item.prop]
-              ? 'bg-white border-blue-600 text-blue-700 font-medium shadow-sm'
-              : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50',
-          ]"
+          :class="getOptionClass(item)"
           @click="toggleOption(item.prop)"
         >
           {{ item.label }}
@@ -72,8 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { Close } from "@element-plus/icons-vue";
+import { computed, reactive, watch } from "vue";
 
 interface SearchItem {
   type: "select" | "range" | "option";
@@ -83,6 +77,7 @@ interface SearchItem {
   width?: string;
   options?: { label: string; value: any }[];
   placement?: "top" | "bottom";
+  isHighlight?: boolean;
 }
 
 interface Props {
@@ -99,9 +94,51 @@ const topFilters = computed(() =>
 const bottomOptions = computed(() =>
   props.items.filter((i) => i.placement === "bottom"),
 );
+const optionHighlightMap = reactive<Record<string, boolean>>({});
 
-const toggleOption = (prop: any) => {
-  const newVal = !props.modelValue[prop];
+const handleControlChange = () => {
+  emit("search");
+};
+
+const initOptionHighlight = () => {
+  for (const item of bottomOptions.value) {
+    optionHighlightMap[item.prop] =
+      Boolean(props.modelValue[item.prop]) || Boolean(item.isHighlight);
+  }
+};
+
+watch(
+  () => bottomOptions.value,
+  () => {
+    initOptionHighlight();
+  },
+  { immediate: true, deep: true },
+);
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    for (const item of bottomOptions.value) {
+      optionHighlightMap[item.prop] = Boolean(val[item.prop]);
+    }
+  },
+  { deep: true },
+);
+
+const getOptionClass = (item: SearchItem) => {
+  const active = Boolean(optionHighlightMap[item.prop]);
+  if (!active) {
+    return "bg-white border-gray-200 text-gray-600 hover:bg-gray-50";
+  }
+  if (item.isHighlight === false) {
+    return "bg-white border-gray-300 text-gray-900 font-medium shadow-sm";
+  }
+  return "bg-white border-blue-600 text-blue-700 font-medium shadow-sm";
+};
+
+const toggleOption = (prop: string) => {
+  const newVal = !optionHighlightMap[prop];
+  optionHighlightMap[prop] = newVal;
   emit("update:modelValue", {
     ...props.modelValue,
     [prop]: newVal,

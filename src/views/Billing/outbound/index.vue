@@ -51,7 +51,7 @@
         class="bg-white rounded-xl border border-gray-100 shadow-card p-6 flex animate__animated animate__fadeInUp"
       >
         <div class="font-semibold">
-          <div class="whitespace-nowrap text-[16px] line-height-24px">
+          <div class="whitespace-nowrap text-[16px] line-height-24px flex items-center">
             Credit Remaining
             <el-tooltip
               class="box-item"

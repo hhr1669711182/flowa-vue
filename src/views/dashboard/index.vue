@@ -46,7 +46,17 @@
           >
             <div class="flex justify-between items-center mb-6">
               <div>
-                <div class="text-lg font-bold text-#000">Reserved Credits</div>
+                <div class="text-lg font-bold text-#000 flex items-center gap-1">
+                  Reserved Credits
+                  <el-tooltip
+                    class="box-item"
+                    effect="dark"
+                    content="!!!!"
+                    placement="top-start"
+                  >
+                    <Icon icon="svg-icon:circle-question" color="#BDBDBD" />
+                  </el-tooltip>
+                </div>
                 <div
                   class="text-xs text-#0211A3 mt-0.5 flex items-center gap-2"
                 >
