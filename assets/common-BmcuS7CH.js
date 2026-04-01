@@ -1,1 +1,0 @@
-import{t as e}from"./alova-Q7v-wd9F.js";const t=t=>e.Get(`/api/search`,{params:{q:t}});export{t};
