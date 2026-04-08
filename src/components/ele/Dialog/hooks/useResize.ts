@@ -90,7 +90,7 @@ export const useResize = (props?: {
     }
 
     // 鼠标按下时的事件处理器，开始调整对话框大小
-    const handleMouseDown = (e: any) => {
+    const handleMouseDown = (e) => {
       if (currentResizeDirection) {
         isResizing = true
 

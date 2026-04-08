@@ -1,5 +1,3 @@
-import { alovaInstance } from '@/services/alova';
-
 export interface BillingNotification {
   id: number;
   title: string;
@@ -9,10 +7,11 @@ export interface BillingNotification {
   unread: boolean;
 }
 
+/** 暂无后端接口，返回空数组避免 404 */
 export const getBillingNotifications = () => {
-  return alovaInstance.Get<BillingNotification[]>('/api/billing/notifications');
+  return Promise.resolve([] as BillingNotification[]);
 }
 
-export const markBillingNotificationAsRead = (id?: number) => {
-  return alovaInstance.Post('/api/billing/notifications/read', { id });
+export const markBillingNotificationAsRead = (_id?: number) => {
+  return Promise.resolve();
 }

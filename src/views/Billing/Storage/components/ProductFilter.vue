@@ -2,8 +2,8 @@
   <div class="product-filter">
     <div class="py-2 flex items-center gap-3">
       <el-input
-        v-model="searchForm.sku"
-        placeholder="Search by SKU..."
+        v-model="searchForm.search"
+        placeholder="Search..."
         clearable
         class="!w-80"
         @keyup.enter="handleSearch"
@@ -14,24 +14,15 @@
         </template>
       </el-input>
       <el-date-picker
-        class="!w-66"
         v-model="filters.range"
         type="daterange"
+        value-format="YYYY-MM-DD"
         range-separator="to"
         start-placeholder="Start date"
         end-placeholder="End date"
+        class="!w-64"
         @change="handleSearch"
       />
-      <!-- <el-select 
-        v-model="filters.stock" 
-        class="!w-50" 
-        placeholder="Exception Fee"
-        @change="handleSearch"
-      >
-        <el-option label="All" value="all" />
-        <el-option label="Low" value="low" />
-        <el-option label="Out of stock" value="out" />
-      </el-select> -->
       <el-button plain @click="doDownloadTable">
         <span class="flex items-center gap-2">
           <Icon icon="svg-icon:arrow-down-to-square" color="#000" />
@@ -44,49 +35,54 @@
 
 <script setup lang="ts">
 import { reactive } from "vue";
-import { exportOutboundBilling } from "@/api/billing/outbound";
+import { exportStorageBilling } from "@/api/billing/storage";
+import { triggerBillingDownload } from "@/api/billing";
+import { getDefaultMonthStartToToday } from "@/utils/dateRange";
 import { ElMessage } from "element-plus";
 
+const props = defineProps<{ company?: string }>();
 const emit = defineEmits(["search"]);
 
-const searchForm = reactive({
-  name: "",
-  category: "",
-  sku: "",
-});
+const searchForm = reactive({ search: "" });
+const filters = reactive({ range: [] as string[], name: "", status: "" });
 
-const filters = reactive({
-  lastDays: "7",
-  range: "",
-  stock: "all",
-  qty: "all",
-});
+function defaultPeriod(): [string, string] {
+  return getDefaultMonthStartToToday();
+}
 
 const getSearchParams = () => {
-  return {
-    ...searchForm,
-    ...filters,
-  };
+  const [period_start, period_end] = Array.isArray(filters.range) && filters.range.length === 2 ? filters.range : defaultPeriod();
+  return { ...searchForm, ...filters, period_start, period_end, company: props.company };
 };
 
-const handleSearch = () => {
-  emit("search", getSearchParams());
-};
+const handleSearch = () => emit("search", getSearchParams());
 
 const doDownloadTable = async () => {
+  if (!props.company) {
+    ElMessage.warning("Please ensure company is set (login or refresh).");
+    return;
+  }
   try {
-    const res = await exportOutboundBilling(getSearchParams());
-    if (res?.url) {
-      window.open(res.url, "_blank");
+    const params = getSearchParams();
+    const [period_start, period_end] = Array.isArray(filters.range) && filters.range.length === 2 ? filters.range : defaultPeriod();
+    const res = await exportStorageBilling({
+      company: props.company,
+      period_start: params.period_start || period_start,
+      period_end: params.period_end || period_end,
+      name: params.name || undefined,
+      status: params.status || undefined,
+    }).send();
+    const msg = (res as any)?.message ?? res;
+    if (msg?.success && (msg?.file_url || msg?.file_content_base64)) {
+      triggerBillingDownload(msg.file_url, msg.file_name, msg.file_content_base64);
       ElMessage.success("Export started successfully");
+    } else {
+      ElMessage.error(msg?.error || "Export failed");
     }
-  } catch (error) {
-    console.error("Export failed:", error);
-    ElMessage.error("Export failed");
+  } catch (e: any) {
+    ElMessage.error(e?.message || "Export failed");
   }
 };
 
-defineExpose({
-  getSearchParams,
-});
+defineExpose({ getSearchParams });
 </script>

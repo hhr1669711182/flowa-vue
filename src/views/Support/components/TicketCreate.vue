@@ -1,266 +1,341 @@
 <template>
   <el-dialog
     :model-value="visible"
-    width="860px"
+    title="Create Ticket"
+    width="640px"
     destroy-on-close
     class="ticket-create-dialog"
     @update:model-value="updateVisible"
   >
-    <template #header>
-      <div class="flex justify-between items-start pr-2">
-        <div>
-          <div class="text-34px font-700 text-#111827">
-            {{ mode === "edit" ? "Edit Support Ticket" : "Create a Support Ticket" }}
-          </div>
-          <div class="text-14px text-#6B7280 leading-20px mt-1">
-            Submit a ticket to contact the Flowa Support team and resolve an issue.
-          </div>
-          <div class="text-14px text-#6B7280 leading-20px">
-            Please provide clear details so we can assist you faster.
-          </div>
-        </div>
-      </div>
-    </template>
-
-    <el-form :model="form" label-position="top" class="mt-1 box-border">
-      <el-form-item label="Ticket ID">
-        <el-input v-model="form.ticketId" />
+    <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
+      <el-form-item label="Subject" prop="subject">
+        <el-input v-model="form.subject" placeholder="Brief summary of your request" clearable />
       </el-form-item>
-
-      <div class="grid grid-cols-2 gap-4">
-        <el-form-item label="Type of enquire">
-          <el-select v-model="form.stage" class="w-full">
-            <el-option v-for="item in TicketStageOptions" :key="item" :label="item" :value="item" />
+      <el-form-item label="Description" prop="description">
+        <el-input
+          v-model="form.description"
+          type="textarea"
+          :rows="4"
+          placeholder="Details, steps to reproduce, expectations..."
+        />
+      </el-form-item>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <el-form-item label="Category" prop="category">
+          <el-select
+            v-model="form.category"
+            class="w-full"
+            placeholder="Select category"
+            @change="onCategoryChange"
+          >
+            <el-option
+              v-for="opt in TICKET_CATEGORY_OPTIONS"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="Type ID">
-          <el-input v-model="form.typeId" />
+        <el-form-item label="Priority" prop="priority">
+          <el-select v-model="form.priority" class="w-full">
+            <el-option label="High" value="High" />
+            <el-option label="Medium" value="Medium" />
+            <el-option label="Low" value="Low" />
+          </el-select>
         </el-form-item>
       </div>
-
-      <el-form-item label="Notes">
-        <el-input v-model="form.notes" type="textarea" :rows="4" placeholder="Additional notes..." />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <el-form-item label="Linked document type">
+          <el-select v-model="form.reference_doctype" class="w-full" clearable placeholder="Optional">
+            <el-option label="Sales Order" value="Sales Order" />
+            <el-option label="Material Request" value="Material Request" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Document" prop="reference_name">
+          <el-autocomplete
+            v-model="form.reference_name"
+            class="w-full"
+            clearable
+            :disabled="!form.reference_doctype"
+            :fetch-suggestions="fetchRefSuggestions"
+            :trigger-on-focus="true"
+            value-key="value"
+            placeholder="Search by ID, customer, status…"
+            popper-class="ticket-ref-autocomplete-popper"
+            @select="onRefDocSelect"
+          >
+            <template #default="{ item }">
+              <div class="py-1.5">
+                <div class="font-medium text-gray-900">{{ (item as RefSuggestion).value }}</div>
+                <div v-if="(item as RefSuggestion).description" class="text-xs text-gray-500 mt-0.5">
+                  {{ (item as RefSuggestion).description }}
+                </div>
+              </div>
+            </template>
+          </el-autocomplete>
+        </el-form-item>
+      </div>
+      <el-form-item class="ticket-responsible-person-item">
+        <template #label>
+          <div>
+            <span class="text-sm text-gray-900">Responsible person</span>
+            <p class="text-xs text-gray-500 mt-1 mb-0 font-normal leading-relaxed max-w-xl">
+              Read-only. This shows which Flowa team member will handle your request (based on the category you selected). You
+              cannot edit this — it is assigned automatically on our side.
+            </p>
+          </div>
+        </template>
+        <el-input
+          :model-value="resolvedAssigneeDisplay"
+          readonly
+          disabled
+          class="ticket-assignee-readonly !cursor-default"
+        />
       </el-form-item>
-
-      <div v-if="attachmentState === 'idle'" class="w-full border-1.5 border-dashed border-#979EF0 rounded-xl py-3 px-4 box-border">
-        <button class="w-full bg-transparent border-none p-0 cursor-pointer" @click="openUpload">
-          <div class="flex items-center justify-center gap-2">
-            <el-icon class="text-#1E3A8A"><UploadFilled /></el-icon>
-            <span class="text-14px font-600 text-#16215B">Attach Files</span>
-          </div>
-          <div class="text-12px text-#9CA3AF text-center mt-1">15 MB Limit</div>
-        </button>
-      </div>
-
-      <div v-else-if="attachmentState === 'uploading'" class="w-full border border-#E5E7EB rounded-xl px-3 py-3 box-border">
-        <div class="flex items-center gap-3">
-          <span class="text-#6B7280 text-14px">{{ uploadProgress }}%</span>
-          <el-progress :percentage="uploadProgress" :stroke-width="4" :show-text="false" class="flex-1" />
-          <el-button class="!w-8 !h-8 !p-0" @click="cancelUpload">
-            <el-icon><Close /></el-icon>
-          </el-button>
-        </div>
-      </div>
-
-      <div v-else-if="attachmentState === 'completed'" class="w-full border border-#E5E7EB rounded-xl px-3 py-3 box-border">
-        <div class="flex items-center gap-3">
-          <span class="text-#6B7280 text-14px">100%</span>
-          <el-progress :percentage="100" :stroke-width="4" :show-text="false" class="flex-1" />
-          <span class="text-14px font-600 text-#1E3A8A">Completed!</span>
-        </div>
-      </div>
-
-      <div v-if="form.attachmentName && attachmentState === 'completed'" class="w-full border border-#E5E7EB rounded-xl px-3 py-2 mt-3 box-border">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 min-w-0">
-            <el-icon class="text-#1E3A8A"><Document /></el-icon>
-            <span class="text-14px text-#16215B truncate">{{ form.attachmentName }}</span>
-          </div>
-          <div class="flex items-center gap-1">
-            <el-button class="!w-7 !h-7 !p-0 !border-none" @click="removeAttachment">
-              <el-icon class="text-#DC2626"><Delete /></el-icon>
-            </el-button>
-            <el-button class="!w-7 !h-7 !p-0 !border-none" @click="openUpload">
-              <el-icon class="text-#6B7280"><RefreshRight /></el-icon>
-            </el-button>
-          </div>
-        </div>
-      </div>
+      <el-form-item label="Image">
+        <el-upload
+          class="w-full"
+          :auto-upload="false"
+          :limit="1"
+          :on-exceed="onExceedOne"
+          :on-change="onImagePick"
+          :on-remove="() => { imageFile = null }"
+          accept="image/*"
+          list-type="picture"
+        >
+          <el-button type="default">Select image</el-button>
+          <span class="text-xs text-gray-500 ml-2">One image, optional</span>
+        </el-upload>
+      </el-form-item>
+      <el-form-item label="Attachment">
+        <el-upload
+          class="w-full"
+          :auto-upload="false"
+          :limit="1"
+          :on-exceed="onExceedOne"
+          :on-change="onFilePick"
+          :on-remove="onFileRemove"
+        >
+          <el-button type="default">Select file</el-button>
+          <span class="text-xs text-gray-500 ml-2">One file, optional (matches ERPNext single Attach field)</span>
+        </el-upload>
+      </el-form-item>
     </el-form>
-
     <template #footer>
-      <div class="flex justify-between gap-3">
-        <el-button class="!px-8" @click="updateVisible(false)">Cancel</el-button>
+      <div class="flex justify-end gap-3">
+        <el-button :disabled="submitting" @click="updateVisible(false)">Cancel</el-button>
         <el-button
           type="primary"
-          class="!bg-[#16215B] !border-none !px-8"
-          @click="handleSubmit"
-          >{{ mode === "edit" ? "Save Ticket" : "Create Ticket" }}</el-button
+          class="!bg-[#1e3a8a] !border-none"
+          :loading="submitting"
+          @click="handleCreate"
+          >Create</el-button
         >
       </div>
     </template>
   </el-dialog>
-
-  <TicketUploadFlowDialog
-    :visible="uploadVisible"
-    @update:visible="handleUploadVisibleChange"
-    @done="handleUploadDone"
-  />
 </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import { createTicket, updateTicket, TicketStageOptions, type Ticket, type TicketPriority, type TicketStage } from '@/api/support'
+import type { FormInstance, FormRules, UploadFile, UploadProps } from 'element-plus'
+import {
+  createTicket,
+  searchTroubleTicketReferences,
+  suggestTroubleTicketAssignee,
+  uploadTicketAttachment,
+  TICKET_CATEGORY_OPTIONS,
+  type TicketCategoryValue,
+  type TroubleTicketRefSuggestion,
+} from '@/api/support'
 import { ElMessage } from 'element-plus'
-import { Close, Delete, Document, RefreshRight, UploadFilled } from '@element-plus/icons-vue'
-import TicketUploadFlowDialog from './TicketUploadFlowDialog.vue'
 
 const props = defineProps<{
   visible: boolean
-  mode?: 'create' | 'edit'
-  ticket?: Ticket | null
 }>()
 
 const emit = defineEmits(['update:visible', 'success'])
 
+type RefSuggestion = TroubleTicketRefSuggestion
+
+const formRef = ref<FormInstance>()
+const submitting = ref(false)
+const imageFile = ref<File | null>(null)
+const attachmentFile = ref<File | null>(null)
+/** 后端按大类+值班规则解析的 User id；无输入框，仅展示，提交时带给接口 */
+const suggestedAssignee = ref('')
+const resolvedAssigneeDisplay = computed(() => suggestedAssignee.value || '—')
+
 const form = reactive({
-  ticketId: "Ticket X0123",
-  stage: "Order" as TicketStage,
-  stageDetail: "Order ID X12345",
-  type: "General Issue",
-  typeId: "Order ID X12345",
-  typeDetails: "N/A",
-  priority: "High" as TicketPriority,
-  dueDate: "",
-  dueTime: "20:12:05",
-  notes: "",
-  attachmentName: "",
+  subject: '',
+  description: '',
+  category: '物流' as TicketCategoryValue,
+  priority: 'Medium' as 'High' | 'Medium' | 'Low',
+  reference_doctype: '' as '' | 'Sales Order' | 'Material Request',
+  reference_name: '',
 })
-const uploadVisible = ref(false)
-const attachmentState = ref<"idle" | "uploading" | "completed">("idle")
-const uploadProgress = ref(0)
+
+const rules: FormRules = {
+  subject: [{ required: true, message: 'Subject is required', trigger: 'blur' }],
+  category: [{ required: true, message: 'Category is required', trigger: 'change' }],
+  reference_name: [
+    {
+      validator: (_r, v, cb) => {
+        if (form.reference_doctype && !(v || '').toString().trim()) {
+          cb(new Error('A document must be selected when a linked type is chosen'))
+        } else cb()
+      },
+      trigger: ['blur', 'change'],
+    },
+  ],
+}
 
 const updateVisible = (val: boolean) => {
   emit('update:visible', val)
 }
 
-const mode = computed(() => props.mode || 'create')
-
-const stageDefaults: Record<TicketStage, { detail: string; typeId: string; type: string }> = {
-  Order: { detail: "Order ID X12345", typeId: "Order ID X12345", type: "General Issue" },
-  Inventory: { detail: "SKU ID X12345", typeId: "SKU ID X12345", type: "Miss Information" },
-  Billing: { detail: "Service X0123", typeId: "Service X0123", type: "General Issue" },
-  Invoices: { detail: "Invoice X0123", typeId: "Invoice X0123", type: "Unpaid Invoice" },
-  Settings: { detail: "Profile X0123", typeId: "Profile X0123", type: "Profile" },
+const onExceedOne: UploadProps['onExceed'] = () => {
+  ElMessage.warning('Only one file allowed. Remove the current file first.')
 }
 
-watch(
-  () => [props.visible, props.ticket, props.mode],
-  ([visible, ticket, dialogMode]: any) => {
-    if (!visible) return
-    if (dialogMode === 'edit' && ticket) {
-      form.ticketId = ticket.ticketId || "Ticket X0123"
-      form.stage = (ticket.stage as TicketStage) || 'Order'
-      form.stageDetail = ticket.stageDetail || ''
-      form.type = ticket.type || ''
-      form.typeId = ticket.typeId || ticket.stageDetail || ''
-      form.typeDetails = ticket.typeDetails || ''
-      form.priority = ticket.priority || 'High'
-      form.dueDate = ticket.dueDate || ''
-      form.dueTime = ticket.dueTime || '20:12:05'
-      form.notes = ticket.notes || ''
-      form.attachmentName = ''
-      attachmentState.value = 'idle'
-      uploadProgress.value = 0
-      return
-    }
-    form.ticketId = "Ticket X0123"
-    form.stage = "Order"
-    form.stageDetail = "Order ID X12345"
-    form.type = "General Issue"
-    form.typeId = "Order ID X12345"
-    form.typeDetails = "N/A"
-    form.priority = "High"
-    form.dueDate = ""
-    form.dueTime = "20:12:05"
-    form.notes = ""
-    form.attachmentName = ""
-    attachmentState.value = 'idle'
-    uploadProgress.value = 0
-  },
-  { immediate: true }
-)
+const onImagePick: UploadProps['onChange'] = (uploadFile: UploadFile) => {
+  imageFile.value = uploadFile.raw ?? null
+}
 
-const handleSubmit = async () => {
-  form.stageDetail = form.typeId
-  if (mode.value === 'edit' && props.ticket?.id) {
-    await updateTicket(props.ticket.id, { ...form })
-    updateVisible(false)
-    ElMessage.success("Updated")
-    emit('success')
+const onFilePick: UploadProps['onChange'] = (uploadFile: UploadFile) => {
+  attachmentFile.value = uploadFile.raw ?? null
+}
+
+const onImageRemove = () => {
+  imageFile.value = null
+}
+
+const onFileRemove = () => {
+  attachmentFile.value = null
+}
+
+let refSearchTimer: ReturnType<typeof setTimeout> | null = null
+
+const fetchRefSuggestions = (queryString: string, cb: (rows: RefSuggestion[]) => void) => {
+  if (!form.reference_doctype) {
+    cb([])
     return
   }
-  await createTicket({ ...form })
-  updateVisible(false)
-  ElMessage.success("Created")
-  emit('success')
+  if (refSearchTimer) clearTimeout(refSearchTimer)
+  refSearchTimer = setTimeout(() => {
+    refSearchTimer = null
+    searchTroubleTicketReferences({
+      reference_doctype: form.reference_doctype as 'Sales Order' | 'Material Request',
+      txt: queryString || '',
+      limit: 20,
+    })
+      .then(cb)
+      .catch(() => cb([]))
+  }, 280)
 }
 
-const handleUploadDone = (payload: { uploadId: string; fileName: string }) => {
-  uploadProgress.value = 100
-  attachmentState.value = "completed"
-  form.attachmentName = payload.fileName
+const onRefDocSelect = () => {
+  formRef.value?.validateField('reference_name').catch(() => {})
 }
 
-const handleUploadVisibleChange = (val: boolean) => {
-  uploadVisible.value = val
-  if (!val && !form.attachmentName) {
-    attachmentState.value = "idle"
-    uploadProgress.value = 0
+const syncSuggestedAssignee = async () => {
+  try {
+    suggestedAssignee.value = await suggestTroubleTicketAssignee({
+      problem_category: form.category,
+    })
+  } catch {
+    suggestedAssignee.value = 'Administrator'
   }
 }
 
-const openUpload = () => {
-  attachmentState.value = "uploading"
-  uploadProgress.value = 87
-  uploadVisible.value = true
-}
-
-const cancelUpload = () => {
-  attachmentState.value = "idle"
-  uploadProgress.value = 0
-  form.attachmentName = ""
-}
-
-const removeAttachment = () => {
-  attachmentState.value = "idle"
-  form.attachmentName = ""
-  uploadProgress.value = 0
+const onCategoryChange = () => {
+  syncSuggestedAssignee()
 }
 
 watch(
-  () => form.stage,
-  (stage) => {
-    if (mode.value === 'edit') return
-    const defaults = stageDefaults[stage]
-    form.stageDetail = defaults.detail
-    form.typeId = defaults.typeId
-    form.type = defaults.type
+  () => form.reference_doctype,
+  (v) => {
+    if (!v) form.reference_name = ''
   }
 )
+
+function resetForOpen() {
+  form.subject = ''
+  form.description = ''
+  form.category = '物流'
+  form.priority = 'Medium'
+  form.reference_doctype = ''
+  form.reference_name = ''
+  imageFile.value = null
+  attachmentFile.value = null
+  suggestedAssignee.value = ''
+  formRef.value?.clearValidate()
+}
+
+watch(
+  () => props.visible,
+  (v) => {
+    if (v) {
+      resetForOpen()
+      void syncSuggestedAssignee()
+    }
+  }
+)
+
+const handleCreate = async () => {
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return
+  }
+  await syncSuggestedAssignee()
+
+  submitting.value = true
+  try {
+    let imagePath = ''
+    let filePath = ''
+    if (imageFile.value) {
+      imagePath = await uploadTicketAttachment(imageFile.value)
+    }
+    if (attachmentFile.value) {
+      filePath = await uploadTicketAttachment(attachmentFile.value)
+    }
+    const catOpt = TICKET_CATEGORY_OPTIONS.find((o) => o.value === form.category)
+    await createTicket({
+      subject: form.subject.trim(),
+      description: form.description.trim(),
+      problem_category: form.category,
+      problem_category_en: catOpt?.label ?? '',
+      priority: form.priority,
+      assigned_to: (suggestedAssignee.value || '').trim() || undefined,
+      reference_doctype: form.reference_doctype || undefined,
+      reference_name: form.reference_doctype ? form.reference_name.trim() : '',
+      image: imagePath || undefined,
+      file_attachment: filePath || undefined,
+    })
+    updateVisible(false)
+    ElMessage.success('Created')
+    emit('success')
+  } catch (e: unknown) {
+    ElMessage.error(e instanceof Error ? e.message : 'Create failed')
+  } finally {
+    submitting.value = false
+  }
+}
 </script>
 
-<style scoped>
-:deep(.ticket-create-dialog .el-dialog__header) {
-  border-bottom: 1px solid #ececec;
-  padding: 20px 24px 14px;
+<style>
+/* Popper is teleported to body */
+.ticket-ref-autocomplete-popper.el-popper {
+  min-width: 420px !important;
+  max-width: min(560px, 92vw);
 }
 
-:deep(.ticket-create-dialog .el-dialog__body) {
-  padding: 14px 24px 10px;
+.ticket-responsible-person-item :deep(.el-form-item__label) {
+  align-items: flex-start;
 }
 
-:deep(.ticket-create-dialog .el-dialog__footer) {
-  padding: 14px 24px 20px;
+.ticket-assignee-readonly.is-disabled :deep(.el-input__inner) {
+  color: var(--el-text-color-primary);
+  -webkit-text-fill-color: var(--el-text-color-primary);
 }
 </style>

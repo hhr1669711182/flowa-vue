@@ -4,10 +4,8 @@ import { UserLoginType, UserType } from '@/api/types'
 import { ElMessageBox } from 'element-plus'
 import { useI18n } from '@/hooks/web/useI18n'
 import { loginOutApi } from '@/api/auth'
-import { getProfileAvatar, uploadProfileAvatar } from '@/api/settings'
 import { useTagsViewStore } from './tagsView'
 import router from '@/router'
-import defaultAvatarImg from '@/views/system/icons/avator.png'
 
 interface UserState {
   userInfo?: UserType
@@ -16,7 +14,6 @@ interface UserState {
   roleRouters?: string[] | AppCustomRouteRecordRaw[]
   rememberMe: boolean
   loginInfo?: UserLoginType
-  avatarImg?: any
 }
 
 export const useUserStore = defineStore('user', {
@@ -27,8 +24,7 @@ export const useUserStore = defineStore('user', {
       token: localStorage.getItem('token') || '',
       roleRouters: undefined,
       rememberMe: false,
-      loginInfo: undefined,
-      avatarImg: defaultAvatarImg
+      loginInfo: undefined
     }
   },
   getters: {
@@ -49,9 +45,6 @@ export const useUserStore = defineStore('user', {
     },
     getLoginInfo(): UserLoginType | undefined {
       return this.loginInfo
-    },
-    getAvatarImg(): string {
-      return this.avatarImg || defaultAvatarImg
     }
   },
   actions: {
@@ -89,7 +82,6 @@ export const useUserStore = defineStore('user', {
       localStorage.removeItem('token')
       this.setUserInfo(undefined)
       this.setRoleRouters([])
-      this.setAvatarImg(defaultAvatarImg)
       router.replace('/login')
     },
     logout() {
@@ -100,21 +92,6 @@ export const useUserStore = defineStore('user', {
     },
     setLoginInfo(loginInfo: UserLoginType | undefined) {
       this.loginInfo = loginInfo
-    },
-    setAvatarImg(avatarImg: any) {
-      this.avatarImg = avatarImg || defaultAvatarImg
-    },
-    async fetchAvatarImg() {
-      const res = await getProfileAvatar()
-      if (res.avatarImg) {
-        this.setAvatarImg(res.avatarImg)
-      }
-      return this.getAvatarImg
-    },
-    async uploadAvatarImg(payload: { avatarImg: string; fileName: string }) {
-      const res = await uploadProfileAvatar(payload)
-      this.setAvatarImg(res.avatarImg)
-      return this.getAvatarImg
     }
   },
   persist: true

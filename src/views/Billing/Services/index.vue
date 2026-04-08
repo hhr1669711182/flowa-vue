@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="products h-full flex flex-col" v-show="!showHistory">
     <div class="flex justify-between items-center mb-4 flex-shrink-0">
       <div>
@@ -51,7 +51,7 @@
       >
         <div class="font-semibold">
           <div class="whitespace-nowrap text-[16px] line-height-24px">
-            Credit Remaining
+            Balance
             <el-tooltip
               class="box-item"
               effect="dark"
@@ -98,7 +98,7 @@
               <span class="text-[14px]">{{ price }}</span>
             </div>
           </div>
-          <el-button type="primary" size="large" class="!w-[128px] !rounded-2">
+          <el-button type="primary" size="large" class="!w-[128px] !rounded-2" @click="handleAddCredit">
             <template #icon>
               <Icon
                 icon="mage:dollar"
@@ -159,7 +159,7 @@
       </div>
     </div>
 
-    <ProductFilter ref="filterRef" @search="handleFilterSearch" />
+    <ProductFilter ref="filterRef" :company="authStore.currentCompany ?? undefined" @search="handleFilterSearch" />
 
     <div class="flex-1 min-h-0 rounded-xl overflow-hidden">
       <BaseTable
@@ -282,18 +282,25 @@
             <el-popover
               placement="bottom-start"
               trigger="click"
-              popper-class="!p-0 !px-2 !min-w-auto !rounded-lg !w-auto"
+              popper-class="!p-0 !px-6 !min-w-auto !rounded-lg !w-auto"
               :show-arrow="false"
             >
               <template #reference>
-                <el-button class="w-8 h-8 !ml-0">
+                <el-button class="w-8 h-8">
                   <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
                 </el-button>
               </template>
-              <rightButtons
-                :row="row"
-                @action="handleRowAction"
-              />
+              <div class="py-2 px-1">
+                <el-button
+                  link
+                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !px-3 !h-9"
+                >
+                  <span class="flex items-center gap-2">
+                    <Icon icon="svg-icon:headphones" />
+                    Contact Support
+                  </span>
+                </el-button>
+              </div>
             </el-popover>
           </div>
         </template>
@@ -313,7 +320,7 @@
       @success="loadData"
     />
   </div>
-  <div v-show="showHistory">
+  <div v-if="showHistory">
     <History ref="historyRef" @close="showHistory = false" />
   </div>
 </template>
@@ -345,10 +352,13 @@ import {
 } from "@/api/billing";
 import { exportInventoryProducts, getInventoryProducts } from "@/api/inventory";
 import { getServicesList } from "@/api/billing/services";
+import { parseOmsBillingListResult } from "@/utils/frappeResponse";
+import { getDefaultMonthStartToToday } from "@/utils/dateRange";
+import { useAuthStore } from "@/store/modules/auth";
 import { ElMessage } from "element-plus";
 import productImage from "@/views/icon/yf.png";
-import { createTicket } from "@/api";
-import rightButtons from "../components/rightButtons.vue";
+
+const authStore = useAuthStore();
 
 const price = ref("$0");
 const editVisible = ref(false);
@@ -362,6 +372,9 @@ const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
 // Add Credit State
 const addCreditVisible = ref(false);
+
+const filterRef = ref();
+const currentFilters = ref({});
 
 const getIconComponent = (type: string) => {
   const map: Record<string, any> = {
@@ -432,13 +445,10 @@ const handleSaveProduct = async (data: any) => {
   fetchData();
 };
 
-// Filter State
-const filterRef = ref();
-const currentFilters = ref({});
-
 const handleFilterSearch = (params: any) => {
   currentFilters.value = params;
   page.value = 1;
+  loadData();
   fetchData();
 };
 
@@ -451,26 +461,6 @@ const columns = [
   { label: "Total", slot: "total", minWidth: 150 },
   { label: "Actions", slot: "actions", width: 80, fixed: "right", align: "center" },
 ];
-
-const handleRowAction = async (action: string, row: any) => {
-  const orderKeyword = row?.orderId || row?.title || "";
-  switch (action) {
-    case "support":
-      await createTicket({
-        stage: "Billing",
-        stageDetail: row?.title || "Outbound Service",
-        type: "Outbound Shipping Inquiry",
-        priority: "High",
-        typeId: orderKeyword || "Order ID",
-        typeDetails: `Shipping ${row?.shipping || "-"}, Tax ${row?.tax || "-"}, Total ${row?.grandTotal || "-"}`,
-        notes: "Need help to verify outbound billing line items and charge details.",
-      });
-      ElMessage.success("Support ticket created");
-      return;
-    default:
-      return;
-  }
-};
 
 // Data Logic
 const tableData = ref([]) as any;
@@ -665,19 +655,50 @@ const onResize = () => {
 };
 
 const fetchData = async () => {
+  const company =
+    (currentFilters.value as any)?.company ??
+    authStore.currentCompany ??
+    (await authStore.ensureCompany()) ??
+    "";
+  if (!company) {
+    loading.value = false;
+    tableData.value = [];
+    total.value = 0;
+    return;
+  }
   loading.value = true;
   try {
-    const res = await getServicesList({
+    const raw = await getServicesList({
+      company,
       page: page.value,
       pageSize: limit.value,
       ...currentFilters.value,
-    });
-    tableData.value = res.list;
-    total.value = res.total;
+    }).send();
+    const { data: rows, total: n } = parseOmsBillingListResult(raw);
+    total.value = n;
+    const fmt = (v: any) => `$${Number(v ?? 0).toFixed(2)}`;
+    const toDate = (v: any) => (v ? String(v).slice(0, 10) : "-");
+    tableData.value = rows.map((row: any) => ({
+      id: row.name,
+      serviceId: row.name || "-",
+      approvedDate: toDate(row.service_date),
+      type: row.account_item_addon || "-",
+      typeDescription: row.account_item_addon || "-",
+      approvedBy: "-",
+      total: fmt(row.total_cost_usd),
+      price: fmt(row.unit_price_usd),
+      uom: row.unit_of_measure ?? "-",
+      quantity: row.quantity ?? "-",
+      subtotal: fmt(row.amount_usd),
+      totalVat: fmt(row.total_cost_usd),
+      ...row,
+    }));
     await nextTick();
     updateStatsAndChart();
   } catch (error) {
     console.error("Failed to fetch services list:", error);
+    tableData.value = [];
+    total.value = 0;
   } finally {
     loading.value = false;
   }
@@ -715,6 +736,5 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   background: linear-gradient(131deg, #16215b 26.84%, #0a123c 98.1%);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
-  overflow: hidden;
 }
 </style>

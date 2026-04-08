@@ -76,6 +76,7 @@
 
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
+// import img404 from "@/assets/svgs/404.svg";
 
 const router = useRouter();
 const route = useRoute();

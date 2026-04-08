@@ -3,6 +3,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import MenuButtons, { type MenuButtonItem } from "@/views/components/menuButtons";
 
 const props = defineProps<{

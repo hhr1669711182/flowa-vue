@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="products h-full flex flex-col" v-show="!showHistory">
     <div class="flex justify-between items-center mb-4 flex-shrink-0">
       <div>
@@ -51,7 +51,7 @@
       >
         <div class="font-semibold">
           <div class="whitespace-nowrap text-[16px] line-height-24px">
-            Credit Remaining
+            Balance
             <el-tooltip
               class="box-item"
               effect="dark"
@@ -98,7 +98,7 @@
               <span class="text-[14px]">{{ price }}</span>
             </div>
           </div>
-          <el-button type="primary" size="large" class="!w-[128px] !rounded-2">
+          <el-button type="primary" size="large" class="!w-[128px] !rounded-2" @click="handleAddCredit">
             <template #icon>
               <Icon
                 icon="mage:dollar"
@@ -159,7 +159,7 @@
       </div>
     </div>
 
-    <ProductFilter ref="filterRef" @search="handleFilterSearch" />
+    <ProductFilter ref="filterRef" :company="authStore.currentCompany ?? undefined" @search="handleFilterSearch" />
 
     <div class="flex-1 min-h-0 rounded-xl overflow-hidden">
       <BaseTable
@@ -325,15 +325,30 @@
               :show-arrow="false"
             >
               <template #reference>
-                <el-button class="w-8 h-8 !ml-0">
+                <el-button class="w-8 h-8">
                   <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
                 </el-button>
               </template>
-              <rightButtons
-                :row="row"
-                :items="btnItems2"
-                @action="handleRowAction"
-              />
+              <div class="py-2 px-1 flex flex-col">
+                <el-button
+                  link
+                  class="!text-blue-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !h-9 !px-2"
+                >
+                  <span class="flex justify-center items-center gap-2">
+                    <Icon icon="svg-icon:shopping-cart" />
+                    View Order
+                  </span>
+                </el-button>
+                <el-button
+                  link
+                  class="!text-red-600 !font-semibold w-full !justify-start hover:!bg-#F4F6FA !h-9 !ml0 !px2"
+                >
+                  <span class="flex justify-center items-center gap-2">
+                    <Icon icon="svg-icon:headphones" />
+                    Contact Support
+                  </span>
+                </el-button>
+              </div>
             </el-popover>
           </div>
         </template>
@@ -350,7 +365,7 @@
 
     <AddCredit v-model:visible="addCreditVisible" @success="loadData" />
   </div>
-  <div v-show="showHistory">
+  <div v-if="showHistory">
     <History ref="historyRef" @close="showHistory = false" />
   </div>
 </template>
@@ -382,10 +397,14 @@ import {
   markBillingNotificationAsRead,
 } from "@/api/billing";
 import { getInboundList } from "@/api/billing/inbound";
+import { parseOmsBillingListResult } from "@/utils/frappeResponse";
+import { getDefaultMonthStartToToday } from "@/utils/dateRange";
+import { useAuthStore } from "@/store/modules/auth";
 import { ElMessage } from "element-plus";
 import { MoreFilled } from "@element-plus/icons-vue";
 import productImage from "@/views/icon/yf.png";
-import rightButtons from "../components/rightButtons.vue";
+
+const authStore = useAuthStore();
 
 const price = ref("$0");
 const editVisible = ref(false);
@@ -400,6 +419,9 @@ const currentProductId = ref<string | undefined>(undefined);
 // Add Credit State
 const addCreditVisible = ref(false);
 
+const filterRef = ref();
+const currentFilters = ref({});
+
 const getIconComponent = (type: string) => {
   const map: Record<string, any> = {
     ShoppingCart,
@@ -412,24 +434,42 @@ const getIconComponent = (type: string) => {
   return markRaw(map[type] || Message);
 };
 const loadData = async () => {
+  const company = authStore.currentCompany ?? (await authStore.ensureCompany()) ?? "";
+  if (!company) return;
+  const f = currentFilters.value as Record<string, any>;
+  const [period_start, period_end] =
+    f?.period_start && f?.period_end
+      ? [String(f.period_start), String(f.period_end)]
+      : getDefaultMonthStartToToday();
   try {
-    const [statsRes, notifRes, ordersRes] = await Promise.all([
-      getOutboundStats(),
+    const [statsRaw, notifRes, ordersRes] = await Promise.all([
+      getOutboundStats({ company, period_start, period_end }).send(),
       getBillingNotifications(),
       getBillingRecentOrders(),
     ]);
 
-    price.value = statsRes.price;
-    progressItems.value = statsRes.progressItems;
+    const msg = (statsRaw as any)?.message ?? statsRaw;
+    const summary = msg?.summary ?? {};
+    const byMonth = Array.isArray(msg?.by_month) ? msg.by_month : [];
+    const latest = byMonth[0] || {};
+    const rev = summary.total_revenue_usd ?? latest.total_revenue_usd ?? 0;
+    const orders = summary.total_orders ?? latest.total_orders ?? 0;
+    const avg = summary.avg_order_value_usd ?? latest.avg_order_value_usd ?? 0;
+    price.value = `$${typeof rev === "number" ? rev.toLocaleString() : "0"}`;
+    progressItems.value = [
+      { label: "Total Revenue", value: Number(rev), total: Number(rev) || 100, percent: 100, color: "#0211A3", prefix: "$" },
+      { label: "Total Orders", value: Number(orders), total: Math.max(Number(orders), 1), percent: 100, color: "#0211A3", prefix: "" },
+      { label: "Avg. Order Value", value: Number(avg), total: Math.max(Number(avg), 1), percent: 100, color: "#0211A3", prefix: "$" },
+    ];
 
-    notifications.value = notifRes.map((n) => ({
+    notifications.value = (Array.isArray(notifRes) ? notifRes : []).map((n: any) => ({
       ...n,
       icon: getIconComponent(n.iconType),
     }));
 
-    recentOrders.value = ordersRes.list.map((o) => ({
+    recentOrders.value = (ordersRes.list || []).map((o: any) => ({
       ...o,
-      image: o.image.includes("placeholder") ? productImage : o.image,
+      image: o.image && String(o.image).includes("placeholder") ? productImage : o.image,
     }));
   } catch (error) {
     console.error("Failed to load dashboard data:", error);
@@ -469,13 +509,10 @@ const handleSaveProduct = async (data: any) => {
   fetchData();
 };
 
-// Filter State
-const filterRef = ref();
-const currentFilters = ref({});
-
 const handleFilterSearch = (params: any) => {
   currentFilters.value = params;
   page.value = 1;
+  loadData();
   fetchData();
 };
 
@@ -499,35 +536,6 @@ const columns = [
     align: "center",
   },
 ];
-
-const btnItems2 = [
-  {
-    key: "support",
-    label: "Contact Support",
-    icon: "svg-icon:headphones",
-    tone: "danger",
-  },
-] as any;
-
-const handleRowAction = async (action: string, row: any) => {
-  const orderKeyword = row?.orderId || row?.title || "";
-  switch (action) {
-    case "support":
-      // await createTicket({
-      //   stage: "Billing",
-      //   stageDetail: row?.title || "Outbound Service",
-      //   type: "Outbound Shipping Inquiry",
-      //   priority: "High",
-      //   typeId: orderKeyword || "Order ID",
-      //   typeDetails: `Shipping ${row?.shipping || "-"}, Tax ${row?.tax || "-"}, Total ${row?.grandTotal || "-"}`,
-      //   notes: "Need help to verify outbound billing line items and charge details.",
-      // });
-      ElMessage.success("Support ticket created");
-      return;
-    default:
-      return;
-  }
-};
 
 // Data Logic
 const tableData = ref([]) as any;
@@ -722,19 +730,53 @@ const onResize = () => {
 };
 
 const fetchData = async () => {
+  const company =
+    (currentFilters.value as any)?.company ??
+    authStore.currentCompany ??
+    (await authStore.ensureCompany()) ??
+    "";
+  if (!company) {
+    loading.value = false;
+    tableData.value = [];
+    total.value = 0;
+    return;
+  }
   loading.value = true;
   try {
-    const res = await getInboundList({
+    const raw = await getInboundList({
+      company,
       page: page.value,
       pageSize: limit.value,
       ...currentFilters.value,
-    });
-    tableData.value = res.list;
-    total.value = res.total;
+    }).send();
+    const { data: rows, total: n } = parseOmsBillingListResult(raw);
+    total.value = n;
+    const fmt = (v: any) => `$${Number(v ?? 0).toFixed(2)}`;
+    const toDate = (v: any) => (v ? String(v).slice(0, 10) : "-");
+    tableData.value = rows.map((row: any) => ({
+      id: row.name,
+      inboundId: row.name || row.material_request || "-",
+      completionDate: toDate(row.inbound_date),
+      warehouse: row.company || row.pricing_plan || "-",
+      totalAmount: fmt(row.total_cost_usd),
+      palletQty: Number(row.pallet_qty ?? 0),
+      palletPrice: fmt(row.pallet_unit_price_usd),
+      palletSubtotal: fmt(row.pallet_amount_usd),
+      boxQty: Number(row.box_qty ?? 0),
+      boxPrice: fmt(row.box_unit_price_usd),
+      boxSubtotal: fmt(row.box_amount_usd),
+      scanQty: Number(row.scan_oms_qty ?? 0),
+      scanPrice: fmt(row.scan_oms_unit_price_usd),
+      scanSubtotal: fmt(row.scan_oms_amount_usd),
+      grandTotal: fmt(row.total_cost_usd),
+      ...row,
+    }));
     await nextTick();
     updateStatsAndChart();
   } catch (error) {
     console.error("Failed to fetch inbound list:", error);
+    tableData.value = [];
+    total.value = 0;
   } finally {
     loading.value = false;
   }

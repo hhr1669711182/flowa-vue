@@ -33,6 +33,7 @@
         start-placeholder="Start date"
         end-placeholder="End date"
         format="DD MMM"
+        value-format="YYYY-MM-DD"
         class="chip-date !w-64"
         @change="emitChange"
       />

@@ -32,13 +32,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 
-const orderStatus = ref([
+interface OrderStatsProp {
+  pending: number
+  inProcess: number
+  delivered: number
+  percentPending: number
+  percentInProcess: number
+  percentDelivered: number
+}
+
+const props = defineProps<{
+  orderStats?: OrderStatsProp | null
+}>()
+
+const defaultOrderStatus = [
   { label: 'Pending', percent: 70, orders: 45, color: '#0211A3' },
   { label: 'In Process', percent: 70, orders: 160, color: '#0211A3' },
   { label: 'Delivered', percent: 80, orders: 225, color: '#0211A3' }
-])
+]
+
+const orderStatus = computed(() => {
+  const s = props.orderStats
+  if (!s) return defaultOrderStatus
+  return [
+    { label: 'Pending', percent: s.percentPending, orders: s.pending, color: '#0211A3' },
+    { label: 'In Process', percent: s.percentInProcess, orders: s.inProcess, color: '#0211A3' },
+    { label: 'Delivered', percent: s.percentDelivered, orders: s.delivered, color: '#0211A3' }
+  ]
+})
 </script>
 
 <style scoped>

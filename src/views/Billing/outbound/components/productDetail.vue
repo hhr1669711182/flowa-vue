@@ -11,14 +11,14 @@
         <!-- Breadcrumb & Title -->
         <div>
           <div class="flex items-center text-xs text-gray-500 mb-1">
-            <span class="text-blue-600 cursor-pointer" @click="emit('close')">Billing / Orders</span>
+            <span class="text-blue-600 cursor-pointer" @click="emit('close')">Billing / Outbound</span>
             <span class="mx-1">/</span>
             <span>{{ form.title || 'Order Detail' }}</span>
           </div>
           <div class="flex items-center gap-3">
             <h2 class="text-xl font-bold text-gray-900">{{ form.title || 'Order Detail' }}</h2>
             <el-tag type="success" effect="light" round size="small" v-if="form.deliveryStatus === 'Delivered'">Delivered</el-tag>
-            <el-tag type="warning" effect="light" round size="small" v-else>{{ form.deliveryStatus }}</el-tag>
+            <el-tag type="warning" effect="light" round size="small" v-else-if="form.deliveryStatus">{{ form.deliveryStatus }}</el-tag>
           </div>
           <div class="text-xs text-gray-400 mt-1 flex items-center gap-2">
             <span>Fulfilled Date: {{ form.code }}</span>
@@ -32,7 +32,8 @@
     </template>
 
     <template #default>
-      <div class="space-y-6">
+      <div v-loading="loading" class="space-y-6 min-h-[120px]">
+        <div v-if="!loading && !form.title && visible" class="text-gray-500 py-8 text-center">No data or load failed.</div>
         <!-- Order Details Card -->
         <div class="bg-white rounded-lg border border-gray-100 p-6 shadow-sm">
           <h3 class="text-base font-bold text-gray-900 mb-4">Order Details</h3>
@@ -60,7 +61,7 @@
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-500 text-sm">Sending to</span>
-                <span class="text-gray-900 font-medium text-sm text-right max-w-[200px]">Narangba, 4504, QLD, Australia</span>
+                <span class="text-gray-900 font-medium text-sm text-right max-w-[200px]">{{ form.sendingTo || '-' }}</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-500 text-sm">Method</span>
@@ -132,27 +133,68 @@
 import { ref, computed, watch } from 'vue'
 import { Drawer } from '@/components/base/Drawer'
 import { ShoppingCart, More } from '@element-plus/icons-vue'
-import { getBillingOrderDetail } from '@/api/billing/orders'
+import { getOutboundBillingDetail } from '@/api/billing/outbound'
 
 const props = defineProps<{
   visible: boolean
-  productId?: string | number
+  billingDetailId?: string
+  company?: string
 }>()
 
 const emit = defineEmits(['update:visible', 'close', 'save', 'delete'])
 
 const form = ref<any>({})
+const loading = ref(false)
 const title = computed(() => '') // Custom header used
 
-watch(() => props.productId, async (id) => {
-  if (id) {
+function fmtUsd(v: unknown): string {
+  if (v == null || v === '') return '$0.00'
+  const n = Number(v)
+  return Number.isFinite(n) ? `$${n.toFixed(2)}` : '$0.00'
+}
+function fmtDate(v: unknown): string {
+  if (!v) return '-'
+  const s = String(v)
+  return s.length >= 10 ? s.slice(0, 10) : s
+}
+
+watch([() => props.visible, () => props.billingDetailId], async ([visible, id]) => {
+  if (visible && id) {
+    loading.value = true
+    form.value = {}
     try {
-      const res = await getBillingOrderDetail(id)
-      form.value = res
-    } catch (error) {
-      console.error(error)
+      const res = await getOutboundBillingDetail(id, props.company).send()
+      const msg = (res as any)?.message ?? res
+      const d = msg?.success ? msg.data : msg?.data
+      if (d && typeof d === 'object') {
+        const parts = [d.destination_postcode, d.au_zone, d.destination_country].filter(Boolean)
+        form.value = {
+          title: d.sales_order || d.name || 'Order Detail',
+          code: fmtDate(d.pack_time || d.order_time),
+          trackingNo: d.tracking_no || '-',
+          carrier: '-',
+          method: 'Regular Shipping',
+          sendingTo: parts.length ? parts.join(', ') : '-',
+          itemQuantity: String(d.item_qty ?? '-'),
+          chargingWeight: d.charge_weight != null ? `${d.charge_weight} kg` : '-',
+          pickingFirst: fmtUsd(d.first_pick_usd),
+          pickingAdditional: fmtUsd(d.additional_pick_usd),
+          packagingUsed: d.packing_item_code || '-',
+          packagingCost: fmtUsd(d.packaging_usd),
+          shippingCost: fmtUsd(d.shipping_fee_usd),
+          docFee: fmtUsd(d.document_fee_usd),
+          taxVat: fmtUsd(d.vat_usd),
+          taxSurcharge: fmtUsd(d.vat_surcharge_usd),
+          grandTotal: fmtUsd(d.total_cost_usd),
+          deliveryStatus: d.status || 'Delivered',
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load billing detail:', e)
+    } finally {
+      loading.value = false
     }
-  } else {
+  } else if (!visible) {
     form.value = {}
   }
 }, { immediate: true })

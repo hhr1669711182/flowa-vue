@@ -11,6 +11,12 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
+        <el-button type="default" size="large" @click="handleExportItems">
+          <span class="flex items-center gap-1.5">
+            <Icon icon="svg-icon:arrow-up-from-square" color="#16215B" />
+            <span class="text-16px text-#16215B">Export</span>
+          </span>
+        </el-button>
         <el-button type="default" size="large" @click="handleImport">
           <span class="flex items-center gap-1.5">
             <Icon icon="svg-icon:arrow-down-to-square" color="#16215B" />
@@ -46,9 +52,7 @@
       v-show="showCards"
       class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 box"
     >
-      <div
-        class="bg-white rounded-xl border border-gray-100 shadow-card p-6 animate__animated animate__fadeInUp"
-      >
+      <div class="bg-white rounded-xl border border-gray-100 shadow-card p-6 animate__animated animate__fadeInUp">
         <div class="flex items-center justify-between mb-2">
           <div class="font-semibold">
             <div>Total Inventory</div>
@@ -78,11 +82,9 @@
 
         <div ref="storageChartRef" class="w-full h-44 py-4"></div>
       </div>
-      <div
-        class="card overflow-hidden position-relative w-full animate__animated animate__fadeInUp"
-      >
+      <div class="card position-relative w-full animate__animated animate__fadeInUp">
         <div
-          class="position-absolute bottom-0 left-0 w-full h-85% box-border bg-[url('@/assets/svgs/bo-lang-blue.svg')] bg-no-repeat bg-cover bg-bottom"
+          class="position-absolute bottom-0 left-0 w-full h-85% box-border bg-[url('@/assets/svgs/bo-lang-blue.svg')] bg-no-repeat bg-contain bg-bottom"
         />
         <div
           class="flex items-center justify-between mb-2 p-6 position-absolute w-full box-border"
@@ -113,147 +115,12 @@
         v-model:page="page"
         v-model:limit="limit"
         @pagination-change="fetchData"
-        @expand-change="handleExpandChange"
       >
-        <template #expand="{ row }">
-          <div class="py-4 px-6 bg-#F7F7F7">
-            <div class="bg-#fff rounded-lg border border-gray-200">
-              <div
-                class="grid grid-cols-2 gap-4 px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
-              >
-                <div>
-                  <div class="flex items-center gap-3 mb-2">
-                    <span class="text-xl font-bold text-gray-900">
-                      {{ getExpandRow(row).name }}
-                    </span>
-                    <el-tag
-                      :type="getStatusType(getExpandRow(row).status)"
-                      effect="light"
-                      round
-                      size="small"
-                      class="!border-0 font-medium"
-                    >
-                      {{ getExpandRow(row).status }}
-                    </el-tag>
-                  </div>
-                  <div class="text-xs text-gray-500">
-                    <span class="text-#000"
-                      >SKU
-                      {{ getExpandRow(row).sku || getExpandRow(row).id }}</span
-                    >
-                    <span class="mx-2">Last Update:</span>
-                    <span>{{ getExpandRow(row).lastUpdated || "-" }}</span>
-                  </div>
-                </div>
-
-                <div class="text-left text-sm">
-                  <div class="mb-1">
-                    <span class="text-gray-500 mr-2">Product</span>
-                    <span class="text-#000 font-600">{{
-                      getExpandRow(row).name
-                    }}</span>
-                  </div>
-                  <div>
-                    <span class="text-gray-500 mr-2">SKU</span>
-                    <span class="text-#000 font-600">{{
-                      getExpandRow(row).sku || getExpandRow(row).id
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="px-6 py-4">
-                <div class="grid grid-cols-12 gap-4 mb-4">
-                  <div class="col-span-4">
-                    <img
-                      :src="getExpandRow(row).image || productImage"
-                      alt="Product Image"
-                      class="w-350px !h-350px rounded-lg object-cover"
-                    />
-                  </div>
-                  <div class="col-span-8 h-full">
-                    <div class="flex flex-col h-full gap-y-3">
-                      <div class="col-span-2">
-                        <div class="text-gray-500 text-sm">Product Name CN</div>
-                        <div class="text-#000 text-16px">
-                          {{
-                            getExpandRow(row).nameCn || getExpandRow(row).name
-                          }}
-                        </div>
-                      </div>
-                      <div class="col-span-2">
-                        <div class="text-gray-500 text-sm">Product Name EN</div>
-                        <div class="text-#000 text-16px">
-                          {{
-                            getExpandRow(row).nameEn || getExpandRow(row).name
-                          }}
-                        </div>
-                      </div>
-                      <div class="col-span-2">
-                        <div class="text-gray-500 text-sm mb-2">
-                          Virtual Name
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                          <el-tag
-                            v-for="tag in getVirtualNames(getExpandRow(row))"
-                            :key="tag"
-                            effect="plain"
-                            class="!rounded-full !border-gray-200 !text-gray-600"
-                            closable
-                            @close="handleClose(row, tag)"
-                            size="large"
-                          >
-                            {{ tag }}
-                          </el-tag>
-                        </div>
-                      </div>
-                      <div
-                        class="grid grid-cols-2 items-center justify-start gap-2 mt-auto pt-2"
-                      >
-                        <div>
-                          <div class="text-gray-500 text-sm">Cost of Good</div>
-                          <div class="text-#000 text-16px">
-                            {{
-                              formatMoney(
-                                getExpandRow(row).cost ||
-                                  getExpandRow(row).price,
-                              )
-                            }}
-                          </div>
-                        </div>
-                        <div>
-                          <div class="text-gray-500 text-sm">Best Before</div>
-                          <div class="text-#000 text-16px">
-                            {{ getExpandRow(row).bestBefore || "-" }}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div class="text-gray-500 text-sm mb-1">Product Details</div>
-                  <div class="text-#6b6b6b text-sm">
-                    {{
-                      getExpandRow(row).description ||
-                      `${getExpandRow(row).name} details are not available.`
-                    }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
-
         <template #product="{ row }">
           <div class="flex items-center gap-3">
-            <!-- <el-avatar :size="32" class="bg-gray-100 text-gray-700"
+            <el-avatar :size="32" class="bg-gray-100 text-gray-700"
               >P</el-avatar
-            > -->
-            <img
-              :src="productImage"
-              alt="Product Image"
-              class="w-10 h-10 rounded-lg"
-            />
+            >
             <div class="flex flex-col">
               <span class="text-sm font-medium text-gray-800">{{
                 row.name
@@ -275,31 +142,19 @@
           </el-tooltip>
         </template>
         <template #incoming>
-          <span>50</span>
+          <span>0</span>
         </template>
         <template #reserved="{ row }">
-          <span>{{
-            Math.floor(
-              (typeof row.stock === "number"
-                ? row.stock
-                : Number(row.stock || 0)) / 10,
-            )
-          }}</span>
+          <span>{{ row.wdt_lock_quantity ?? 0 }}</span>
         </template>
         <template #available="{ row }">
-          <span>{{
-            typeof row.stock === "number" ? row.stock : Number(row.stock || 0)
-          }}</span>
+          <span>{{ row.stock ?? (row.wdt_quantity != null && row.wdt_lock_quantity != null ? Math.max(0, row.wdt_quantity - row.wdt_lock_quantity) : 0) }}</span>
         </template>
         <template #total="{ row }">
-          <span>{{
-            (typeof row.stock === "number"
-              ? row.stock
-              : Number(row.stock || 0)) + 50
-          }}</span>
+          <span>{{ row.wdt_quantity ?? 0 }}</span>
         </template>
         <template #cog="{ row }">
-          <span>{{ String(row.price).replace("¥", "$ ") }}</span>
+          <span>{{ row.price ?? (row.valuation_rate != null ? `$ ${Number(row.valuation_rate).toFixed(2)}` : '-') }}</span>
         </template>
         <template #actions="{ row }">
           <div class="flex flex-1">
@@ -327,6 +182,7 @@
     <ProductDetail
       v-model:visible="detailVisible"
       :product-id="currentProductId"
+      :company="authStore.currentCompany ?? authStore.company ?? undefined"
       @save="handleSaveProduct"
       @delete="fetchData"
       @close="detailVisible = false"
@@ -340,18 +196,15 @@ import * as echarts from "echarts";
 import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
 import {
-  exportInventoryProducts,
+  exportOmsItemsImportTemplate,
   getInventoryProducts,
-  getProductDetail,
-  removeProductVirtualName,
 } from "@/api/inventory";
+import { useAuthStore } from "@/store/modules/auth";
 import { ElMessage } from "element-plus";
 import { createHeaderHintRenderer } from "@/components/common/TableHeaderHint";
 import rightButtons from "./components/rightButtons.vue";
 
-// ----------------- 临时数据
-import productImage from "@/views/icon/yf.png";
-// -----------------
+const authStore = useAuthStore();
 
 // Product Detail State
 const detailVisible = ref(false);
@@ -365,18 +218,6 @@ const handleAddProduct = () => {
 const handleEditProduct = (row: any) => {
   currentProductId.value = row.id;
   detailVisible.value = true;
-};
-
-const handleImport = async () => {
-  try {
-    const res = await exportInventoryProducts({});
-    if (res?.url) {
-      window.open(res.url, "_blank");
-      ElMessage.success("Export started successfully");
-    }
-  } catch (error) {
-    ElMessage.error("Export failed");
-  }
 };
 
 const handleSaveProduct = async (data: any) => {
@@ -396,19 +237,72 @@ const handleFilterSearch = (params: any) => {
   fetchData();
 };
 
+const handleImport = () => {
+  ElMessage.info(
+    "Download the template with Export, then import the filled file in ERPNext or your admin import flow.",
+  );
+};
+
+const handleExportItems = async () => {
+  try {
+    const company =
+      authStore.currentCompany ?? (await authStore.ensureCompany()) ?? "";
+    const co = String(company).trim();
+    if (!co) {
+      ElMessage.warning("Please select a company");
+      return;
+    }
+    const filters = currentFilters.value || {};
+    const kw = String(filters.keyword ?? filters.search ?? "").trim();
+    await exportOmsItemsImportTemplate({
+      company: co,
+      search: kw || undefined,
+      keyword: kw || undefined,
+      item_group: filters.category,
+    });
+    ElMessage.success("Download started");
+  } catch (error: any) {
+    ElMessage.error(error?.message || "Export failed");
+  }
+};
+
+/** 将 Item + WDT 接口返回的 row 转为表格行。Total=wdt_quantity，Reserved=wdt_lock_quantity，Available=Total-Reserved */
+function mapItemToRow(row: any) {
+  const itemCode = row.item_code ?? row.name ?? '';
+  const itemName = row.item_name ?? row.name ?? '';
+  const valuationRate = row.valuation_rate;
+  const valNum = typeof valuationRate === 'number' && Number.isFinite(valuationRate) ? valuationRate : (typeof valuationRate === 'string' ? parseFloat(valuationRate) : NaN);
+  const wdtQty = Number(row.wdt_quantity ?? 0);
+  const wdtLock = Number(row.wdt_lock_quantity ?? 0);
+  const available = Math.max(0, wdtQty - wdtLock);
+  return {
+    name: itemName,
+    id: itemCode,
+    item_code: itemCode,
+    item_name: itemName,
+    item_group: row.item_group ?? '',
+    category: row.item_group ?? '',
+    stock: available,
+    wdt_quantity: wdtQty,
+    wdt_lock_quantity: wdtLock,
+    valuation_rate: valNum,
+    price: !isNaN(valNum) ? `$ ${valNum.toFixed(2)}` : undefined,
+  };
+}
+
 // Table Configuration
 const columns = [
   { type: "selection", width: 50 },
   { type: "expand", width: 50, slot: "expand" },
   { label: "Product / SKU ID", slot: "product", width: 260 },
-  { label: "Details", slot: "details", showOverflowTooltip: true },
+  { label: "Details", slot: "details" },
   {
     label: "Incoming",
     slot: "incoming",
     width: 110,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "Units that are currently being received or processed in the warehouse but are not yet available for fulfillment.",
+      "50 units are currently being received or processed in the warehouse but are not yet available for fulfillment.",
     ),
   },
   {
@@ -417,7 +311,7 @@ const columns = [
     width: 110,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "Units that have been allocated to existing orders and cannot be used for new orders.",
+      "50 units are currently reserved for sale but not yet available for purchase.",
     ),
   },
   {
@@ -426,7 +320,7 @@ const columns = [
     width: 110,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "Units currently in stock and ready to be allocated to new orders.",
+      "50 units are available for purchase.",
     ),
   },
   {
@@ -435,7 +329,7 @@ const columns = [
     width: 80,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "Total number of units stored in the warehouse, including reserved and available stock.",
+      "Total stock quantity, including incoming, reserved, and available units.",
     ),
   },
   {
@@ -444,7 +338,7 @@ const columns = [
     width: 80,
     align: "center",
     headerRender: createHeaderHintRenderer(
-      "The cost per unit of the product, used to calculate inventory value and margins.",
+      "Cost of Goods Sold (COG) is the total cost of the goods that have been sold.",
     ),
   },
   { label: "Actions", slot: "actions", width: 100, fixed: "right" },
@@ -470,31 +364,6 @@ const stats = reactive({
 });
 const totalInventory = ref(0);
 const showCards = ref(true);
-const expandDetailMap = ref<Record<string, any>>({});
-const expandLoadingMap = ref<Record<string, boolean>>({});
-
-const getExpandRow = (row: any) => {
-  return expandDetailMap.value[row.id] || row;
-};
-
-const getVirtualNames = (row: any) => {
-  if (Array.isArray(row.virtualNames) && row.virtualNames.length > 0)
-    return row.virtualNames;
-  const name = row.name || "Product";
-  return [name, `${name} S`, `${name} M`, `${name} L`];
-};
-
-const formatMoney = (value: number | string) => {
-  const num = typeof value === "number" ? value : Number(value || 0);
-  return `$ ${num.toFixed(2)}`;
-};
-
-const getStatusType = (status: string) => {
-  if (status === "In Stock") return "success";
-  if (status === "Low Stock") return "warning";
-  if (status === "Out of Stock") return "danger";
-  return "info";
-};
 
 const updateStatsAndChart = () => {
   const data = (tableData.value as any[]) || [];
@@ -669,53 +538,26 @@ const onResize = () => {
 const fetchData = async () => {
   loading.value = true;
   try {
+    const company = authStore.currentCompany ?? (await authStore.ensureCompany()) ?? '';
+    const filters = currentFilters.value || {};
+    const kw = String(filters.keyword ?? filters.search ?? "").trim();
     const res = await getInventoryProducts({
       page: page.value,
       pageSize: limit.value,
-      ...currentFilters.value,
+      search: kw || undefined,
+      item_group: filters.category,
+      company: company || undefined,
     });
-    tableData.value = res.list;
-    total.value = res.total;
+    tableData.value = (res.list || []).map(mapItemToRow);
+    total.value = typeof res.total === 'number' ? res.total : res.list?.length ?? 0;
     await nextTick();
     updateStatsAndChart();
   } catch (error) {
     console.error("Failed to fetch products:", error);
+    tableData.value = [];
   } finally {
     loading.value = false;
   }
-};
-
-const handleExpandChange = async (row: any, expandedRows: any[]) => {
-  if (!row?.id) return;
-  const expanded =
-    Array.isArray(expandedRows) &&
-    expandedRows.some((item) => item.id === row.id);
-  if (!expanded) return;
-  if (expandDetailMap.value[row.id]) return;
-  expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: true };
-  try {
-    const detail = await getProductDetail(row.id);
-    if (detail) {
-      expandDetailMap.value = { ...expandDetailMap.value, [row.id]: detail };
-    }
-  } finally {
-    expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: false };
-  }
-};
-
-const handleClose = async (row: any, tag: string) => {
-  if (!row?.id || !tag) return;
-  const res = await removeProductVirtualName(row.id, tag);
-  if (!res?.success) return;
-  const current = getExpandRow(row);
-  expandDetailMap.value = {
-    ...expandDetailMap.value,
-    [row.id]: {
-      ...current,
-      virtualNames: res.virtualNames || [],
-    },
-  };
-  ElMessage.success("Virtual name removed");
 };
 
 const handleRowAction = (action: string, row: any) => {
@@ -731,7 +573,7 @@ const handleRowAction = (action: string, row: any) => {
       ElMessage.info(`Contact support for product ${row.id}`);
       break;
     case "delete":
-      ElMessage.warning(`Delete action for product ${row.id}`);
+      ElMessage.warning(`Delete action for product ${row.id}`); 
       break;
     default:
       break;
@@ -739,6 +581,7 @@ const handleRowAction = (action: string, row: any) => {
 };
 
 onMounted(async () => {
+  await authStore.ensureCompany();
   await nextTick();
   if (filterRef.value) {
     currentFilters.value = filterRef.value.getSearchParams();

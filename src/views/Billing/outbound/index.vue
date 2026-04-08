@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="products h-full flex flex-col" v-show="!showHistory">
     <div class="flex justify-between items-center mb-4 flex-shrink-0">
       <div>
@@ -51,8 +51,8 @@
         class="bg-white rounded-xl border border-gray-100 shadow-card p-6 flex animate__animated animate__fadeInUp"
       >
         <div class="font-semibold">
-          <div class="whitespace-nowrap text-[16px] line-height-24px flex items-center">
-            Credit Remaining
+          <div class="whitespace-nowrap text-[16px] line-height-24px">
+            Balance
             <el-tooltip
               class="box-item"
               effect="dark"
@@ -64,8 +64,8 @@
           </div>
           <div class="flex items-center gap-1 text-[14px]">
             <Icon icon="svg-icon:circle-arrow-up" color="#0211A3" />
-            <div class="text-#0211A3">$5,250</div>
-            <div class="text-#9A9A9A">/ $10,500</div>
+            <div class="text-#0211A3">{{ price }}</div>
+            <div class="text-#9A9A9A">/ {{ creditTotal }}</div>
           </div>
         </div>
 
@@ -82,11 +82,14 @@
               <el-tooltip
                 class="box-item"
                 effect="dark"
-                content="!!!!"
+                content="Highlighted amount = latest month outbound revenue (same as Total Revenue below). Progress rows use that month. Balance card is account snapshot."
                 placement="top-start"
               >
                 <Icon icon="svg-icon:circle-question" color="#9A9A9A" />
               </el-tooltip>
+            </div>
+            <div v-if="latestMonthLabel" class="text-xs text-gray-400 mt-0.5">
+              Latest month: {{ latestMonthLabel }}
             </div>
             <div class="text-xs text-#0211A3 mt-0.5 flex items-center gap-2">
               <Icon
@@ -96,10 +99,10 @@
                 class="text-gray-400"
                 color="#0211A3"
               />
-              <span class="text-[14px]">{{ price }}</span>
+              <span class="text-[14px]">{{ reservedDisplay }}</span>
             </div>
           </div>
-          <el-button type="primary" size="large" class="!w-[128px] !rounded-2">
+          <el-button type="primary" size="large" class="!w-[128px] !rounded-2" @click="handleAddCredit">
             <template #icon>
               <Icon
                 icon="mage:dollar"
@@ -123,7 +126,7 @@
                 :span="12"
                 class="text-right"
                 :style="{ color: item.color }"
-                >${{ item.value }}</el-col
+                >{{ item.prefix ?? '$' }}{{ item.value }}</el-col
               >
             </el-row>
             <el-progress
@@ -150,17 +153,17 @@
             <div class="text-16px">Total Savings</div>
             <div class="flex items-center gap-1">
               <Icon icon="svg-icon:circle-arrow-up" color="#BDBDBD" />
-              <div class="text-#BDBDBD">12% vs. Traditional Method</div>
+              <div class="text-#BDBDBD text-12px">Outbound total</div>
             </div>
           </div>
           <div class="flex items-center justify-end mb-1">
-            <span class="text-3xl font-bold">$2,430</span>
+            <span class="text-3xl font-bold">{{ totalSavings }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <ProductFilter ref="filterRef" @search="handleFilterSearch" />
+    <ProductFilter ref="filterRef" :company="authStore.currentCompany ?? undefined" @search="handleFilterSearch" />
 
     <div class="flex-1 min-h-0 rounded-xl overflow-hidden">
       <BaseTable
@@ -173,235 +176,33 @@
         v-model:limit="limit"
         @pagination-change="fetchData"
       >
-        <template #expand="{ row }">
-          <div class="py-4 px-6 bg-#F7F7F7">
-            <div class="bg-#fff rounded-lg border border-gray-200">
-              <div
-                class="flex justify-between items-start px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
-              >
-                <div>
-                  <div class="flex items-center gap-3 mb-2">
-                    <span class="text-lg font-bold text-gray-900">
-                      {{ row.title }}
-                    </span>
-                    <span
-                      class="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700"
-                    >
-                      {{ row.deliveryStatus }}
-                    </span>
-                  </div>
-                  <div class="text-xs text-gray-500 flex gap-4">
-                    <span>Create {{ row.code }}</span>
-                    <span>Fulfilled Date {{ row.code }}</span>
-                  </div>
-                </div>
-
-                <div class="text-left text-sm">
-                  <div class="mb-1">
-                    <span class="text-gray-500 mr-2">Tracking No</span>
-                    <a
-                      href="#"
-                      class="font-bold text-gray-900 border-b border-gray-900"
-                      >{{ row.trackingNo }}</a
-                    >
-                  </div>
-                  <div class="mb-1">
-                    <span class="text-gray-500 mr-2">Sending to</span>
-                    <span class="text-gray-900"
-                      >Narangba, 4504, QLD, Australia</span
-                    >
-                  </div>
-                </div>
-
-                <div class="text-left text-sm">
-                  <div class="mb-1">
-                    <span class="text-gray-500 mr-2">Carrier</span>
-                    <span class="text-gray-900">{{ row.carrier }}</span>
-                  </div>
-                  <div>
-                    <span class="text-gray-500 mr-2">Method</span>
-                    <span class="text-gray-900">{{ row.method }}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="px-6 py-4">
-                <div class="mb-4 flex flex-col gap-2">
-                  <div
-                    class="flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
-                  >
-                    <span class="text-gray-500">Item Quantity</span>
-                    <span class="font-medium text-gray-500">{{
-                      row.itemQuantity
-                    }}</span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center self-stretch text-sm py-1 px-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
-                  >
-                    <span class="text-gray-500">Charging Weight (kg)</span>
-                    <span class="font-medium text-gray-500">{{
-                      row.chargingWeight
-                    }}</span>
-                  </div>
-                </div>
-
-                <div
-                  class="border border-gray-200 rounded-lg overflow-hidden mb-4 border-solid"
-                >
-                  <div
-                    class="grid grid-cols-4 bg-gray-50 border-b border-gray-200 text-xs font-medium text-gray-500 text-center border-solid border-0"
-                  >
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Picking
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Packaging
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Shipping
-                    </div>
-                    <div class="p-2 border-solid border-0">Tax</div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-8 text-xs text-gray-500 bg-gray-50 border-b border-gray-200 text-center border-solid border-0"
-                  >
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      First Pick
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Additional
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Used
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Cost
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Shipping Cost
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      Doc Fee
-                    </div>
-                    <div
-                      class="p-2 border-r border-gray-200 border-solid border-0"
-                    >
-                      VAT
-                    </div>
-                    <div class="p-2 border-solid border-0">Surcharge</div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-8 text-sm text-gray-900 bg-white text-center"
-                  >
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.pickingFirst }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.pickingAdditional }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.packagingUsed }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.packagingCost }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.shippingCost }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.docFee }}
-                    </div>
-                    <div class="p-3 border-r border-gray-200">
-                      {{ row.taxVat }}
-                    </div>
-                    <div class="p-3">{{ row.taxSurcharge }}</div>
-                  </div>
-                </div>
-
-                <div class="flex justify-between items-center">
-                  <span class="text-lg font-bold text-gray-900">Total</span>
-                  <span class="text-lg font-bold text-gray-900">{{
-                    row.grandTotal
-                  }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <template #trackingNo="{ row }">
+          <span class="text-sm text-gray-700">{{ row.tracking_no || "-" }}</span>
         </template>
-
-        <template #serviceId="{ row }">
-          <div class="flex items-center gap-2">
-            <span class="font-medium text-gray-900">{{ row.title }}</span>
-          </div>
+        <template #chargeWeight="{ row }">
+          <span class="text-sm text-gray-700">{{ row.charge_weight ?? 0 }}</span>
         </template>
-
-        <template #date="{ row }">
-          <span class="text-gray-500">{{
-            row.code?.replace("Approved Date ", "")
-          }}</span>
+        <template #totalUsd="{ row }">
+          <span class="font-bold text-gray-900">${{ (row.total_cost_usd ?? 0).toFixed(2) }}</span>
         </template>
-
-        <template #type="{ row }">
-          <span class="text-gray-500">{{ row.action }}</span>
-        </template>
-
-        <template #total="{ row }">
-          <span class="text-gray-500">{{ row.statusNote }}</span>
-        </template>
-
-        <template #shipping="{ row }">
-          <span class="text-gray-500">{{ row.shipping }}</span>
-        </template>
-
-        <template #tax="{ row }">
-          <span class="text-gray-500">{{ row.tax }}</span>
-        </template>
-
-        <template #grandTotal="{ row }">
-          <span class="font-medium text-gray-900">{{ row.grandTotal }}</span>
-        </template>
-
         <template #actions="{ row }">
-          <div class="flex flex-1 gap-1">
-            <el-button class="w-8 h-8" @click="handleViewDetail(row)">
-              <Icon icon="svg-icon:eye" color="#16215B" />
+          <div class="flex flex-1 items-center gap-1">
+            <el-button class="w-8 h-8" title="View Fee Details" @click="handleViewDetail(row)">
+              <Icon icon="svg-icon:eye" color="#16215B"/>
             </el-button>
-            <el-popover
-              placement="bottom-start"
-              trigger="click"
-              popper-class="!p-0 !px-2 !min-w-auto !rounded-lg !w-auto"
-              :show-arrow="false"
-            >
-              <template #reference>
-                <el-button class="w-8 h-8 !ml-0">
-                  <Icon icon="svg-icon:ellipsis-vertical" color="#16215B" />
-                </el-button>
+            <el-dropdown trigger="click" @command="(cmd) => cmd === 'view' && handleViewDetail(row)">
+              <el-button class="w-8 h-8">
+                <Icon icon="svg-icon:ellipsis-vertical" color="#16215B"/>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="view">
+                    <Icon icon="svg-icon:eye" class="mr-2" />
+                    View Fee Details
+                  </el-dropdown-item>
+                </el-dropdown-menu>
               </template>
-              <rightButtons
-                :row="row"
-                :items="btnItems2"
-                @action="handleRowAction"
-              />
-            </el-popover>
+            </el-dropdown>
           </div>
         </template>
       </BaseTable>
@@ -409,22 +210,23 @@
 
     <ProductDetail
       v-model:visible="detailVisible"
-      :product-id="currentProductId"
-      @save="handleSaveProduct"
-      @delete="fetchData"
+      :billing-detail-id="currentDetailId"
+      :company="authStore.currentCompany ?? undefined"
       @close="detailVisible = false"
     />
 
-    <AddCredit v-model:visible="addCreditVisible" @success="loadData" />
+    <AddCredit
+      v-model:visible="addCreditVisible"
+      @success="loadData"
+    />
   </div>
-  <div v-show="showHistory">
+  <div v-if="showHistory">
     <History ref="historyRef" @close="showHistory = false" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted, reactive, onBeforeUnmount, nextTick, markRaw } from "vue";
 import {
   Plus,
   Edit,
@@ -442,29 +244,140 @@ import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
 import AddCredit from "./components/addCredit.vue";
 import History from "./components/History.vue";
-import { exportInventoryProducts, getInventoryProducts } from "@/api/inventory";
+import { useAuthStore } from "@/store/modules/auth";
 import {
+  getOutboundBillingList,
   getOutboundStats,
   getBillingNotifications,
-  getBillingRecentOrders,
-  markBillingNotificationAsRead,
 } from "@/api/billing";
+import { getDefaultMonthStartToToday } from "@/utils/dateRange";
 import { ElMessage } from "element-plus";
-import { createTicket } from "@/api/support";
 import productImage from "@/views/icon/yf.png";
-import rightButtons from "../components/rightButtons.vue";
 
+const authStore = useAuthStore();
+
+function defaultPeriod(): [string, string] {
+  return getDefaultMonthStartToToday();
+}
+
+/** ProductFilter 传的是 period_start/period_end；onMounted 可能还带 range。二者择一，否则默认当月。 */
+function resolveBillingPeriod(f: Record<string, any> | undefined | null): [string, string] {
+  const src = f || {};
+  if (src.period_start && src.period_end) {
+    return [String(src.period_start), String(src.period_end)];
+  }
+  if (Array.isArray(src.range) && src.range.length === 2 && src.range[0] && src.range[1]) {
+    return [String(src.range[0]), String(src.range[1])];
+  }
+  return defaultPeriod();
+}
+
+/** Balance 卡：可用余额 / 账户总余额（来自 summary.available_balance_usd / summary.balance） */
 const price = ref("$0");
+const creditTotal = ref("$0");
+/** 中间卡「Latest month」下主金额：与当月 Total Revenue 相同（by_month[0].total_revenue_usd） */
+const reservedDisplay = ref("$0.00");
+/** Total Savings 卡：全历史 OMS Outbound Billing Detail 费用合计（接口 lifetime_total_revenue_usd，与日期筛选无关） */
+const totalSavings = ref("$0.00");
+/** 中间卡三项：来自 by_month[0] 的月份标签，如 2024-03 */
+const latestMonthLabel = ref("");
+/** 供 Balance 圆环：与后端 _outbound_billing_balance_snapshot 一致 */
+const availBalanceUsd = ref(0);
+const totalBalanceUsd = ref(0);
+const reservedLogisticsUsd = ref(0);
+
+function formatUsd(n: number) {
+  const x = typeof n === "number" && Number.isFinite(n) ? n : 0;
+  return `$${x.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function updateBalanceDonut() {
+  const bal = totalBalanceUsd.value;
+  const avail = availBalanceUsd.value;
+  const res = reservedLogisticsUsd.value;
+  const pct =
+    bal > 0 ? Math.min(100, Math.round((avail / bal) * 100)) : avail > 0 ? 100 : 0;
+  const vAvail = Math.max(0, avail);
+  const vRes = Math.max(0, res);
+  const storageOption: echarts.EChartsOption = {
+    title: {
+      text: `${pct}%\nAvailable`,
+      left: "center",
+      top: "center",
+      textStyle: {
+        color: "#0211A3",
+        fontSize: 16,
+        fontWeight: "bold",
+        lineHeight: 24,
+      },
+    },
+    series: [
+      {
+        type: "pie",
+        radius: ["60%", "90%"],
+        center: ["50%", "50%"],
+        avoidLabelOverlap: false,
+        label: { show: false },
+        labelLine: { show: false },
+        data: [{ value: 100, name: "Full", itemStyle: { color: "#0211A31A" } }],
+        silent: true,
+        z: 1,
+      },
+      {
+        type: "pie",
+        radius: ["60%", "90%"],
+        center: ["50%", "50%"],
+        avoidLabelOverlap: false,
+        label: { show: false },
+        labelLine: { show: false },
+        data:
+          bal > 0 && vAvail + vRes > 0
+            ? [
+                {
+                  value: vAvail,
+                  name: "Available",
+                  itemStyle: { color: "#0211A3", borderRadius: "50%" },
+                },
+                {
+                  value: Math.max(0, bal - vAvail),
+                  name: "Other",
+                  itemStyle: { color: "transparent" },
+                },
+              ]
+            : bal > 0
+              ? [
+                  {
+                    value: pct,
+                    name: "Available",
+                    itemStyle: { color: "#0211A3", borderRadius: "50%" },
+                  },
+                  { value: 100 - pct, name: "Rest", itemStyle: { color: "transparent" } },
+                ]
+              : [
+                  { value: 100, name: "Available", itemStyle: { color: "#0211A31A" } },
+                  { value: 0, name: "Empty", itemStyle: { color: "transparent" } },
+                ],
+        silent: true,
+        animationType: "scale",
+        animationEasing: "elasticOut",
+        z: 2,
+      },
+    ],
+  };
+  if (!storageChart && storageChartRef.value) {
+    storageChart = echarts.init(storageChartRef.value);
+  }
+  if (storageChart) storageChart.setOption(storageOption);
+}
 const editVisible = ref(false);
 const progressItems = ref<any[]>([]);
 const notifications = ref<any[]>([]);
 const recentOrders = ref<any[]>([]);
 const showHistory = ref(false);
-const router = useRouter();
 
-// Product Detail State
+// Fee Detail Drawer State
 const detailVisible = ref(false);
-const currentProductId = ref<string | undefined>(undefined);
+const currentDetailId = ref<string | undefined>(undefined);
 // Add Credit State
 const addCreditVisible = ref(false);
 
@@ -480,140 +393,123 @@ const getIconComponent = (type: string) => {
   return markRaw(map[type] || Message);
 };
 const loadData = async () => {
+  const company = authStore.currentCompany ?? (await authStore.ensureCompany()) ?? "";
+  if (!company) return;
   try {
-    const [statsRes, notifRes, ordersRes] = await Promise.all([
-      getOutboundStats(),
+    const [period_start, period_end] = resolveBillingPeriod(currentFilters.value as any);
+    const [statsRes, notifRes] = await Promise.all([
+      getOutboundStats({
+        company,
+        period_start,
+        period_end,
+      }).send(),
       getBillingNotifications(),
-      getBillingRecentOrders(),
     ]);
 
-    price.value = statsRes.price;
-    progressItems.value = statsRes.progressItems;
+    const msg = (statsRes as any)?.message ?? statsRes;
+    const summary = msg?.summary ?? {};
+    const byMonth = Array.isArray(msg?.by_month) ? msg.by_month : [];
+    const latest = byMonth[0] || {};
+    latestMonthLabel.value = (latest.month && String(latest.month).trim()) || "";
 
-    notifications.value = notifRes.map((n) => ({
+    const lifetimeRev = Number(
+      (msg as any).lifetime_total_revenue_usd ??
+        (summary as any).lifetime_total_revenue_usd ??
+        0,
+    );
+    const monthRev = Number(
+      latest.total_revenue_usd ?? summary.total_revenue_usd ?? 0,
+    );
+    const monthOrders = Number(
+      latest.total_orders ?? summary.total_orders ?? 0,
+    );
+    const monthAvg = Number(
+      latest.avg_order_value_usd ?? summary.avg_order_value_usd ?? 0,
+    );
+
+    const bal = Number(summary.balance ?? 0);
+    const avail = Number(summary.available_balance_usd ?? bal);
+    const resFee = Number(summary.reserved_logistics_fee_usd ?? 0);
+    price.value = formatUsd(avail);
+    creditTotal.value = formatUsd(bal);
+    reservedDisplay.value = formatUsd(monthRev);
+    availBalanceUsd.value = avail;
+    totalBalanceUsd.value = bal;
+    reservedLogisticsUsd.value = resFee;
+    totalSavings.value = formatUsd(lifetimeRev);
+    progressItems.value = [
+      {
+        label: "Total Revenue",
+        value: monthRev,
+        total: monthRev || 100,
+        percent: 100,
+        color: "#0211A3",
+        prefix: "$",
+      },
+      {
+        label: "Total Orders",
+        value: monthOrders,
+        total: Math.max(monthOrders, 1),
+        percent: 100,
+        color: "#0211A3",
+        prefix: "",
+      },
+      {
+        label: "Avg. Order Value",
+        value: monthAvg,
+        total: Math.max(monthAvg, 1),
+        percent: 100,
+        color: "#0211A3",
+        prefix: "$",
+      },
+    ];
+
+    notifications.value = (Array.isArray(notifRes) ? notifRes : []).map((n: any) => ({
       ...n,
       icon: getIconComponent(n.iconType),
     }));
-
-    recentOrders.value = ordersRes.list.map((o) => ({
-      ...o,
-      image: o.image.includes("placeholder") ? productImage : o.image,
-    }));
+    recentOrders.value = [];
+    await nextTick();
+    updateBalanceDonut();
   } catch (error) {
     console.error("Failed to load dashboard data:", error);
   }
 };
 
 const handleViewDetail = (row: any) => {
-  currentProductId.value = row.id;
+  const name = row?.name ?? row?.id;
+  if (!name) return;
+  currentDetailId.value = name;
   detailVisible.value = true;
 };
 
+
 const handleAddCredit = () => {
   addCreditVisible.value = true;
-};
-
-const handleImport = async () => {
-  try {
-    const res = await exportInventoryProducts({});
-    if (res?.url) {
-      window.open(res.url, "_blank");
-      ElMessage.success("Export started successfully");
-    }
-  } catch (error) {
-    ElMessage.error("Export failed");
-  }
-};
-
-const handleSaveProduct = async (data: any) => {
-  // Mock save logic
-  console.log("Saved:", data);
-  detailVisible.value = false;
-  fetchData();
 };
 
 // Filter State
 const filterRef = ref();
 const currentFilters = ref({});
 
-const handleFilterSearch = (params: any) => {
+const handleFilterSearch = async (params: any) => {
   currentFilters.value = params;
   page.value = 1;
+  await loadData();
   fetchData();
 };
 
 const columns = [
   { type: "selection", width: 50 },
-  { type: "expand", width: 50, slot: "expand" },
-  { label: "Order ID", slot: "serviceId", width: "auto" },
-  { label: "Fulfilled Date", slot: "date", width: 200 },
-  { label: "Picking", slot: "type", width: 120 },
-  { label: "Packaging", slot: "total", width: 120 },
-  { label: "Shipping", slot: "shipping", width: 120 },
-  { label: "TAX", slot: "tax", width: 120 },
-  { label: "Total", slot: "grandTotal", width: 120 },
-  {
-    label: "Actions",
-    slot: "actions",
-    width: 100,
-    fixed: "right",
-    align: "center",
-  },
+  { label: "Sales Order", prop: "sales_order", width: 140 },
+  { label: "Order Time", prop: "order_time", width: 110 },
+  { label: "Pack Time", prop: "pack_time", width: 110 },
+  { label: "Destination Country", prop: "destination_country", width: 140 },
+  { label: "Tracking No", slot: "trackingNo", width: 160 },
+  { label: "Charge Weight", slot: "chargeWeight", width: 110, align: "right" },
+  { label: "Total (USD)", slot: "totalUsd", width: 120, align: "right" },
+  { label: "Actions", slot: "actions", width: 100, fixed: "right", align: "center" },
 ];
-
-const btnItems2 = [
-  {
-    key: "view",
-    label: "View Details",
-    icon: "svg-icon:eye",
-    tone: "primary",
-  },
-  {
-    key: "order",
-    label: "View Order",
-    icon: "svg-icon:shopping-cart",
-    tone: "primary",
-  },
-  {
-    key: "support",
-    label: "Contact Support",
-    icon: "svg-icon:headphones",
-    tone: "danger",
-  },
-] as any;
-
-const handleRowAction = async (action: string, row: any) => {
-  const orderKeyword = row?.orderId || row?.title || "";
-  switch (action) {
-    case "view":
-      handleViewDetail(row);
-      return;
-    case "order":
-      await router.push({
-        path: "/orders/list",
-        query: {
-          keyword: orderKeyword,
-          from: "billing-outbound",
-        },
-      });
-      ElMessage.success("Redirected to All Orders");
-      return;
-    case "support":
-      await createTicket({
-        stage: "Billing",
-        stageDetail: row?.title || "Outbound Service",
-        type: "Outbound Shipping Inquiry",
-        priority: "High",
-        typeId: orderKeyword || "Order ID",
-        typeDetails: `Shipping ${row?.shipping || "-"}, Tax ${row?.tax || "-"}, Total ${row?.grandTotal || "-"}`,
-        notes: "Need help to verify outbound billing line items and charge details.",
-      });
-      ElMessage.success("Support ticket created");
-      return;
-    default:
-      return;
-  }
-};
 
 // Data Logic
 const tableData = ref([]) as any;
@@ -723,56 +619,7 @@ const updateStatsAndChart = () => {
   }
   if (invChart) invChart.setOption(option);
 
-  const storageOption: echarts.EChartsOption = {
-    title: {
-      text: "50%\nAvailable",
-      left: "center",
-      top: "center",
-      textStyle: {
-        color: "#0211A3",
-        fontSize: 16,
-        fontWeight: "bold",
-        lineHeight: 24,
-      },
-    },
-    series: [
-      {
-        type: "pie",
-        radius: ["60%", "90%"],
-        center: ["50%", "50%"],
-        avoidLabelOverlap: false,
-        label: { show: false },
-        labelLine: { show: false },
-        data: [{ value: 100, name: "Full", itemStyle: { color: "#0211A31A" } }],
-        silent: true,
-        z: 1,
-      },
-      {
-        type: "pie",
-        radius: ["60%", "90%"],
-        center: ["50%", "50%"],
-        avoidLabelOverlap: false,
-        label: { show: false },
-        labelLine: { show: false },
-        data: [
-          {
-            value: 50,
-            name: "Available",
-            itemStyle: { color: "#0211A3", borderRadius: "50%" },
-          },
-          { value: 50, name: "Used", itemStyle: { color: "transparent" } },
-        ],
-        silent: true,
-        animationType: "scale",
-        animationEasing: "elasticOut",
-        z: 2,
-      },
-    ],
-  };
-  if (!storageChart && storageChartRef.value) {
-    storageChart = echarts.init(storageChartRef.value);
-  }
-  if (storageChart) storageChart.setOption(storageOption);
+  updateBalanceDonut();
 
   const valueOption: echarts.EChartsOption = {
     grid: { left: 10, right: 10, top: 10, bottom: 10 },
@@ -808,29 +655,78 @@ const onResize = () => {
 };
 
 const fetchData = async () => {
+  const company = authStore.currentCompany ?? (await authStore.ensureCompany()) ?? "";
+  if (!company) {
+    loading.value = false;
+    return;
+  }
+  const [period_start, period_end] = resolveBillingPeriod(currentFilters.value as any);
+  if (!period_start || !period_end) {
+    ElMessage.warning("Please select Pack date range (period_start + period_end required).");
+    loading.value = false;
+    return;
+  }
   loading.value = true;
   try {
-    const res = await getBillingRecentOrders({
+    const res = await getOutboundBillingList({
+      company,
+      period_start,
+      period_end,
       page: page.value,
       pageSize: limit.value,
+      search: currentFilters.value?.search,
+      destination_country: currentFilters.value?.destination_country,
+    }).send();
+    const msg = (res as any)?.message ?? res;
+    const data = Array.isArray(msg?.data) ? msg.data : [];
+    total.value = typeof msg?.total === "number" ? msg.total : 0;
+    tableData.value = data.map((row: any) => {
+      const toDate = (v: any) => (v ? String(v).slice(0, 10) : "-");
+      return {
+        id: row.name ?? row.sales_order,
+        name: row.name,
+        sales_order: row.sales_order,
+        title: row.sales_order ?? row.name ?? "",
+        order_time: toDate(row.order_time),
+        pack_time: toDate(row.pack_time),
+        destination_country: row.destination_country ?? "",
+        tracking_no: row.tracking_no ?? "",
+        charge_weight: Number(row.charge_weight ?? 0),
+        total_cost_usd: Number(row.total_cost_usd ?? 0),
+        code: toDate(row.pack_time),
+        action: row.status ?? "",
+        status: row.status ?? "",
+        statusNote: `$${Number(row.total_cost_usd ?? 0).toFixed(2)}`,
+        shipping: "-",
+        tax: "-",
+        grandTotal: `$${Number(row.total_cost_usd ?? 0).toFixed(2)}`,
+        image: "",
+      };
     });
-    tableData.value = res.list;
-    total.value = res.total;
     await nextTick();
     updateStatsAndChart();
   } catch (error) {
-    console.error("Failed to fetch services:", error);
+    console.error("Failed to fetch outbound billing:", error);
+    ElMessage.error("Failed to fetch data");
   } finally {
     loading.value = false;
   }
 };
 
 onMounted(async () => {
+  await authStore.ensureCompany();
   await nextTick();
   if (filterRef.value) {
-    currentFilters.value = filterRef.value.getSearchParams();
+    const params = filterRef.value.getSearchParams();
+    if (!params.period_start || !params.period_end) {
+      const [ps, pe] = defaultPeriod();
+      params.period_start = ps;
+      params.period_end = pe;
+      params.range = [ps, pe];
+    }
+    currentFilters.value = params;
   }
-  loadData();
+  await loadData();
   fetchData();
 });
 
@@ -857,6 +753,5 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   background: linear-gradient(131deg, #16215b 26.84%, #0a123c 98.1%);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
-  overflow: hidden;
 }
 </style>

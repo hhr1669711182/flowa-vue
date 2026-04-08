@@ -20,6 +20,7 @@
         range-separator="to"
         start-placeholder="Start date"
         end-placeholder="End date"
+        value-format="YYYY-MM-DD"
         @change="handleSearch"
       />
       <el-select

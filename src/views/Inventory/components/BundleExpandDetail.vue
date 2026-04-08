@@ -4,22 +4,22 @@
       <div
         class="grid grid-cols-[2fr_1fr] items-center px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
       >
-        <div class="flex flex-col items-start">
-          <span class="text-xl font-bold text-#000">
+        <div>
+          <span class="text-7 font-bold text-gray-900 mb-1">
             {{ bundle.name }}
           </span>
-          <span class="text-sm text-#9A9A9A">
+          <p class="text-sm text-gray-500">
             Last Update: {{ bundle.lastUpdated }}
-          </span>
+          </p>
         </div>
         <div class="text-left">
-          <div class="text-sm text-#6B6B6B">
+          <div class="text-sm text-gray-500">
             Bundle Name
-            <span class="text-#000 text-16px ml-1">{{ bundle.name }}</span> 
+            <span class="font-bold text-gray-900 ml-1">{{ bundle.name }}</span>
           </div>
-          <div class="text-sm text-#6B6B6B mt-1">
+          <div class="text-sm text-gray-500 mt-1">
             Barcode
-            <span class="text-#000 text-16px ml-1">{{ bundle.sku }}</span>
+            <span class="text-gray-900 ml-1">{{ bundle.sku }}</span>
           </div>
         </div>
       </div>

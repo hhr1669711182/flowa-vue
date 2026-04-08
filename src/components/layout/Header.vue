@@ -77,7 +77,6 @@
           <el-avatar
             :size="32"
             class="mr-2 bg-gradient-to-br from-primary to-blue-600 text-white font-semibold shadow-sm"
-            :src="avatarImg"
           >
             {{ avatarInitial }}
           </el-avatar>
@@ -118,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import {
   Bell,
@@ -150,9 +149,6 @@ const displayEmail = computed(() => {
 });
 const displayRole = computed(() => {
   return userStore.getUserInfo?.role || "Administrator";
-});
-const avatarImg = computed(() => {
-  return userStore.getAvatarImg || "";
 });
 const avatarInitial = computed(() => {
   const name = displayName.value || "";
@@ -206,10 +202,6 @@ const logout = () => {
 const onShowDrawer = () => {
   drawerVisible.value = true;
 };
-
-onMounted(() => {
-  userStore.fetchAvatarImg();
-});
 
 defineEmits(["toggle-drawer"]);
 </script>

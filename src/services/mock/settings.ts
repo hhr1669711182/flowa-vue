@@ -109,7 +109,6 @@ const generateMockLogs = (count: number): OperationLog[] => {
 }
 
 const mockLogs = generateMockLogs(55)
-let profileAvatarImg = ''
 
 export const mockSettings = defineMock({
   // GET /settings/general
@@ -133,6 +132,7 @@ export const mockSettings = defineMock({
     const operator = query.operator || '';
 
     let filtered = [...mockLogs];
+    console.log("🚀 ~ filtered:", filtered)
 
     if (search) {
       filtered = filtered.filter(l => 
@@ -157,14 +157,5 @@ export const mockSettings = defineMock({
       page,
       pageSize
     };
-  },
-
-  '[GET]/api/settings/profile/avatar': () => {
-    return { avatarImg: profileAvatarImg }
-  },
-
-  '[POST]/api/settings/profile/avatar': ({ data }) => {
-    profileAvatarImg = data.avatarImg || ''
-    return { avatarImg: profileAvatarImg }
   }
 });

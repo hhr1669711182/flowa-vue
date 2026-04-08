@@ -32,28 +32,22 @@
 
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
-import { login } from '@/api/auth'
-import { useRequest } from 'alova/client'
-import {
-  saveRememberCredentials,
-  loadRememberCredentials,
-  clearRememberCredentials
-} from '@/utils/storage'
-import { tryBrowserCredentialStore } from '@/utils/storage'
+import { useAuthStore } from '@/store/modules/auth'
 import { useUserStore } from '@/store/modules/user'
+import { loadRememberCredentials } from '@/utils/storage'
 
 const emit = defineEmits<{
   (e: 'forgot'): void
   (e: 'signup'): void
 }>()
+const router = useRouter()
 const formRef = ref()
+const authStore = useAuthStore()
 const userStore = useUserStore()
-const { send: sendLogin, loading } = useRequest(
-  (payload: { email: string; password: string; remember?: boolean }) => login(payload),
-  { immediate: false }
-)
+const loading = ref(false)
 const form = reactive({
   email: '',
   password: '',
@@ -68,40 +62,40 @@ const submit = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
+    loading.value = true
+    errorTip.value = ''
     try {
-      const res = await sendLogin({ email: form.email, password: form.password, remember: form.remember })
-      if ('token' in res) {
-        localStorage.setItem('token', res.token)
-        userStore.setToken(res.token)
+      const result = await authStore.login({
+        email: form.email,
+        password: form.password,
+        remember: form.remember
+      })
+      if (result.ok) {
+        userStore.setToken(authStore.token || '')
         userStore.setRememberMe(!!form.remember)
         userStore.setLoginInfo({ username: form.email, password: form.password })
-        userStore.setUserInfo({
-          id: res.user.id,
-          name: res.user.name,
-          email: res.user.email,
-          username: res.user.name || form.email,
-          password: '',
-          role: res.user.role,
-          roleId: res.user.role
-        })
-        if (form.remember) {
-          await saveRememberCredentials({ email: form.email, password: form.password })
-          await tryBrowserCredentialStore(form.email, form.password)
-        } else {
-          await clearRememberCredentials()
+        if (authStore.user) {
+          userStore.setUserInfo({
+            id: authStore.user.id,
+            name: authStore.user.name,
+            email: authStore.user.email,
+            username: authStore.user.name || form.email,
+            password: '',
+            role: authStore.user.role,
+            roleId: authStore.user.role
+          })
         }
-        errorTip.value = ''
         ElMessage.success('Login successfully')
-        window.location.href = '#/'
+        await router.push('/')
       } else {
-        errorTip.value =
-          res.message ||
-          'Incorrect email or password. Try again, or contact the Flowa Support Team.'
+        const { getDisplayMessage } = await import('@/utils/errorCenter')
+        errorTip.value = result.message || getDisplayMessage({ code: 'INCORRECT_CREDENTIALS' })
       }
     } catch (e: any) {
-      errorTip.value =
-        e?.message ||
-        'Login failed due to a network or system issue. Please try again later.'
+      const { getDisplayMessage } = await import('@/utils/errorCenter')
+      errorTip.value = getDisplayMessage(e)
+    } finally {
+      loading.value = false
     }
   })
 }

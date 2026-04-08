@@ -20,8 +20,22 @@
         range-separator="to"
         start-placeholder="Start date"
         end-placeholder="End date"
+        value-format="YYYY-MM-DD"
         @change="handleSearch"
       />
+      <el-select
+        v-model="filters.stage"
+        class="!w-50"
+        placeholder="Stage"
+        @change="handleSearch"
+        clearable
+      >
+        <el-option label="All" value="all" />
+        <el-option label="Review & Fix" value="fix" />
+        <el-option label="Redelivery" value="redelivery" />
+        <el-option label="Clearance" value="clearance" />
+        <el-option label="Discontinued" value="discontinued" />
+      </el-select>
       <el-select
         v-model="filters.status"
         class="!w-50"

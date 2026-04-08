@@ -11,6 +11,15 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
+        <el-button
+          type="primary"
+          plain
+          size="large"
+          :disabled="!selectedOrderIds.length"
+          @click="batchTrackingSelected"
+        >
+          <span>Batch Tracking</span>
+        </el-button>
         <el-button type="primary" size="large" @click="handleAddProduct">
           <span class="flex items-center gap-1.5">
             <Icon icon="svg-icon:plus" color="#fff" />
@@ -31,8 +40,10 @@
         :total="total"
         v-model:page="page"
         v-model:limit="limit"
+        row-key="id"
         @pagination-change="fetchData"
         @expand-change="handleExpandChange"
+        @selection-change="onSelectionChange"
       >
         <template #expand="{ row }">
           <div class="py-4 px-6 bg-#F7F7F7">
@@ -43,51 +54,57 @@
                 <div>
                   <div class="flex items-center gap-3 mb-2">
                     <span class="text-lg font-bold text-gray-900">
-                      {{ getExpandRow(row).title }}
+                      {{ getExpandData(row).title || getExpandData(row).orderId }}
                     </span>
                     <span
                       class="px-2 py-0.5 rounded text-xs font-medium bg-[#EEF2FF] text-[#1D4ED8]"
                     >
-                      {{ getExpandRow(row).deliveryStatus }}
+                      {{ getExpandData(row).deliveryStatus || getExpandData(row).status }}
                     </span>
                   </div>
                   <div class="text-xs text-gray-500 flex gap-4">
-                    <span>Create {{ getExpandRow(row).code }}</span>
-                    <span>Fulfilled Date {{ getExpandRow(row).code }}</span>
+                    <span>Create {{ getExpandData(row).createDate }}</span>
+                    <span>Due {{ getExpandData(row).dueDate }}</span>
                   </div>
                 </div>
 
                 <div class="text-left text-sm">
                   <div class="mb-1">
                     <span class="text-gray-500 mr-2">Sending to</span>
-                    <span class="text-gray-900">{{
-                      getExpandRow(row).destination
-                    }}</span>
+                    <span class="text-gray-900">{{ getExpandData(row).customerRegion || getExpandData(row).destination || '-' }}</span>
                   </div>
                   <div class="mt-2 text-xs text-gray-500">
                     <span>Estimated arrived at</span>
-                    <span class="text-gray-900 font-semibold ml-1">{{
-                      getExpandRow(row).etaText
-                    }}</span>
+                    <span class="text-gray-900 font-semibold ml-1">{{ getExpandData(row).etaText || getExpandData(row).dueDate }}</span>
                   </div>
                 </div>
               </div>
 
               <div class="px-6 py-4">
-                <Steps
-                  class="mb-4"
-                  :steps="getTaskSteps(getExpandRow(row))"
-                  :active="getActiveStep(getExpandRow(row))"
-                  :show-state-icon="true"
-                />
-                <div class="flex justify-between items-center">
+                <BaseTable
+                  :data="getExpandTableRows(row)"
+                  :columns="expandColumns"
+                  :pagination="false"
+                >
+                  <template #salesOrder="{ row: r }">
+                    <a href="javascript:;" class="text-[#1D4ED8] hover:underline" @click="handleViewDetail({ id: r.salesOrder })">
+                      {{ r.salesOrder }}
+                    </a>
+                  </template>
+                  <template #status="{ row: r }">
+                    <el-tag effect="dark" class="!rounded-full !px-3 !border-none !bg-[#EEF2FF] !text-[#1D4ED8]">
+                      {{ r.status }}
+                    </el-tag>
+                  </template>
+                </BaseTable>
+                <div class="flex justify-between items-center mt-4">
                   <div class="text-lg font-bold text-sm">
-                    <span text="text-#6B6B6B">Tracking No.:</span>
-                    <span class="text-#000">{{ "0123456789" }}</span>
+                    <span class="text-#6B6B6B">Tracking No.:</span>
+                    <span class="text-#000">{{ getExpandData(row).trackingNo || getExpandTableRows(row)[0]?.deliveryNo || '-' }}</span>
                   </div>
                   <el-button
                     class="!font-semibold w-[166px] hover:!bg-#F4F6FA !px-4 !h-8 !color-[#F6540C]"
-                    @click="handleSupport(getExpandRow(row))"
+                    @click="handleSupport(getExpandData(row))"
                   >
                     <span class="flex items-center gap-2">
                       <Icon icon="svg-icon:headphones" />
@@ -102,15 +119,12 @@
 
         <template #order="{ row }">
           <div class="flex items-center gap-3">
-            <img
-              :src="productImage"
-              alt="Product Image"
-              class="w-10 h-10 rounded-lg"
-            />
             <div class="flex flex-col">
-              <span class="text-sm font-medium text-gray-800">{{
-                row.orderId
-              }}</span>
+              <span
+                class="text-sm font-medium text-gray-800 cursor-pointer hover:underline"
+                title="Open tracking page"
+                @click="goToTracking(row?.id)"
+              >{{ row.orderId }}</span>
               <span class="text-xs text-gray-500">{{ row.platformId }}</span>
             </div>
           </div>
@@ -126,27 +140,21 @@
             {{ row.status }}
           </el-tag>
         </template>
-        <template #customer="{ row }">
-          <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-800">{{
-              row.customerName
-            }}</span>
-            <span class="text-xs text-gray-500">{{ row.customerRegion }}</span>
-          </div>
+        <template #country="{ row }">
+          <span class="text-sm text-gray-700">{{ row.customerCountry || row.customerRegion || '-' }}</span>
+        </template>
+        <template #deliveryOrderNo="{ row }">
+          <span class="text-sm text-gray-700">{{ row.platformId || '-' }}</span>
         </template>
         <template #date="{ row }">
           <div class="text-left text-xs text-gray-500">
             <div>
               Create:
-              <span class="text-gray-900 font-semibold ml-1">{{
-                row.createDate
-              }}</span>
+              <span class="text-gray-900 font-semibold ml-1">{{ row.createDate }}</span>
             </div>
             <div class="mt-1">
               Due:
-              <span class="text-gray-900 font-semibold ml-1">{{
-                row.dueDate
-              }}</span>
+              <span class="text-gray-900 font-semibold ml-1">{{ row.dueDate }}</span>
             </div>
           </div>
         </template>
@@ -217,14 +225,45 @@ import {
   type InProgressOrderStage,
   type InProgressOrderStatus,
 } from "@/api/order/inProgress";
+import { extractOmsSalesOrderDetail, parseFlowaListSalesOrdersResult } from "@/utils/frappeResponse";
+import {
+  mapRowToInProgressRecord,
+  patchRowFromSalesOrderDoc,
+  extractExpandTableRows,
+  type ExpandTableRow,
+} from "@/utils/flowaSalesOrderRowMap";
+import { useAuthStore } from "@/store/modules/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
 import { Steps } from "@/components/base/Steps";
 import InterceptDialog from "./components/InterceptDialog.vue";
 import { StepItem } from "@/components/base/Steps/src/Steps.vue";
-// ----------------- 临时数据
-import productImage from "@/views/icon/yf.png";
-// -----------------
+
+const authStore = useAuthStore();
+const router = useRouter();
+
+// Selection for batch tracking
+const selectedRows = ref<any[]>([]);
+const selectedOrderIds = computed(() =>
+  selectedRows.value.map((r) => r?.id).filter(Boolean)
+);
+
+function onSelectionChange(rows: any[]) {
+  selectedRows.value = Array.isArray(rows) ? rows : [];
+}
+
+function goToTracking(orderId: string) {
+  const kw = (orderId && String(orderId).trim()) || "";
+  router.push({ path: "/orders/tracking", query: kw ? { kw } : {} });
+}
+
+function batchTrackingSelected() {
+  const ids = selectedOrderIds.value;
+  if (!ids.length) return;
+  const kw = ids.join("\n");
+  router.push({ path: "/orders/tracking", query: { kw } });
+}
+
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
@@ -237,9 +276,11 @@ const handleAddProduct = () => {
 const handleViewDetail = async (row: any) => {
   if (!row?.id) return;
   try {
-    const res: any = await getInProgressOrderDetail(row.id);
+    const raw = await getInProgressOrderDetail(row.id, authStore.currentCompany ?? undefined).send();
+    const doc = extractOmsSalesOrderDetail(raw);
+    const detail = doc ? patchRowFromSalesOrderDoc(row, doc) : row;
     await ElMessageBox.alert(
-      `${res.orderId}\n${res.platformId}\n${res.stage}\n${res.status}\n${res.customerName} · ${res.customerRegion}\nSKU ${res.sku}`,
+      `${detail.orderId}\n${detail.platformId}\n${detail.stage}\n${detail.status}\n${detail.customerName} · ${detail.customerRegion}\nSKU ${detail.sku}`,
       "Order Detail",
       { confirmButtonText: "Close" },
     );
@@ -269,18 +310,26 @@ const handleFilterSearch = (params: any) => {
 const columns = [
   { type: "selection", width: 50 },
   { type: "expand", width: 50, slot: "expand" },
-  { label: "Order ID / Platform ID", slot: "order", width: "auto" },
+  { label: "Order ID / Platform ID", slot: "order", width: 180 },
   { label: "Stages", slot: "stage", width: 120 },
-  { label: "Status", slot: "status", width: 150, align: "center" },
-  { label: "Customer", slot: "customer", width: 150 },
-  { label: "Date", slot: "date", width: 150 },
-  {
-    label: "Actions",
-    slot: "actions",
-    width: 200,
-    fixed: "right",
-    align: "center",
-  },
+  { label: "Status", slot: "status", width: 120, align: "center" },
+  { label: "Country", slot: "country", width: 150 },
+  { label: "Delivery Order No", slot: "deliveryOrderNo", width: 160 },
+  { label: "Date", slot: "date", width: 180 },
+  { label: "Actions", slot: "actions", width: 200, fixed: "right" },
+];
+
+// 展开行子表列：Sales Order, Order Date, Delivery Date, Delivery No, Delivery Order No, Country, Qty, Weight, Status
+const expandColumns = [
+  { label: "Sales Order", prop: "salesOrder", slot: "salesOrder", width: 140 },
+  { label: "Order Date", prop: "orderDate", width: 120 },
+  { label: "Delivery Date", prop: "deliveryDate", width: 120 },
+  { label: "Delivery No", prop: "deliveryNo", width: 180 },
+  { label: "Delivery Order No", prop: "deliveryOrderNo", width: 160 },
+  { label: "Country", prop: "country", width: 120 },
+  { label: "Qty", prop: "qty", width: 80 },
+  { label: "Weight", prop: "weight", width: 100 },
+  { label: "Status", prop: "status", slot: "status", width: 120 },
 ];
 
 const btnItems = [
@@ -332,7 +381,7 @@ const mapInventory = (stock: string): InProgressInventoryStatus | "" => {
   return "";
 };
 
-const buildParams = (): InProgressOrderListParams => {
+const buildParams = (): InProgressOrderListParams & { company?: string } => {
   const p: any = currentFilters.value || {};
   const keyword = (p.sku || p.keyword || "").toString().trim();
   const stage = mapStage(p.stage);
@@ -353,6 +402,7 @@ const buildParams = (): InProgressOrderListParams => {
     ? ([toDateText(p.range[0]), toDateText(p.range[1])] as [string, string])
     : [];
   return {
+    company: authStore.currentCompany || undefined,
     page: page.value,
     pageSize: limit.value,
     keyword: keyword || undefined,
@@ -366,12 +416,13 @@ const buildParams = (): InProgressOrderListParams => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await getInProgressOrderList(buildParams());
-    tableData.value = res.list;
-    total.value = res.total;
+    const res = await getInProgressOrderList(buildParams()).send();
+    const { data: rows, total: n } = parseFlowaListSalesOrdersResult(res);
+    tableData.value = rows.map((o: unknown) => mapRowToInProgressRecord(o as Record<string, unknown>));
+    total.value = n;
     await nextTick();
   } catch (error) {
-    console.error("Failed to fetch products:", error);
+    console.error("Failed to fetch in-progress orders:", error);
   } finally {
     loading.value = false;
   }
@@ -384,8 +435,11 @@ const handleExpandChange = async (row: any, expanded: any[]) => {
   if (expandDetailMap.value[row.id]) return;
   expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: true };
   try {
-    const res = await getInProgressOrderDetail(row.id);
-    expandDetailMap.value = { ...expandDetailMap.value, [row.id]: res };
+    const raw = await getInProgressOrderDetail(row.id, authStore.currentCompany ?? undefined).send();
+    const doc = extractOmsSalesOrderDetail(raw);
+    const patchedRow = doc ? patchRowFromSalesOrderDoc(row, doc) : row;
+    const expandRows = extractExpandTableRows(doc, row as Record<string, unknown>);
+    expandDetailMap.value = { ...expandDetailMap.value, [row.id]: { row: patchedRow, expandRows } };
   } catch (error) {
     console.error("Failed to fetch in-progress order detail:", error);
   } finally {
@@ -393,17 +447,25 @@ const handleExpandChange = async (row: any, expanded: any[]) => {
   }
 };
 
-const getExpandRow = (row: any) => {
+const getExpandData = (row: any) => {
   if (!row?.id) return row;
-  return expandDetailMap.value[row.id] || row;
+  const entry = expandDetailMap.value[row.id];
+  return entry?.row ?? row;
+};
+
+const getExpandTableRows = (row: any): ExpandTableRow[] => {
+  if (!row?.id) return [];
+  const entry = expandDetailMap.value[row.id];
+  return entry?.expandRows ?? extractExpandTableRows(null, row as Record<string, unknown>);
 };
 
 const handleSupport = async (row: any) => {
-  if (!row?.id) return;
+  const target = row?.id ? getExpandData(row) : row;
+  if (!target?.id) return;
   try {
     await createInProgressSupportTicket({
-      id: row.id,
-      subject: `Order support: ${row.orderId}`,
+      id: target.id,
+      subject: `Order support: ${target.orderId}`,
       message: "Need help with this in-progress order.",
       priority: "High",
     });
@@ -416,7 +478,9 @@ const handleSupport = async (row: any) => {
 const openInterceptDialog = async (row: any) => {
   if (!row?.id) return;
   try {
-    const detail = await getInProgressOrderDetail(row.id);
+    const raw = await getInProgressOrderDetail(row.id, authStore.currentCompany ?? undefined).send();
+    const doc = extractOmsSalesOrderDetail(raw);
+    const detail = doc ? patchRowFromSalesOrderDoc(row, doc) : row;
     interceptRecord.value = detail;
     interceptVisible.value = true;
   } catch (error) {
@@ -444,6 +508,9 @@ const handleRowAction = (action: string, row: any) => {
   switch (action) {
     case "view":
       handleViewDetail(row);
+      break;
+    case "tracking":
+      goToTracking(row?.id);
       break;
     case "support":
       createInProgressSupportTicket({
@@ -498,6 +565,7 @@ const getTaskSteps = (row: any): StepItem[] => {
 };
 
 onMounted(async () => {
+  await authStore.ensureCompany();
   await nextTick();
   if (filterRef.value) {
     currentFilters.value = filterRef.value.getSearchParams();

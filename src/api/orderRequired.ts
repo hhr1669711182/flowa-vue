@@ -1,4 +1,5 @@
 import { alovaInstance } from '@/services/alova'
+import { OMS_API } from '@/api/omsApiBase'
 
 export type RequiredOrderStage =
   | 'Review & Fix'
@@ -58,13 +59,34 @@ export interface RequiredOrderListResponse {
   }
 }
 
-export const getRequiredOrderList = (params: RequiredOrderListParams) => {
-  return alovaInstance.Get<RequiredOrderListResponse>('/api/orders/required', { params })
+/** Action Required 列表（来自工单+草稿）：POST get_action_required_sales_orders，含 Draft 订单及 TT Open 未关闭关联订单，返回 { data: [], total }，每项含 name、trouble_ticket、subject、status。 */
+export const getActionRequiredFromTickets = (params: { company?: string; limit?: number }) => {
+  return alovaInstance.Post<{ data?: any[]; total?: number } | { message?: { data?: any[]; total?: number } }>(
+    `${OMS_API}.get_action_required_sales_orders`,
+    {
+      company: (params.company ?? '').trim(),
+      limit: params.limit ?? 500,
+      deduplicate_by_order: true
+    }
+  )
 }
 
-export const getRequiredOrderDetail = (id: string) => {
-  return alovaInstance.Get<RequiredOrderRecord>('/api/orders/required/detail', {
-    params: { id }
+/** Action Required 列表（按状态筛选的销售订单）：POST flowa_list_sales_orders，传 company、status、order_no 等 */
+export const getRequiredOrderList = (params: RequiredOrderListParams & { company?: string }) => {
+  return alovaInstance.Post<any>(`${OMS_API}.flowa_list_sales_orders`, {
+    company: params.company,
+    page: params.page ?? 1,
+    page_size: params.pageSize ?? 20,
+    order_no: params.keyword || undefined,
+    status: params.status || undefined,
+    menu_key: 'action_required',
+  })
+}
+
+export const getRequiredOrderDetail = (id: string, company?: string) => {
+  return alovaInstance.Post<any>(`${OMS_API}.get_sales_order_detail`, {
+    name: id,
+    company,
   })
 }
 
@@ -73,15 +95,25 @@ export const submitRequiredReview = (payload: {
   issueType: RequiredIssueType
   note: string
   dueDate: string
+  company?: string
 }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/required/review', payload)
+  return alovaInstance.Post<any>(`${OMS_API}.update_sales_order_fields`, {
+    name: payload.id,
+    remarks: payload.note,
+    company: payload.company,
+  })
 }
 
 export const updateRequiredOrderStatus = (payload: {
   id: string
   status: RequiredOrderStatus
+  company?: string
 }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/required/status', payload)
+  return alovaInstance.Post<any>(`${OMS_API}.update_sales_order_fields`, {
+    name: payload.id,
+    status: payload.status,
+    company: payload.company,
+  })
 }
 
 export const createRequiredSupportTicket = (payload: {
@@ -89,6 +121,13 @@ export const createRequiredSupportTicket = (payload: {
   subject: string
   message: string
   priority: 'High' | 'Medium' | 'Low'
+  company?: string
 }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/required/ticket', payload)
+  return alovaInstance.Post<any>(`${OMS_API}.create_sales_order_ticket`, {
+    sales_order_name: payload.id,
+    subject: payload.subject,
+    message: payload.message,
+    priority: payload.priority,
+    ...(payload.company ? { company: payload.company } : {}),
+  })
 }

@@ -283,14 +283,10 @@ export const mockInventory = defineMock({
 
   // CRUD for Products
   '[GET]/api/inventory/products/{id}': ({ params }) => {
-    const product = products.find(p => p.id === params.id) as any;
+    const product = products.find(p => p.id === params.id);
     if (!product) return { status: 404, message: 'Product not found' };
-    const defaultVirtualNames = [product.name, `${product.name} S`, `${product.name} XS`, `${product.name} XL`]
     return {
       ...product,
-      nameCn: '黑色衬衫',
-      nameEn: product.name,
-      virtualNames: Array.isArray(product.virtualNames) ? product.virtualNames : defaultVirtualNames,
       description: "Black Shirt S Cotton/Polyester. The Hutchence Short Sleeve Cotton Blend Polo Shirt by Connor is a must-have for any guy seeking a casual and comfortable wardrobe staple.",
       cost: 20.00,
       bestBefore: '2026-12-10',
@@ -324,15 +320,5 @@ export const mockInventory = defineMock({
 
   '[DELETE]/api/inventory/products/{id}': ({ params }) => {
     return { success: true, id: params.id };
-  },
-
-  '[POST]/api/inventory/products/{id}/virtual-name/remove': ({ params, data }) => {
-    const product = products.find(p => p.id === params.id) as any
-    if (!product) return { success: false, virtualNames: [] }
-    const currentNames = Array.isArray(product.virtualNames)
-      ? product.virtualNames
-      : [product.name, `${product.name} S`, `${product.name} XS`, `${product.name} XL`]
-    product.virtualNames = currentNames.filter((name: string) => name !== data.name)
-    return { success: true, virtualNames: product.virtualNames }
   }
 });

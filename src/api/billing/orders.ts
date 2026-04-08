@@ -1,26 +1,28 @@
-import { alovaInstance } from '@/services/alova';
-
 export interface BillingRecentOrder {
-  id: number;
+  id: number | string;
+  name?: string;
   title: string;
+  sales_order?: string;
   code: string;
+  order_time?: string;
+  pack_time?: string;
   action: string;
   status: string;
   statusNote: string;
   shipping: string;
   tax: string;
   grandTotal: string;
+  total_cost_usd?: number;
   image: string;
-  
-  // Detail fields
+  destination_country?: string;
+  tracking_no?: string;
+  charge_weight?: number;
   deliveryStatus?: string;
   trackingNo?: string;
   carrier?: string;
   method?: string;
   itemQuantity?: string;
   chargingWeight?: string;
-  
-  // Cost breakdown
   pickingFirst?: string;
   pickingAdditional?: string;
   packagingUsed?: string;
@@ -31,15 +33,11 @@ export interface BillingRecentOrder {
   taxSurcharge?: string;
 }
 
-export const getBillingRecentOrders = (params?: { page: number; pageSize: number }) => {
-  return alovaInstance.Get<{
-    total: number;
-    list: BillingRecentOrder[];
-    page: number;
-    pageSize: number;
-  }>('/api/billing/recent-orders', { params });
+/** 暂无独立接口，返回空列表。表格数据请使用 getOutboundBillingList */
+export const getBillingRecentOrders = (_params?: { page?: number; pageSize?: number }) => {
+  return Promise.resolve({ list: [] as BillingRecentOrder[], total: 0, page: 1, pageSize: 10 });
 }
 
-export const getBillingOrderDetail = (id: string | number) => {
-  return alovaInstance.Get<BillingRecentOrder>(`/api/billing/recent-orders/${id}`);
+export const getBillingOrderDetail = (_id: string | number) => {
+  return Promise.resolve(null as BillingRecentOrder | null);
 }

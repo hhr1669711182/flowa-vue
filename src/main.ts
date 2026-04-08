@@ -3,6 +3,7 @@ import 'animate.css'
 import 'virtual:uno.css'
 import 'virtual:svg-icons-register'
 
+import { createApp } from 'vue'
 import './styles/style.less'
 import App from './App.vue'
 import router from './router'

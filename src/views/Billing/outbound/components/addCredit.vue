@@ -132,7 +132,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { Dialog } from "@/components/base/Dialog";
-import { rechargeCredit } from "@/api/billing/outbound";
+import { createRechargePayment } from "@/api/dashboard";
+import { useAuthStore } from "@/store/modules/auth";
 import { ElMessage } from "element-plus";
 
 const props = defineProps<{
@@ -169,19 +170,58 @@ const handleClose = () => {
   emit("update:visible", false);
 };
 
+const authStore = useAuthStore();
+
 const handleRecharge = async () => {
+  const amt = Number(String(amount.value).replace(/\D/g, "")) || 0;
+  if (amt < 1) {
+    ElMessage.warning("Please enter a valid amount");
+    return;
+  }
   step.value = 3;
   loading.value = true;
-
+  const payWindow = window.open("", "_blank");
   try {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    await rechargeCredit({ amount: Number(amount.value) });
-    loading.value = false;
-    ElMessage.success("Payment processed successfully");
-  } catch (error) {
-    loading.value = false;
-    ElMessage.error("Payment failed");
+    const company = authStore.company || authStore.companies?.[0];
+    const res = await createRechargePayment({ amount: amt, company });
+    const anyRes = res as any;
+    const payload =
+      anyRes?.message && typeof anyRes.message === "object"
+        ? anyRes.message
+        : anyRes;
+    const url =
+      payload?.data?.payment_url ||
+      payload?.payment_url ||
+      payload?.redirect_url;
+    const ok =
+      typeof payload?.success === "boolean" ? payload.success : !!url;
+    if (ok && url) {
+      ElMessage.success("Payment link created. Redirecting...");
+      if (payWindow) {
+        payWindow.location.href = url;
+        payWindow.focus?.();
+      } else {
+        window.location.href = url;
+      }
+      emit("success");
+      handleClose();
+    } else {
+      if (payWindow && !payWindow.closed) payWindow.close();
+      ElMessage.error(
+        payload?.error ||
+          anyRes?.error ||
+          payload?.message ||
+          anyRes?.message ||
+          "Failed to create payment"
+      );
+      step.value = 2;
+    }
+  } catch (e: any) {
+    if (payWindow && !payWindow.closed) payWindow.close();
+    ElMessage.error(e?.message || "Failed to create payment");
     step.value = 2;
+  } finally {
+    loading.value = false;
   }
 };
 

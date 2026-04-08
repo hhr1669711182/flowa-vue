@@ -1,4 +1,4 @@
-import { alovaInstance } from '@/services/alova';
+import { alovaInstance } from '@/services/alova'
 
 export interface SearchResult {
   id: number
@@ -10,7 +10,7 @@ export interface SearchResult {
 }
 
 export const getSearchResults = (query: string) => {
-  return alovaInstance.Get<SearchResult[]>('/api/search', {
-    params: { q: query }
-  });
+  return alovaInstance.Get<any>('/api/method/frappe.desk.search.search_widget', {
+    params: { txt: query }
+  })
 }

@@ -4,11 +4,11 @@
       <div>
         <div class="flex items-center gap-1 line-height-22px">
           <div class="text-#000 text-28px line-height-36px">Orders</div>
-          <div class="text-#9A9A9A text-20px pt-1">/ Action Required</div>
+          <div class="text-#9A9A9A text-20px pt-1">/Cancelled</div>
         </div>
         <div class="text-14px text-#6B6B6B">
-          Review and resolve orders that require your approval or intervention
-          to continue processing.
+          Orders cancelled at any stage of fulfillment. Reactivation must be
+          done manually.
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -33,89 +33,12 @@
         v-model:page="page"
         v-model:limit="limit"
         @pagination-change="fetchData"
-        @expand-change="handleExpandChange"
       >
-        <template #expand="{ row }">
-          <div class="py-4 px-6 bg-#F7F7F7">
-            <div class="bg-#fff rounded-lg border border-gray-200">
-              <div
-                class="flex justify-between items-start px-6 py-3 !border-b-1.5 border-0 border-solid border-#ECECEC"
-              >
-                <div>
-                  <div class="flex items-center gap-3 mb-2">
-                    <span class="text-lg font-bold text-gray-900">
-                      {{ getExpandRow(row).title }}
-                    </span>
-                    <span
-                      class="px-2 py-0.5 rounded text-xs font-medium bg-[#FDEAEA] text-[#C62828]"
-                    >
-                      {{ getExpandRow(row).deliveryStatus }}
-                    </span>
-                  </div>
-                  <div class="text-xs text-gray-500 flex gap-4">
-                    <span>Create {{ getExpandRow(row).code }}</span>
-                    <span>Fulfilled Date {{ getExpandRow(row).code }}</span>
-                  </div>
-                </div>
-
-                <div class="text-left text-sm">
-                  <div class="mb-1">
-                    <span class="text-gray-500 mr-2">Carrier</span>
-                    <span class="text-gray-900">{{
-                      getExpandRow(row).carrier
-                    }}</span>
-                  </div>
-                  <div>
-                    <span class="text-gray-500 mr-2">Method</span>
-                    <span class="text-gray-900">{{
-                      getExpandRow(row).method
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                class="px-6 py-4 bg-#FDEAEA border-0 border-l-15 border-solid border-[rgba(198,40,40,0.5)]"
-              >
-                <div class="text-#C62828 text-12px font-medium">
-                  {{ getExpandRow(row).warningMessage }}
-                </div>
-              </div>
-
-              <div class="px-6 py-4">
-                <Steps
-                  class="mb-4"
-                  :steps="getTaskSteps(getExpandRow(row))"
-                  :active="getActiveStep(getExpandRow(row))"
-                />
-                <div class="flex justify-between items-center">
-                  <div class="text-lg font-bold text-sm">
-                    <span text="text-#6B6B6B">Tracking No.:</span>
-                    <span class="text-#000">{{
-                      getExpandRow(row).trackingNo
-                    }}</span>
-                  </div>
-                  <el-button
-                    class="!font-semibold w-[166px] hover:!bg-#F4F6FA !px-4 !h-8 !color-[#F6540C]"
-                    @click="handleSupport(getExpandRow(row))"
-                  >
-                    <span class="flex items-center gap-2">
-                      <Icon icon="svg-icon:headphones" />
-                      Contact Support
-                    </span>
-                  </el-button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
-
         <template #order="{ row }">
           <div class="flex items-center gap-3">
-            <!-- <el-avatar :size="32" class="bg-gray-100 text-gray-700"
+            <el-avatar :size="32" class="bg-gray-100 text-gray-700"
               >O</el-avatar
-            > -->
-            <img :src="productImage" alt="Product Image" class="w-10 h-10 rounded-lg" />
+            >
             <div class="flex flex-col">
               <span class="text-sm font-medium text-gray-800">{{
                 row.orderId
@@ -125,23 +48,15 @@
           </div>
         </template>
         <template #stage="{ row }">
-          <span class="text-xs text-gray-700">{{ row.stage }}</span>
+          <span class="text-sm text-gray-700">{{ row.stage }}</span>
         </template>
         <template #status="{ row }">
           <el-tag
             effect="dark"
-            class="text-xs !rounded-full !px-3 !border-none !bg-[#FCE8E6] !text-[#D93025]"
+            class="!rounded-full !px-3 !border-none !bg-[#FCE8E6] !text-[#D93025]"
           >
             {{ row.status }}
           </el-tag>
-        </template>
-        <template #customer="{ row }">
-          <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-800">{{
-              row.customerName
-            }}</span>
-            <span class="text-xs text-gray-500">{{ row.customerRegion }}</span>
-          </div>
         </template>
         <template #inventory="{ row }">
           <el-tag
@@ -158,34 +73,45 @@
             {{ row.inventoryStatus }}
           </el-tag>
         </template>
+        <template #weight="{ row }">
+          <span class="text-sm text-gray-700">{{ row.chargingWeight ?? 0 }}</span>
+        </template>
+        <template #productQty="{ row }">
+          <span class="text-sm text-gray-700">{{ row.quantity ?? 0 }}</span>
+        </template>
+        <template #destinationCountry="{ row }">
+          <span class="text-sm text-gray-700">{{ row.customerCountry || row.customerRegion || '-' }}</span>
+        </template>
+        <template #deliveryOrderNo="{ row }">
+          <span class="text-sm text-gray-700">{{ row.platformId || '-' }}</span>
+        </template>
+        <template #logisticsOrderNo="{ row }">
+          <span class="text-sm text-gray-700">{{ row.platformId || '-' }}</span>
+        </template>
         <template #date="{ row }">
           <div class="text-left text-xs text-gray-500">
             <div>
-              Create:
-              <span class="text-gray-900 font-semibold ml-1">{{
-                row.createDate
-              }}</span>
+              Order Transaction Time:
+              <span class="text-gray-900 font-semibold ml-1">{{ row.createDate }}</span>
             </div>
             <div class="mt-1">
-              Update:
-              <span class="text-gray-900 font-semibold ml-1">{{
-                row.dueDate
-              }}</span>
+              Shipping Time:
+              <span class="text-gray-900 font-semibold ml-1">{{ row.dueDate }}</span>
             </div>
           </div>
         </template>
         <template #actions="{ row }">
-          <div class="flex flex-1 justify-end gap-1">
+          <div class="flex flex-1 justify-center gap-1">
             <el-button
-              class="h-8 !p-2 !rounded-lg box-border !color-#fff !bg-[#9A9A9A]"
-              @click="handleNeedAction(row)"
+              class="!w-22.5 h-8 !p-2 !rounded-lg box-border !color-#fff !bg-[#9A9A9A]"
+              @click="handleViewDetail(row)"
             >
               <Icon icon="svg-icon:circle-xmark" />
-              <span class="text-14px">{{ row.status }}</span>
+              <span class="text-14px">Cancelled</span>
             </el-button>
-            <!-- <el-button class="w-8 h-8 !ml-0" @click="handleViewDetail(row)">
+            <el-button class="w-8 h-8 !ml-0" @click="handleViewDetail(row)">
               <Icon icon="svg-icon:eye" color="#16215B" />
-            </el-button> -->
+            </el-button>
             <el-popover
               placement="bottom-start"
               trigger="click"
@@ -223,23 +149,26 @@ import { ref, onMounted, nextTick } from "vue";
 import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
 import {
-  approveRequiredOrder,
   createRequiredSupportTicket,
   getRequiredOrderDetail,
   getRequiredOrderList,
+  submitRequiredReview,
   updateRequiredOrderStatus,
   type RequiredOrderListParams,
   type RequiredOrderStage,
   type RequiredOrderStatus,
   type RequiredInventoryStatus,
-} from "@/api/order/required";
+} from "@/api/orderRequired";
+import { extractOmsSalesOrderDetail, parseFlowaListSalesOrdersResult } from "@/utils/frappeResponse";
+import { mapRowToInProgressRecord, patchRowFromSalesOrderDoc } from "@/utils/flowaSalesOrderRowMap";
+import { useAuthStore } from "@/store/modules/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
-import { Steps, type StepItem } from "@/components/base/Steps";
-// ----------------- 临时数据
-import productImage from "@/views/icon/yf.png";
-// -----------------
+import { orderRowStatusTagClass, orderRowStatusText } from "@/utils/orderRowStatusDisplay";
 
+const authStore = useAuthStore();
+
+// Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
 
@@ -248,19 +177,21 @@ const handleAddProduct = () => {
   detailVisible.value = true;
 };
 
-// const handleViewDetail = async (row: any) => {
-//   if (!row?.id) return;
-//   try {
-//     const res: any = await getRequiredOrderDetail(row.id);
-//     await ElMessageBox.alert(
-//       `${res.orderId}\n${res.platformId}\n${res.stage}\n${res.status}\n${res.customerName} · ${res.customerRegion}\nSKU ${res.sku}`,
-//       "Order Detail",
-//       { confirmButtonText: "Close" },
-//     );
-//   } catch (error) {
-//     ElMessage.error("Failed to load detail");
-//   }
-// };
+const handleViewDetail = async (row: any) => {
+  if (!row?.id) return;
+  try {
+    const raw = await getRequiredOrderDetail(row.id, authStore.currentCompany ?? undefined).send();
+    const doc = extractOmsSalesOrderDetail(raw);
+    const detail = doc ? patchRowFromSalesOrderDoc(row, doc) : row;
+    await ElMessageBox.alert(
+      `${detail.orderId}\n${detail.platformId}\n${detail.stage}\n${detail.status}\n${detail.customerName} · ${detail.customerRegion}\nSKU ${detail.sku}`,
+      "Order Detail",
+      { confirmButtonText: "Close" },
+    );
+  } catch (error) {
+    ElMessage.error("Failed to load detail");
+  }
+};
 
 const handleSaveProduct = async (data: any) => {
   // Mock save logic
@@ -269,6 +200,7 @@ const handleSaveProduct = async (data: any) => {
   fetchData();
 };
 
+// Filter State
 const filterRef = ref();
 const currentFilters = ref({});
 
@@ -278,22 +210,21 @@ const handleFilterSearch = (params: any) => {
   fetchData();
 };
 
+// Table Configuration
 const columns = [
   { type: "selection", width: 50 },
-  { type: "expand", width: 40, slot: "expand" },
-  { label: "Order ID / Platform ID", slot: "order", minWidth: 180 },
+  { type: "expand", width: 50, slot: "expand" },
+  { label: "Order ID / Platform ID", slot: "order", width: 180 },
   { label: "Stages", slot: "stage", width: 120 },
-  { label: "Status", slot: "status", width: 150, align: "center" },
-  { label: "Customer", slot: "customer", width: 120 },
+  { label: "Status", slot: "status", width: 120, align: "center" },
   { label: "Inventory", slot: "inventory", width: 120, align: "center" },
-  { label: "Date", slot: "date", width: 150 },
-  {
-    label: "Actions",
-    slot: "actions",
-    width: 200,
-    fixed: "right",
-    align: "center",
-  },
+  { label: "Weight", slot: "weight", width: 100, align: "center" },
+  { label: "Product Qty", slot: "productQty", width: 100, align: "center" },
+  { label: "Destination Country", slot: "destinationCountry", width: 120 },
+  { label: "Delivery Order No", slot: "deliveryOrderNo", width: 160 },
+  { label: "Logistics Order No.", slot: "logisticsOrderNo", width: 180 },
+  { label: "Date", slot: "date", width: 180 },
+  { label: "Actions", slot: "actions", width: 228, fixed: "right" },
 ];
 
 const btnItems = [
@@ -304,12 +235,6 @@ const btnItems = [
     tone: "primary",
   },
   {
-    key: "approve",
-    label: "Mark In Review",
-    icon: "svg-icon:circle-check",
-    tone: "primary",
-  },
-  {
     key: "support",
     label: "Contact Support",
     icon: "svg-icon:headphones",
@@ -317,18 +242,17 @@ const btnItems = [
   },
 ] as any;
 
+// Data Logic
 const tableData = ref<any>([]);
 const loading = ref(false);
 const total = ref(0);
 const page = ref(1);
 const limit = ref(10);
-const expandDetailMap = ref<Record<string, any>>({});
-const expandLoadingMap = ref<Record<string, boolean>>({});
 
 const mapStage = (stage: string): RequiredOrderStage | "" => {
   if (!stage || stage === "all") return "";
   if (stage === "fix") return "Review & Fix";
-  if (stage === "redelivery") return "Local Delivery";
+  if (stage === "redelivery") return "Warehouse Processing";
   if (stage === "clearance") return "Export Processing";
   if (stage === "discontinued") return "Warehouse Processing";
   return "";
@@ -336,8 +260,8 @@ const mapStage = (stage: string): RequiredOrderStage | "" => {
 
 const mapStatus = (status: string): RequiredOrderStatus | "" => {
   if (!status || status === "all") return "";
-  if (status === "cancelled") return "Need Attention";
-  if (status === "not") return "In Review";
+  if (status === "cancelled") return "Awaiting Approval";
+  if (status === "not") return "Processing";
   return "";
 };
 
@@ -348,7 +272,7 @@ const mapInventory = (stock: string): RequiredInventoryStatus | "" => {
   return "";
 };
 
-const buildParams = (): RequiredOrderListParams => {
+const buildParams = (): RequiredOrderListParams & { company?: string } => {
   const p: any = currentFilters.value || {};
   const keyword = (p.sku || p.keyword || "").toString().trim();
   const stage = mapStage(p.stage);
@@ -367,6 +291,7 @@ const buildParams = (): RequiredOrderListParams => {
     ? ([toDateText(p.range[0]), toDateText(p.range[1])] as [string, string])
     : [];
   return {
+    company: authStore.currentCompany || undefined,
     page: page.value,
     pageSize: limit.value,
     keyword: keyword || undefined,
@@ -380,84 +305,40 @@ const buildParams = (): RequiredOrderListParams => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await getRequiredOrderList(buildParams());
-    tableData.value = res.list;
-    total.value = res.total;
+    const res = await getRequiredOrderList(buildParams()).send();
+    const { data: rows, total: n } = parseFlowaListSalesOrdersResult(res);
+    tableData.value = rows.map((o: unknown) => mapRowToInProgressRecord(o as Record<string, unknown>));
+    total.value = n;
     await nextTick();
   } catch (error) {
-    console.error("Failed to fetch products:", error);
+    console.error("Failed to fetch action required orders:", error);
   } finally {
     loading.value = false;
-  }
-};
-
-const handleExpandChange = async (row: any, expanded: any[]) => {
-  if (!row?.id) return;
-  const isExpanded = Array.isArray(expanded) && expanded.includes(row);
-  if (!isExpanded) return;
-  if (expandDetailMap.value[row.id]) return;
-  expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: true };
-  try {
-    const res = await getRequiredOrderDetail(row.id);
-    expandDetailMap.value = { ...expandDetailMap.value, [row.id]: res };
-  } catch (error) {
-    console.error("Failed to fetch required order detail:", error);
-  } finally {
-    expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: false };
-  }
-};
-
-const getExpandRow = (row: any) => {
-  if (!row?.id) return row;
-  return expandDetailMap.value[row.id] || row;
-};
-
-const handleNeedAction = (row: any) => {
-  if (!row?.id) return;
-  approveRequiredOrder({
-    id: row.id,
-    note: "Order reviewed and moved to in-review stage.",
-    targetStage: "Review & Fix",
-  }).then(() => {
-    ElMessage.success("Moved to In Review");
-    fetchData();
-  });
-};
-
-const handleSupport = async (row: any) => {
-  if (!row?.id) return;
-  try {
-    await createRequiredSupportTicket({
-      id: row.id,
-      subject: `Order support: ${row.orderId}`,
-      message: "Need help with this required-action order.",
-      priority: "High",
-    });
-    ElMessage.success("Support ticket created");
-  } catch (error) {
-    ElMessage.error("Failed to create ticket");
   }
 };
 
 const handleRowAction = (action: string, row: any) => {
   switch (action) {
     case "view":
-      // handleViewDetail(row);
+      handleViewDetail(row);
       break;
-    case "approve":
-      approveRequiredOrder({
+    case "review":
+      submitRequiredReview({
         id: row.id,
-        note: "Order reviewed and moved to in-review stage.",
-        targetStage: "Review & Fix",
-      }).then(() => {
-        ElMessage.success("Moved to In Review");
+        issueType: "Address Error",
+        note: "Manual review requested.",
+        dueDate: new Date().toISOString().slice(0, 10),
+        company: authStore.currentCompany ?? undefined,
+      }).send().then(() => {
+        ElMessage.success("Review submitted");
         fetchData();
       });
       break;
     case "status":
       updateRequiredOrderStatus({
         id: row.id,
-        status: "Need Attention",
+        status: "Processing",
+        company: authStore.currentCompany ?? undefined,
       }).then(() => {
         ElMessage.success("Status updated");
         fetchData();
@@ -467,9 +348,10 @@ const handleRowAction = (action: string, row: any) => {
       createRequiredSupportTicket({
         id: row.id,
         subject: `Order support: ${row.orderId}`,
-        message: "Need help with this required-action order.",
+        message: "Need help with this order.",
         priority: "High",
-      }).then(() => {
+        company: authStore.currentCompany ?? undefined,
+      }).send().then(() => {
         ElMessage.success("Support ticket created");
       });
       break;
@@ -478,44 +360,8 @@ const handleRowAction = (action: string, row: any) => {
   }
 };
 
-const getActiveStep = (row: any) => {
-  const stage = String(row?.stage || "");
-  if (stage.includes("Review")) return 0;
-  if (stage.includes("Warehouse")) return 1;
-  if (stage.includes("Export")) return 2;
-  if (stage.includes("Local")) return 3;
-  return 0;
-};
-
-const getTaskSteps = (row: any): StepItem[] => {
-  const active = getActiveStep(row);
-  return [
-    {
-      title: "Review & Fix",
-      subtitle: row?.status || "Need Attention",
-      state: active > 0 ? "completed" : "active",
-    },
-    {
-      title: "Warehouse",
-      subtitle: "Awaiting",
-      state: active > 1 ? "completed" : active === 1 ? "active" : "pending",
-    },
-    {
-      title: "Export",
-      subtitle: "Awaiting",
-      state: active > 2 ? "completed" : active === 2 ? "active" : "pending",
-    },
-    {
-      title: "Local Delivery",
-      subtitle: "Awaiting",
-      state: active > 3 ? "completed" : active === 3 ? "active" : "pending",
-    },
-    { title: "Delivered", subtitle: "Awaiting", state: "pending" },
-  ];
-};
-
 onMounted(async () => {
-  await nextTick();
+  await authStore.ensureCompany();
   if (filterRef.value) {
     currentFilters.value = filterRef.value.getSearchParams();
   }

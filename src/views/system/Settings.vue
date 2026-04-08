@@ -53,6 +53,7 @@
       <!-- Profile Details Card -->
       <div
         v-if="activeTab === 'Profile'"
+        v-loading="profileLoading"
         class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
       >
         <!-- Card Header -->
@@ -91,39 +92,7 @@
         <el-divider vertical class="!my-0" />
 
         <div class="p-6 sm:p-8">
-          <div class="flex flex-col md:flex-row gap-6">
-            <div class="w-full md:w-1/3 flex justify-center md:justify-start">
-              <div
-                class="relative group w-full aspect-square rounded-xl overflow-hidden bg-yellow-400"
-              >
-                <img
-                  :src="avatarImg"
-                  alt="Profile"
-                  class="w-full h-full object-cover"
-                />
-                <div
-                  class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4"
-                >
-                  <el-upload
-                    action="#"
-                    :show-file-list="false"
-                    :auto-upload="false"
-                    :on-change="handleFileChange"
-                  >
-                    <el-button
-                      type="primary"
-                      plain
-                      class="!bg-white !text-primary !border-none shadow-lg"
-                    >
-                      <el-icon class="mr-1"><Upload /></el-icon>
-                      Upload from Device
-                    </el-button>
-                  </el-upload>
-                </div>
-              </div>
-            </div>
-
-            <div class="w-full md:w-2/3">
+          <div class="w-full">
               <el-form
                 :model="formData"
                 label-position="top"
@@ -155,11 +124,17 @@
                 </el-form-item>
 
                 <el-form-item label="Role">
-                  <el-input v-model="formData.role" readonly />
+                  <el-input
+                    v-model="formData.role"
+                    type="textarea"
+                    :autosize="{ minRows: 2, maxRows: 8 }"
+                    readonly
+                    class="!bg-gray-50"
+                  />
                 </el-form-item>
 
                 <el-form-item label="Email" class="sm:col-span-2">
-                  <el-input v-model="formData.email" :readonly="!isEditing">
+                  <el-input v-model="formData.email" readonly class="!bg-gray-50">
                     <template #prefix>
                       <el-icon class="text-gray-400"><Message /></el-icon>
                     </template>
@@ -206,7 +181,6 @@
               </el-form>
             </div>
           </div>
-        </div>
 
         <!-- Footer Actions (Edit Mode Only) -->
         <div
@@ -217,6 +191,7 @@
           <el-button
             type="primary"
             class="!px-8 !bg-primary"
+            :loading="profileSaving"
             @click="saveProfile"
             >Save</el-button
           >
@@ -288,6 +263,7 @@
             start-placeholder="Start date"
             end-placeholder="End date"
             format="DD MMM"
+            value-format="YYYY-MM-DD"
             @change="handleLogsFilterChange"
           />
           <el-select
@@ -352,14 +328,15 @@
       </div>
 
       <el-form :model="passwordForm" label-position="top">
-        <el-form-item label="Email">
-          <el-input v-model="formData.email" readonly>
-            <template #prefix
-              ><el-icon><Message /></el-icon
-            ></template>
-          </el-input>
+        <el-form-item label="Current Password" required>
+          <el-input
+            v-model="passwordForm.oldPassword"
+            type="password"
+            show-password
+            placeholder="Enter your current password"
+          />
         </el-form-item>
-        <el-form-item label="New Password">
+        <el-form-item label="New Password" required>
           <el-input
             v-model="passwordForm.newPassword"
             type="password"
@@ -367,7 +344,7 @@
             placeholder="................"
           />
         </el-form-item>
-        <el-form-item label="Confirm New Password">
+        <el-form-item label="Confirm New Password" required>
           <el-input
             v-model="passwordForm.confirmPassword"
             type="password"
@@ -385,6 +362,7 @@
           <el-button
             type="primary"
             class="!px-6 !bg-primary"
+            :loading="passwordChanging"
             @click="handlePasswordChange"
             >Save New Password</el-button
           >
@@ -427,7 +405,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, onMounted, watch } from "vue";
+import { computed, ref, reactive, onMounted, onActivated, watch } from "vue";
 import { useRoute } from "vue-router";
 import ExceptionPage from "@/components/common/ExceptionPage.vue";
 import BaseTable from "@/components/common/BaseTable.vue";
@@ -435,24 +413,23 @@ import {
   Search,
   Edit,
   MoreFilled,
-  Upload,
   Message,
   Check,
   Headset,
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
-import { useUserStore } from "@/store/modules/user";
 import {
   getGeneralSettings,
   updateGeneralSetting,
-  uploadProfileAvatar,
   getOperationLogs,
+  getProfile,
+  updateProfile,
+  changePassword,
   type GeneralSetting,
   type OperationLog,
 } from "@/api/settings";
 
 const route = useRoute();
-const userStore = useUserStore();
 const title = computed(() => route.meta.title || "Settings");
 
 const hasPermission = ref(true);
@@ -466,28 +443,22 @@ const showPasswordDialog = ref(false);
 const showSuccessDialog = ref(false);
 
 // --- Profile Data ---
+const profileLoading = ref(false);
+const profileSaving = ref(false);
 const formData = reactive({
-  name: "Evan Su",
-  account: "Evansu@email.com",
-  department: "Management",
-  role: "Owner",
-  email: "email@address.com",
+  name: "",
+  account: "",
+  department: "",
+  role: "",
+  email: "",
   countryCode: "+01",
-  phone: "000 000 000 000",
-  password: "password123",
+  phone: "",
+  password: "**********",
+  user_image: "",
 });
 
-const defaultAvatarImg = new URL("./icons/avator.png", import.meta.url).href;
-const avatarImg = ref<string>(userStore.getAvatarImg || defaultAvatarImg);
-
-watch(
-  () => userStore.getAvatarImg,
-  (val) => {
-    avatarImg.value = val || defaultAvatarImg;
-  },
-);
-
 const passwordForm = reactive({
+  oldPassword: "",
   newPassword: "",
   confirmPassword: "",
 });
@@ -511,12 +482,12 @@ const pagination = reactive({
 });
 
 const logColumns = [
-  { prop: "id", label: "ID", width: 80, align: "center" },
-  { prop: "sku", label: "SKU", width: 150, className: "font-medium" },
+  { prop: "id", label: "ID", width: 60, align: "center" },
+  { prop: "sku", label: "SKU", width: 120, className: "font-medium" },
   {
     prop: "actionInfo",
     label: "Action Info",
-    minWidth: 180,
+    minWidth: 200,
     slot: "actionInfo",
   },
   {
@@ -528,23 +499,23 @@ const logColumns = [
   {
     prop: "operator",
     label: "Operator",
-    width: 120,
+    width: 100,
     align: "center",
     className: "font-bold text-gray-900",
   },
-  { prop: "date", label: "Date", width: 150, align: "center", slot: "date" },
+  { prop: "date", label: "Date", width: 120, align: "center", slot: "date" },
 ];
 
 // --- Initialization & Watchers ---
 onMounted(() => {
   fetchGeneralSettings();
-  userStore.fetchAvatarImg();
 
   activeTab.value = (route.query.tab as string) || "Profile";
 });
 
 onActivated(() => {
   activeTab.value = (route.query.tab as string) || "Profile";
+  if (activeTab.value === "Profile") fetchProfile();
 });
 
 watch(activeTab, (val) => {
@@ -568,7 +539,8 @@ const handleSettingChange = async (key: string, val: boolean) => {
     ElMessage.success("Setting updated");
   } else {
     ElMessage.error("Failed to update setting");
-    // Revert change locally if needed, but for mock assume success
+    const s = generalSettings.value.find((x) => x.key === key);
+    if (s) s.value = !val;
   }
 };
 
@@ -604,65 +576,93 @@ const handleSearch = () => {
 };
 
 // Profile Methods
-const fileToDataUrl = (raw: File) => {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = reject;
-    reader.readAsDataURL(raw);
-  });
-};
-
-// const handleFileChange = async (file: any) => {
-//   const raw = file?.raw as File | undefined;
-//   if (!raw) return;
-//   const avatarDataUrl = await fileToDataUrl(raw);
-//   await uploadProfileAvatar({
-//     avatarImg: avatarDataUrl,
-//     fileName: file.name || "avatar.png",
-//   });
-//   // 逻辑一
-//   // const res: any = await uploadProfileAvatar({
-//   // userStore.setAvatarImg(res.avatarImg);
-//   // 逻辑二
-//   userStore.setAvatarImg(raw);
-//   ElMessage.success("Avatar updated");
-// };
-
-const handleFileChange = async (file: any) => {
-  const raw = file?.raw as File | undefined;
-  if (!raw) return;
-  const avatarDataUrl = await fileToDataUrl(raw);
-  await userStore.uploadAvatarImg({
-    avatarImg: avatarDataUrl,
-    fileName: file.name || "avatar.png",
-  });
-  ElMessage.success("Avatar updated");
+const fetchProfile = async () => {
+  profileLoading.value = true;
+  try {
+    const res = await getProfile().send();
+    const msg = (res as any)?.message ?? res;
+    const d = msg?.success === true ? msg.data : msg?.data;
+    if (d && typeof d === "object" && !d.error) {
+      formData.name = d.name ?? "";
+      formData.account = d.account ?? "";
+      formData.department = d.department ?? "";
+      const roleParts = Array.isArray(d.roles) ? d.roles.filter(Boolean) : [];
+      formData.role =
+        roleParts.length > 0 ? roleParts.join(", ") : String(d.role ?? "");
+      formData.email = d.email ?? "";
+      formData.phone = d.phone ?? "";
+      formData.user_image = d.user_image ?? "";
+    }
+  } catch (err) {
+    console.error(err);
+    ElMessage.error("Failed to load profile");
+  } finally {
+    profileLoading.value = false;
+  }
 };
 
 const cancelEdit = () => {
   isEditing.value = false;
 };
 
-const saveProfile = () => {
-  isEditing.value = false;
-  ElMessage.success("Profile updated successfully");
+const saveProfile = async () => {
+  try {
+    const res = await updateProfile({
+      full_name: formData.name || undefined,
+      department: formData.department || undefined,
+      phone: formData.phone || undefined,
+      mobile_no: formData.phone || undefined,
+    }).send();
+    const msg = (res as any)?.message ?? res;
+    const ok = msg?.success === true || msg?.ok === true;
+    if (ok) {
+      isEditing.value = false;
+      ElMessage.success("Profile updated successfully");
+      fetchProfile();
+    } else {
+      ElMessage.error(msg?.error || msg?.message || "Update failed");
+    }
+  } catch (err: any) {
+    ElMessage.error(err?.message || "Failed to update profile");
+  }
 };
 
-const handlePasswordChange = () => {
+const passwordChanging = ref(false);
+const handlePasswordChange = async () => {
+  if (!passwordForm.oldPassword?.trim()) {
+    ElMessage.error("Please enter your current password");
+    return;
+  }
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    ElMessage.error("Passwords do not match");
+    ElMessage.error("New passwords do not match");
     return;
   }
   if (passwordForm.newPassword.length < 6) {
     ElMessage.warning("Password is too short");
     return;
   }
-
-  showPasswordDialog.value = false;
-  showSuccessDialog.value = true;
-  passwordForm.newPassword = "";
-  passwordForm.confirmPassword = "";
+  passwordChanging.value = true;
+  try {
+    const res = await changePassword({
+      old_password: passwordForm.oldPassword,
+      new_password: passwordForm.newPassword,
+    }).send();
+    const msg = (res as any)?.message ?? res;
+    const ok = msg?.success === true;
+    if (ok) {
+      showPasswordDialog.value = false;
+      showSuccessDialog.value = true;
+      passwordForm.oldPassword = "";
+      passwordForm.newPassword = "";
+      passwordForm.confirmPassword = "";
+    } else {
+      ElMessage.error(msg?.error || msg?.message || "Failed to change password");
+    }
+  } catch (err: any) {
+    ElMessage.error(err?.message || "Failed to change password");
+  } finally {
+    passwordChanging.value = false;
+  }
 };
 </script>
 

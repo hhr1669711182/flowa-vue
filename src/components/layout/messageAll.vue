@@ -18,12 +18,16 @@
 
       <!-- Message List -->
       <div class="flex-1 overflow-y-auto -mx-5 px-5">
-        <div v-if="filteredMessages.length === 0" class="py-10 text-center text-gray-400">
+        <div v-if="loading" class="py-10 text-center text-gray-400">
+          <el-icon class="text-4xl mb-2 animate-spin"><Loading /></el-icon>
+          <p>Loading...</p>
+        </div>
+        <div v-else-if="filteredMessages.length === 0" class="py-10 text-center text-gray-400">
           <el-icon class="text-4xl mb-2"><Bell /></el-icon>
           <p>No notifications</p>
         </div>
-        
         <div
+          v-else
           v-for="msg in filteredMessages"
           :key="msg.id"
           class="group relative p-4 mb-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-all cursor-pointer"
@@ -35,7 +39,7 @@
 
           <div class="flex gap-3">
             <!-- Icon/Avatar -->
-            <div 
+            <div
               class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
               :class="getIconBgClass(msg.type)"
             >
@@ -50,11 +54,6 @@
                 <h4 class="text-sm font-semibold text-gray-800 truncate pr-4">{{ msg.title }}</h4>
               </div>
               <p class="text-xs text-gray-500 line-clamp-2 mb-2">{{ msg.content }}</p>
-              
-              <!-- Image Preview (if any) -->
-              <div v-if="msg.image" class="mb-2 rounded-lg overflow-hidden h-24 w-full relative bg-gray-100">
-                 <img :src="msg.image" class="w-full h-full object-cover" alt="attachment" />
-              </div>
 
               <div class="flex justify-between items-center text-xs text-gray-400">
                 <span>{{ msg.time }}</span>
@@ -67,8 +66,8 @@
 
       <!-- Footer Actions -->
       <div class="pt-4 border-t border-gray-100 flex justify-between">
-        <el-button link type="primary" @click="markAllRead">Mark all as read</el-button>
-        <el-button link @click="clearAll">Clear all</el-button>
+        <el-button link type="primary" :loading="markReadLoading" @click="markAllRead">Mark all as read</el-button>
+        <el-button link :loading="markReadLoading" @click="clearAll">Clear all</el-button>
       </div>
     </div>
   </el-drawer>
@@ -86,22 +85,18 @@
         <el-tag size="small" :type="getTypeTag(currentMessage.type)">{{ currentMessage.type }}</el-tag>
         <span>{{ currentMessage.time }}</span>
       </div>
-      
-      <div v-if="currentMessage.image" class="rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
-        <img :src="currentMessage.image" class="w-full h-auto object-contain max-h-60" alt="Detail Image" />
-      </div>
 
       <div class="text-gray-700 leading-relaxed whitespace-pre-wrap">
         {{ currentMessage.content }}
       </div>
 
-      <!-- Extended Mock Content for "More Details" -->
       <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
         <p class="font-medium mb-2">Additional Information:</p>
         <ul class="list-disc pl-4 space-y-1">
-          <li>Reference ID: #MSG-{{ currentMessage.id }}</li>
-          <li>Source: System Automation</li>
-          <li>Priority: High</li>
+          <li>Reference ID: {{ currentMessage.ttName || currentMessage.id }}</li>
+          <li>Source: OMS Trouble Ticket</li>
+          <li>Status: {{ currentMessage.status || '-' }}</li>
+          <li v-if="currentMessage.priority">Priority: {{ currentMessage.priority }}</li>
         </ul>
       </div>
     </div>
@@ -115,8 +110,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Bell, Message, Warning, InfoFilled } from '@element-plus/icons-vue'
+import { ref, computed, watch } from 'vue'
+import { Bell, Message, Warning, InfoFilled, Loading } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import {
+  getUnreadTroubleTickets,
+  markAllTroubleTicketsViewed,
+  markTroubleTicketViewed,
+} from '@/api/dashboard'
+import { useAuthStore } from '@/store/modules/auth'
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{
   show: boolean
@@ -126,117 +129,193 @@ const emit = defineEmits(['update:show'])
 
 const visible = computed({
   get: () => props.show,
-  set: (val) => emit('update:show', val)
+  set: (val) => emit('update:show', val),
 })
 
 interface MessageItem {
-  id: number
+  id: string
+  ttName?: string
   title: string
   content: string
   time: string
   type: 'system' | 'notification' | 'alert'
   read: boolean
-  image?: string
+  status?: string
+  priority?: string
 }
 
+const router = useRouter()
 const detailVisible = ref(false)
 const activeTab = ref('all')
 const currentMessage = ref<MessageItem | null>(null)
+const messages = ref<MessageItem[]>([])
+const loading = ref(false)
+const markReadLoading = ref(false)
 
-// Mock Data Generation
-const generateMessages = (): MessageItem[] => {
-  const types: ('system' | 'notification' | 'alert')[] = ['system', 'notification', 'alert']
-  const images = [
-    'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Payment
-    'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Analytics
-    'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1632&q=80', // Meeting
-    ''
-  ]
-  
-  return Array.from({ length: 23 }, (_, i) => {
-    const type = types[Math.floor(Math.random() * types.length)]
-    const hasImage = Math.random() > 0.7
-    return {
-      id: i + 1,
-      title: `Message Notification #${i + 1}`,
-      content: `This is a simulated message content for item #${i + 1}. It contains some details about system updates, new orders, or alerts that require your attention.`,
-      time: `${Math.floor(Math.random() * 24)}h ago`,
-      type,
-      read: Math.random() > 0.5,
-      image: hasImage ? images[Math.floor(Math.random() * (images.length - 1))] : undefined
-    }
-  }) as any
+function formatTimeAgo(creation: string) {
+  try {
+    const d = new Date(creation)
+    const diff = (Date.now() - d.getTime()) / 3600000
+    if (diff < 1) return 'Just now'
+    if (diff < 24) return `${Math.floor(diff)}h ago`
+    return `${Math.floor(diff / 24)} days ago`
+  } catch {
+    return ''
+  }
 }
 
-const messages = ref<MessageItem[]>(generateMessages())
+function priorityToType(priority?: string): 'system' | 'notification' | 'alert' {
+  const p = (priority || '').toLowerCase()
+  if (p === 'high') return 'alert'
+  if (p === 'medium') return 'notification'
+  return 'system'
+}
+
+async function loadMessages() {
+  const authStore = useAuthStore()
+  const company = authStore.currentCompany ?? (await authStore.ensureCompany()) ?? ''
+  if (!company?.trim()) {
+    messages.value = []
+    return
+  }
+  loading.value = true
+  try {
+    const list = await getUnreadTroubleTickets(company, 50, true)
+    messages.value = list.map((tt: any) => ({
+      id: `tt-${tt.name}`,
+      ttName: tt.name,
+      title: (tt.subject || tt.subject_en || '').trim() || `Ticket ${tt.name}`,
+      content: (tt.subject || tt.subject_en || tt.status || '').trim() || 'No description',
+      time: tt.created_at ? formatTimeAgo(tt.created_at) : '',
+      type: priorityToType(tt.priority),
+      read: false,
+      status: tt.status,
+      priority: tt.priority,
+    }))
+  } catch {
+    messages.value = []
+    ElMessage.error('Failed to load notifications')
+  } finally {
+    loading.value = false
+  }
+}
+
+watch(visible, (val) => {
+  if (val) {
+    loadMessages()
+  }
+})
 
 // Computed
 const filteredMessages = computed(() => {
+  const list = messages.value
   if (activeTab.value === 'unread') {
-    return messages.value.filter(m => !m.read)
+    return list.filter((m) => !m.read)
   }
   if (activeTab.value === 'system') {
-    return messages.value.filter(m => m.type === 'system')
+    return list.filter((m) => m.type === 'system')
   }
-  return messages.value
+  return list
 })
 
 // Methods
-const openDetail = (msg: MessageItem) => {
+async function openDetail(msg: MessageItem) {
   currentMessage.value = msg
-  if (!msg.read) {
-    msg.read = true
+  const company = useAuthStore().currentCompany ?? ''
+  if (!msg.read && msg.ttName && company) {
+    try {
+      const res = await markTroubleTicketViewed(msg.ttName, company)
+      if (res?.ok) {
+        msg.read = true
+        await loadMessages()
+      }
+    } catch {
+      // ignore
+    }
   }
   detailVisible.value = true
 }
 
-const markAllRead = () => {
-  messages.value.forEach(m => m.read = true)
+async function markAllRead() {
+  const company = useAuthStore().currentCompany ?? ''
+  if (!company) {
+    ElMessage.warning('Please select a company')
+    return
+  }
+  markReadLoading.value = true
+  try {
+    const method = markAllTroubleTicketsViewed(company)
+    await method.send()
+    ElMessage.success('Marked all as read')
+    await loadMessages()
+  } catch {
+    ElMessage.error('Failed to mark as read')
+  } finally {
+    markReadLoading.value = false
+  }
 }
 
-const clearAll = () => {
-  messages.value = []
+async function clearAll() {
+  await markAllRead()
 }
 
-const handleAction = () => {
+function handleAction() {
   detailVisible.value = false
-  // Implement action logic
+  if (currentMessage.value?.ttName) {
+    router.push({ path: '/order/required', query: { tt: currentMessage.value.ttName } })
+  }
 }
 
 // Icon Helpers
 const getIcon = (type: string) => {
   switch (type) {
-    case 'system': return InfoFilled
-    case 'alert': return Warning
-    case 'notification': return Message
-    default: return Bell
+    case 'system':
+      return InfoFilled
+    case 'alert':
+      return Warning
+    case 'notification':
+      return Message
+    default:
+      return Bell
   }
 }
 
 const getIconBgClass = (type: string) => {
   switch (type) {
-    case 'system': return 'bg-gray-50'
-    case 'alert': return 'bg-red-50'
-    case 'notification': return 'bg-green-50'
-    default: return 'bg-gray-50'
+    case 'system':
+      return 'bg-gray-50'
+    case 'alert':
+      return 'bg-red-50'
+    case 'notification':
+      return 'bg-green-50'
+    default:
+      return 'bg-gray-50'
   }
 }
 
 const getIconColorClass = (type: string) => {
   switch (type) {
-    case 'system': return 'text-gray-500'
-    case 'alert': return 'text-red-500'
-    case 'notification': return 'text-green-500'
-    default: return 'text-gray-500'
+    case 'system':
+      return 'text-gray-500'
+    case 'alert':
+      return 'text-red-500'
+    case 'notification':
+      return 'text-green-500'
+    default:
+      return 'text-gray-500'
   }
 }
 
 const getTypeTag = (type: string) => {
   switch (type) {
-    case 'system': return 'info'
-    case 'alert': return 'danger'
-    case 'notification': return 'success'
-    default: return 'info'
+    case 'system':
+      return 'info'
+    case 'alert':
+      return 'danger'
+    case 'notification':
+      return 'success'
+    default:
+      return 'info'
   }
 }
 </script>

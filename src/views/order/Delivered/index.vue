@@ -7,11 +7,19 @@
           <div class="text-#9A9A9A text-20px pt-1">/Delivered</div>
         </div>
         <div class="text-14px text-#6B6B6B">
-          Orders delivered successfully. View delivery progress and item
-          details.
+          Orders delivered successfully. View delivery progress and item details.
         </div>
       </div>
       <div class="flex items-center gap-3">
+        <el-button
+          type="primary"
+          plain
+          size="large"
+          :disabled="!selectedOrderIds.length"
+          @click="batchTrackingSelected"
+        >
+          <span>Batch Tracking</span>
+        </el-button>
         <el-button type="primary" size="large" @click="handleAddProduct">
           <span class="flex items-center gap-1.5">
             <Icon icon="svg-icon:plus" color="#fff" />
@@ -32,8 +40,10 @@
         :total="total"
         v-model:page="page"
         v-model:limit="limit"
+        row-key="id"
         @pagination-change="fetchData"
         @expand-change="handleExpandChange"
+        @selection-change="onSelectionChange"
       >
         <template #expand="{ row }">
           <div class="py-4 px-6 bg-#F7F7F7">
@@ -61,9 +71,7 @@
                 <div class="text-left text-sm">
                   <div class="mb-1">
                     <span class="text-gray-500 mr-2">Sending to</span>
-                    <span class="text-gray-900">{{
-                      getExpandRow(row).destination
-                    }}</span>
+                    <span class="text-gray-900">{{ getExpandRow(row).destination }}</span>
                   </div>
                   <!-- <div class="mb-1">
                     <span class="text-gray-500 mr-2">Carrier</span>
@@ -75,9 +83,7 @@
                   </div> -->
                   <div class="mt-2 text-xs text-gray-500">
                     <span>Estimated arrived at</span>
-                    <span class="text-gray-900 font-semibold ml-1">{{
-                      getExpandRow(row).etaText
-                    }}</span>
+                    <span class="text-gray-900 font-semibold ml-1">{{ getExpandRow(row).etaText }}</span>
                   </div>
                 </div>
               </div>
@@ -92,8 +98,8 @@
                 />
                 <div class="flex justify-between items-center">
                   <div class="text-lg font-bold text-sm">
-                    <span text="text-#6B6B6B">Tracking No.:</span>
-                    <span class="text-#000">{{ "0123456789" }}</span>
+                    <span class="text-#6B6B6B">Tracking No.:</span>
+                    <span class="text-#000">{{ getExpandRow(row).trackingNo || getExpandRow(row).platformId || '-' }}</span>
                   </div>
                   <el-button
                     class="!font-semibold w-[166px] hover:!bg-#F4F6FA !px-4 !h-8 !color-[#F6540C]"
@@ -117,38 +123,23 @@
                 >
                   <template #product="{ row: item }">
                     <div class="flex items-center gap-3">
-                      <img
-                        :src="productImage"
-                        alt="Product Image"
-                        class="w-10 h-10 rounded-lg"
-                      />
                       <div class="flex flex-col">
-                        <span class="text-sm font-medium text-gray-800">{{
-                          item.name
-                        }}</span>
-                        <span class="text-xs text-gray-500">{{
-                          item.sku
-                        }}</span>
+                        <span class="text-sm font-medium text-gray-800">{{ item.name }}</span>
+                        <span class="text-xs text-gray-500">{{ item.sku }}</span>
                       </div>
                     </div>
                   </template>
                   <template #details="{ row: item }">
-                    <span class="text-xs text-gray-500">{{
-                      item.details
-                    }}</span>
+                    <span class="text-xs text-gray-500">{{ item.details }}</span>
                   </template>
                   <template #quantity="{ row: item }">
-                    <span class="text-sm text-gray-700">{{
-                      item.quantity
-                    }}</span>
+                    <span class="text-sm text-gray-700">{{ item.quantity }}</span>
                   </template>
                   <template #price="{ row: item }">
                     <span class="text-sm text-gray-700">{{ item.price }}</span>
                   </template>
                   <template #warehouse="{ row: item }">
-                    <span class="text-xs text-gray-500">{{
-                      item.warehouse
-                    }}</span>
+                    <span class="text-xs text-gray-500">{{ item.warehouse }}</span>
                   </template>
                 </BaseTable>
               </div>
@@ -158,15 +149,12 @@
 
         <template #order="{ row }">
           <div class="flex items-center gap-3">
-            <img
-              :src="productImage"
-              alt="Product Image"
-              class="w-10 h-10 rounded-lg"
-            />
             <div class="flex flex-col">
-              <span class="text-sm font-medium text-gray-800">{{
-                row.orderId
-              }}</span>
+              <span
+                class="text-sm font-medium text-gray-800 cursor-pointer hover:underline"
+                title="Open tracking page"
+                @click="goToTracking(row?.id)"
+              >{{ row.orderId }}</span>
               <span class="text-xs text-gray-500">{{ row.platformId }}</span>
             </div>
           </div>
@@ -187,27 +175,26 @@
             {{ row.status }}
           </el-tag>
         </template>
-        <template #customer="{ row }">
-          <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-800">{{
-              row.customerName
-            }}</span>
-            <span class="text-xs text-gray-500">{{ row.customerRegion }}</span>
-          </div>
+        <template #inventory="{ row }">
+          <el-tag
+            effect="dark"
+            class="!rounded-full !px-3 !border-none !bg-[#E6F4EA] !text-[#1E8E3E]"
+          >
+            {{ row.inventoryStatus || 'In Stock' }}
+          </el-tag>
+        </template>
+        <template #destinationCountry="{ row }">
+          <span class="text-sm text-gray-700">{{ row.customerCountry || row.customerRegion || '-' }}</span>
         </template>
         <template #date="{ row }">
           <div class="text-left text-xs text-gray-500">
             <div>
               Create:
-              <span class="text-gray-900 font-semibold ml-1">{{
-                row.createDate
-              }}</span>
+              <span class="text-gray-900 font-semibold ml-1">{{ row.createDate }}</span>
             </div>
             <div class="mt-1">
-              Arrival:
-              <span class="text-gray-900 font-semibold ml-1">{{
-                row.arrivalDate
-              }}</span>
+              Delivered:
+              <span class="text-gray-900 font-semibold ml-1">{{ row.arrivalDate || row.dueDate || '-' }}</span>
             </div>
           </div>
         </template>
@@ -260,14 +247,45 @@ import {
   type DeliveredOrderStage,
   type DeliveredOrderStatus,
 } from "@/api/order/delivered";
+import { extractOmsSalesOrderDetail, parseFlowaListSalesOrdersResult } from "@/utils/frappeResponse";
+import { mapRowToDeliveredRecord, patchRowFromSalesOrderDoc } from "@/utils/flowaSalesOrderRowMap";
+import { useAuthStore } from "@/store/modules/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
 import { Steps } from "@/components/base/Steps";
 import BaseTable from "@/components/common/BaseTable.vue";
 import { StepItem } from "@/components/base/Steps/src/Steps.vue";
-// ----------------- 临时数据
-import productImage from "@/views/icon/yf.png";
-// -----------------
+
+const authStore = useAuthStore();
+const router = useRouter();
+
+// Selection for batch tracking
+const selectedRows = ref<any[]>([]);
+const selectedOrderIds = computed(() =>
+  selectedRows.value.map((r) => r?.id).filter(Boolean)
+);
+
+function onSelectionChange(rows: any[]) {
+  selectedRows.value = Array.isArray(rows) ? rows : [];
+}
+
+function goToTracking(orderId: string) {
+  const kw = (orderId && String(orderId).trim()) || "";
+  router.push({ path: "/orders/tracking", query: kw ? { kw } : {} });
+}
+
+function batchTrackingSelected() {
+  const ids = selectedOrderIds.value;
+  if (!ids.length) return;
+  const kw = ids.join("\n");
+  router.push({ path: "/orders/tracking", query: { kw } });
+}
+
+function formatAmount(val: any) {
+  const n = Number(val);
+  return Number.isFinite(n) ? n.toFixed(2) : (val ?? "0.00");
+}
+
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
@@ -280,9 +298,11 @@ const handleAddProduct = () => {
 const handleViewDetail = async (row: any) => {
   if (!row?.id) return;
   try {
-    const res: any = await getDeliveredOrderDetail(row.id);
+    const raw = await getDeliveredOrderDetail(row.id, authStore.currentCompany ?? undefined).send();
+    const doc = extractOmsSalesOrderDetail(raw);
+    const detail = doc ? patchRowFromSalesOrderDoc(row, doc) : row;
     await ElMessageBox.alert(
-      `${res.orderId}\n${res.platformId}\n${res.stage}\n${res.status}\n${res.customerName} · ${res.customerRegion}\nSKU ${res.sku}`,
+      `${detail.orderId}\n${detail.platformId}\n${detail.stage}\n${detail.status}\n${detail.customerName} · ${detail.customerRegion}\nSKU ${detail.sku}`,
       "Order Detail",
       { confirmButtonText: "Close" },
     );
@@ -312,18 +332,13 @@ const handleFilterSearch = (params: any) => {
 const columns = [
   { type: "selection", width: 50 },
   { type: "expand", width: 50, slot: "expand" },
-  { label: "Order ID / Platform ID", slot: "order", width: "auto" },
-  { label: "Stages", slot: "stage", width: 140 },
+  { label: "Delivery Order No", slot: "order", width: 180 },
+  { label: "Stages", slot: "stage", width: 120 },
   { label: "Status", slot: "status", width: 120, align: "center" },
-  { label: "Customer", slot: "customer", width: 150 },
+  { label: "Inventory", slot: "inventory", width: 120, align: "center" },
+  { label: "Destination Country", slot: "destinationCountry", width: 120 },
   { label: "Date", slot: "date", width: 180 },
-  {
-    label: "Actions",
-    slot: "actions",
-    width: 100,
-    fixed: "right",
-    align: "center",
-  },
+  { label: "Actions", slot: "actions", width: 200, fixed: "right" },
 ];
 
 const itemColumns = [
@@ -338,6 +353,12 @@ const btnItems = [
   {
     key: "view",
     label: "View Details",
+    icon: "svg-icon:eye",
+    tone: "primary",
+  },
+  {
+    key: "tracking",
+    label: "Tracking",
     icon: "svg-icon:eye",
     tone: "primary",
   },
@@ -388,12 +409,11 @@ const buildParams = (): DeliveredOrderListParams => {
     const dd = `${d.getDate()}`.padStart(2, "0");
     return `${d.getFullYear()}-${mm}-${dd}`;
   };
-  const dateRange: DeliveredOrderListParams["dateRange"] = Array.isArray(
-    p.range,
-  )
+  const dateRange: DeliveredOrderListParams["dateRange"] = Array.isArray(p.range)
     ? ([toDateText(p.range[0]), toDateText(p.range[1])] as [string, string])
     : [];
   return {
+    company: authStore.currentCompany || undefined,
     page: page.value,
     pageSize: limit.value,
     keyword: keyword || undefined,
@@ -406,9 +426,10 @@ const buildParams = (): DeliveredOrderListParams => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await getDeliveredOrderList(buildParams());
-    tableData.value = res.list;
-    total.value = res.total;
+    const res = await getDeliveredOrderList(buildParams()).send();
+    const { data: rows, total: n } = parseFlowaListSalesOrdersResult(res);
+    tableData.value = rows.map((o: unknown) => mapRowToDeliveredRecord(o as Record<string, unknown>));
+    total.value = n;
     await nextTick();
   } catch (error) {
     console.error("Failed to fetch products:", error);
@@ -424,8 +445,19 @@ const handleExpandChange = async (row: any, expanded: any[]) => {
   if (expandDetailMap.value[row.id]) return;
   expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: true };
   try {
-    const res = await getDeliveredOrderDetail(row.id);
-    expandDetailMap.value = { ...expandDetailMap.value, [row.id]: res };
+    const raw = await getDeliveredOrderDetail(row.id, authStore.currentCompany ?? undefined).send();
+    const doc = extractOmsSalesOrderDetail(raw);
+    const patchedRow = doc ? patchRowFromSalesOrderDoc(row, doc) : row;
+    const items = Array.isArray(doc?.items) ? (doc.items as Record<string, unknown>[]).map((it: Record<string, unknown>) => ({
+      id: String(it.name ?? it.idx ?? ''),
+      name: String(it.item_name ?? it.description ?? '-'),
+      sku: String(it.item_code ?? '-'),
+      details: String(it.description ?? '-'),
+      quantity: Number(it.qty ?? it.total_qty ?? 0) || 0,
+      price: formatAmount(it.rate ?? it.amount ?? 0),
+      warehouse: String(it.warehouse ?? '-'),
+    })) : [];
+    expandDetailMap.value = { ...expandDetailMap.value, [row.id]: { ...patchedRow, items, trackingNo: doc?.custom_delivery_no ?? doc?.lr_no ?? patchedRow.platformId } };
   } catch (error) {
     console.error("Failed to fetch delivered order detail:", error);
   } finally {
@@ -446,7 +478,8 @@ const handleSupport = async (row: any) => {
       subject: `Order support: ${row.orderId}`,
       message: "Need help with this delivered order.",
       priority: "High",
-    });
+      company: authStore.currentCompany ?? undefined,
+    }).send();
     ElMessage.success("Support ticket created");
   } catch (error) {
     ElMessage.error("Failed to create ticket");
@@ -458,13 +491,17 @@ const handleRowAction = (action: string, row: any) => {
     case "view":
       handleViewDetail(row);
       break;
+    case "tracking":
+      goToTracking(row?.id);
+      break;
     case "support":
       createDeliveredSupportTicket({
         id: row.id,
         subject: `Order support: ${row.orderId}`,
         message: "Need help with this delivered order.",
         priority: "High",
-      }).then(() => {
+        company: authStore.currentCompany ?? undefined,
+      }).send().then(() => {
         ElMessage.success("Support ticket created");
       });
       break;
@@ -475,30 +512,13 @@ const handleRowAction = (action: string, row: any) => {
 
 const getTaskSteps = (row: any): StepItem[] => {
   const active = getActiveStep(row);
-  const subtitle =
-    row?.status === "Delivered" ? "Completed" : row?.status || "Completed";
+  const subtitle = row?.status === "Delivered" ? "Completed" : row?.status || "Completed";
   return [
-    {
-      title: "Review & Fix",
-      subtitle,
-      state: active >= 0 ? "completed" : "pending",
-    },
-    {
-      title: "Warehouse",
-      subtitle,
-      state: active >= 1 ? "completed" : "pending",
-    },
+    { title: "Review & Fix", subtitle, state: active >= 0 ? "completed" : "pending" },
+    { title: "Warehouse", subtitle, state: active >= 1 ? "completed" : "pending" },
     { title: "Export", subtitle, state: active >= 2 ? "completed" : "pending" },
-    {
-      title: "Local Delivery",
-      subtitle,
-      state: active >= 3 ? "completed" : "pending",
-    },
-    {
-      title: "Delivered",
-      subtitle,
-      state: active >= 4 ? "completed" : "pending",
-    },
+    { title: "Local Delivery", subtitle, state: active >= 3 ? "completed" : "pending" },
+    { title: "Delivered", subtitle, state: active >= 4 ? "completed" : "pending" },
   ];
 };
 
@@ -514,6 +534,7 @@ const getActiveStep = (row: any) => {
 };
 
 onMounted(async () => {
+  await authStore.ensureCompany();
   await nextTick();
   if (filterRef.value) {
     currentFilters.value = filterRef.value.getSearchParams();

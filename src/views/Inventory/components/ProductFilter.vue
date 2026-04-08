@@ -2,8 +2,8 @@
   <div class="product-filter">
     <div class="py-2 flex items-center gap-3">
       <el-input
-        v-model="searchForm.sku"
-        placeholder="Search by SKU..."
+        v-model="searchForm.keyword"
+        placeholder="Search by SKU or name, press Enter"
         clearable
         class="!w-80"
         @keyup.enter="handleSearch"
@@ -19,6 +19,7 @@
         range-separator="to"
         start-placeholder="Start date"
         end-placeholder="End date"
+        value-format="YYYY-MM-DD"
         @change="handleSearch"
       />
       <el-select 
@@ -71,7 +72,8 @@ const showFilter = ref(false)
 const searchForm = reactive({
   name: "",
   category: "",
-  sku: "",
+  /** 同时匹配 Item.item_code、item_name（后端 LIKE） */
+  keyword: "",
 })
 
 const filters = reactive({

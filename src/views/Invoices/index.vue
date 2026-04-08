@@ -133,7 +133,7 @@
             <el-popover
               placement="bottom-start"
               trigger="click"
-              popper-class="!p-0 !px-2 !min-w-auto !rounded-lg !w-auto"
+              popper-class="!p-0 !px-6 !min-w-auto !rounded-lg !w-auto"
               :show-arrow="false"
             >
               <template #reference>

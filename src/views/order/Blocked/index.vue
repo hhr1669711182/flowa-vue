@@ -12,6 +12,15 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
+        <el-button
+          type="primary"
+          plain
+          size="large"
+          :disabled="!selectedOrderIds.length"
+          @click="batchTrackingSelected"
+        >
+          <span>Batch Tracking</span>
+        </el-button>
         <el-button type="primary" size="large" @click="handleAddProduct">
           <span class="flex items-center gap-1.5">
             <Icon icon="svg-icon:plus" color="#fff" />
@@ -110,15 +119,12 @@
 
         <template #order="{ row }">
           <div class="flex items-center gap-3">
-            <img
-              :src="productImage"
-              alt="Product Image"
-              class="w-10 h-10 rounded-lg"
-            />
             <div class="flex flex-col">
-              <span class="text-sm font-medium text-gray-800">{{
-                row.orderId
-              }}</span>
+              <span
+                class="text-sm font-medium text-gray-800 cursor-pointer hover:underline"
+                title="Open tracking page"
+                @click="goToTracking(row?.id)"
+              >{{ row.orderId }}</span>
               <span class="text-xs text-gray-500">{{ row.platformId }}</span>
             </div>
           </div>
@@ -133,14 +139,6 @@
           >
             {{ row.status }}
           </el-tag>
-        </template>
-        <template #customer="{ row }">
-          <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-800">{{
-              row.customerName
-            }}</span>
-            <span class="text-xs text-gray-500">{{ row.customerRegion }}</span>
-          </div>
         </template>
         <template #inventory="{ row }">
           <el-tag
@@ -157,19 +155,18 @@
             {{ row.inventoryStatus }}
           </el-tag>
         </template>
+        <template #destinationCountry="{ row }">
+          <span class="text-sm text-gray-700">{{ row.customerCountry || row.customerRegion || '-' }}</span>
+        </template>
         <template #date="{ row }">
           <div class="text-left text-xs text-gray-500">
             <div>
-              Create:
-              <span class="text-gray-900 font-semibold ml-1">{{
-                row.createDate
-              }}</span>
+              Order Transaction Time:
+              <span class="text-gray-900 font-semibold ml-1">{{ row.createDate }}</span>
             </div>
             <div class="mt-1">
-              Update:
-              <span class="text-gray-900 font-semibold ml-1">{{
-                row.blockedDate
-              }}</span>
+              Shipping Time:
+              <span class="text-gray-900 font-semibold ml-1">{{ row.dueDate }}</span>
             </div>
           </div>
         </template>
@@ -230,7 +227,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
+import { useRouter } from "vue-router";
 import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
 import {
@@ -244,12 +242,43 @@ import {
   type BlockedOrderStage,
   type BlockedOrderStatus,
 } from "@/api/order/blocked";
+import { extractOmsSalesOrderDetail, parseFlowaListSalesOrdersResult } from "@/utils/frappeResponse";
+import { mapRowToBlockedRecord, patchRowFromSalesOrderDoc } from "@/utils/flowaSalesOrderRowMap";
+import { useAuthStore } from "@/store/modules/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
 import { Steps } from "@/components/base/Steps";
-// ----------------- 临时数据
-import productImage from "@/views/icon/yf.png";
-// -----------------
+
+const authStore = useAuthStore();
+const router = useRouter();
+
+// Selection for batch tracking
+const selectedRows = ref<any[]>([]);
+const selectedOrderIds = computed(() =>
+  selectedRows.value.map((r) => r?.id).filter(Boolean)
+);
+
+function onSelectionChange(rows: any[]) {
+  selectedRows.value = Array.isArray(rows) ? rows : [];
+}
+
+function goToTracking(orderId: string) {
+  const kw = (orderId && String(orderId).trim()) || "";
+  router.push({ path: "/orders/tracking", query: kw ? { kw } : {} });
+}
+
+function batchTrackingSelected() {
+  const ids = selectedOrderIds.value;
+  if (!ids.length) return;
+  const kw = ids.join("\n");
+  router.push({ path: "/orders/tracking", query: { kw } });
+}
+
+function formatAmount(val: any) {
+  const n = Number(val);
+  return Number.isFinite(n) ? n.toFixed(2) : (val ?? "0.00");
+}
+
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
@@ -262,9 +291,11 @@ const handleAddProduct = () => {
 const handleViewDetail = async (row: any) => {
   if (!row?.id) return;
   try {
-    const res = await getBlockedOrderDetail(row.id);
+    const raw = await getBlockedOrderDetail(row.id, authStore.currentCompany ?? undefined).send();
+    const doc = extractOmsSalesOrderDetail(raw);
+    const detail = doc ? patchRowFromSalesOrderDoc(row, doc) : row;
     await ElMessageBox.alert(
-      `${res.orderId}\n${res.platformId}\n${res.stage}\n${res.status}\n${res.customerName} · ${res.customerRegion}\nSKU ${res.sku}`,
+      `${detail.orderId}\n${detail.platformId}\n${detail.stage}\n${detail.status}\n${detail.customerName} · ${detail.customerRegion}\nSKU ${detail.sku}`,
       "Order Detail",
       { confirmButtonText: "Close" },
     );
@@ -294,19 +325,13 @@ const handleFilterSearch = (params: any) => {
 const columns = [
   { type: "selection", width: 50 },
   { type: "expand", width: 50, slot: "expand" },
-  { label: "Order ID / Platform ID", slot: "order", width: "auto" },
+  { label: "Delivery Order No", slot: "order", width: 180 },
   { label: "Stages", slot: "stage", width: 120 },
   { label: "Status", slot: "status", width: 120, align: "center" },
-  { label: "Customer", slot: "customer", width: 150 },
   { label: "Inventory", slot: "inventory", width: 120, align: "center" },
+  { label: "Destination Country", slot: "destinationCountry", width: 120 },
   { label: "Date", slot: "date", width: 180 },
-  {
-    label: "Actions",
-    slot: "actions",
-    width: 150,
-    fixed: "right",
-    align: "center",
-  },
+  { label: "Actions", slot: "actions", width: 150, fixed: "right", align: "center" },
 ];
 
 const btnItems1 = [
@@ -390,6 +415,7 @@ const buildParams = (): BlockedOrderListParams => {
     ? ([toDateText(p.range[0]), toDateText(p.range[1])] as [string, string])
     : [];
   return {
+    company: authStore.currentCompany || undefined,
     page: page.value,
     pageSize: limit.value,
     keyword: keyword || undefined,
@@ -403,9 +429,10 @@ const buildParams = (): BlockedOrderListParams => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await getBlockedOrderList(buildParams());
-    tableData.value = res.list;
-    total.value = res.total;
+    const res = await getBlockedOrderList(buildParams()).send();
+    const { data: rows, total: n } = parseFlowaListSalesOrdersResult(res);
+    tableData.value = rows.map((o: unknown) => mapRowToBlockedRecord(o as Record<string, unknown>));
+    total.value = n;
     await nextTick();
   } catch (error) {
     console.error("Failed to fetch products:", error);
@@ -443,7 +470,8 @@ const handleSupport = async (row: any) => {
       subject: `Order support: ${row.orderId}`,
       message: "Need help with this blocked order.",
       priority: "High",
-    });
+      company: authStore.currentCompany ?? undefined,
+    }).send();
     ElMessage.success("Support ticket created");
   } catch (error) {
     ElMessage.error("Failed to create ticket");
@@ -452,6 +480,12 @@ const handleSupport = async (row: any) => {
 
 const handleRowAction = (action: string, row: any) => {
   switch (action) {
+    case "view":
+      handleViewDetail(row);
+      break;
+    case "tracking":
+      goToTracking(row?.id);
+      break;
     case "unblock":
       reactivateBlockedOrder({
         id: row.id,
@@ -465,7 +499,8 @@ const handleRowAction = (action: string, row: any) => {
       updateBlockedOrderStatus({
         id: row.id,
         status: "Cancelled",
-      }).then(() => {
+        company: authStore.currentCompany ?? undefined,
+      }).send().then(() => {
         ElMessage.success("Status updated");
         fetchData();
       });
@@ -506,6 +541,7 @@ const getActiveStep = (row: any) => {
 };
 
 onMounted(async () => {
+  await authStore.ensureCompany();
   await nextTick();
   if (filterRef.value) {
     currentFilters.value = filterRef.value.getSearchParams();

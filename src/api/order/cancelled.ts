@@ -1,4 +1,5 @@
 import { alovaInstance } from '@/services/alova'
+import { OMS_API } from '@/api/omsApiBase'
 
 export type CancelledOrderStage =
   | 'Review and Fix'
@@ -71,29 +72,44 @@ export interface CancelledOrderListResponse {
   }
 }
 
-export const getCancelledOrderList = (params: CancelledOrderListParams) => {
-  return alovaInstance.Get<CancelledOrderListResponse>('/api/orders/cancelled', { params })
+export const getCancelledOrderList = (params: CancelledOrderListParams & { company?: string }) => {
+  return alovaInstance.Post<any>(`${OMS_API}.flowa_list_sales_orders`, {
+    company: params.company,
+    page: params.page ?? 1,
+    page_size: params.pageSize ?? 20,
+    order_no: params.keyword || undefined,
+    menu_key: 'cancelled',
+    status: params.status || undefined,
+  })
 }
 
-export const getCancelledOrderDetail = (id: string) => {
-  return alovaInstance.Get<CancelledOrderRecord>('/api/orders/cancelled/detail', {
-    params: { id }
-  })
+export const getCancelledOrderDetail = (id: string, company?: string) => {
+  return alovaInstance.Post<any>(`${OMS_API}.get_sales_order_detail`, { name: id, company })
 }
 
 export const reactivateCancelledOrder = (payload: {
   id: string
   note: string
   targetStage: CancelledOrderStage
+  company?: string
 }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/cancelled/reactivate', payload)
+  return alovaInstance.Post<any>(`${OMS_API}.update_sales_order_fields`, {
+    name: payload.id,
+    remarks: payload.note,
+    company: payload.company,
+  })
 }
 
 export const updateCancelledOrderStatus = (payload: {
   id: string
   status: CancelledOrderStatus
+  company?: string
 }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/cancelled/status', payload)
+  return alovaInstance.Post<any>(`${OMS_API}.update_sales_order_fields`, {
+    name: payload.id,
+    status: payload.status,
+    company: payload.company,
+  })
 }
 
 export const createCancelledSupportTicket = (payload: {
@@ -101,6 +117,13 @@ export const createCancelledSupportTicket = (payload: {
   subject: string
   message: string
   priority: 'High' | 'Medium' | 'Low'
+  company?: string
 }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/cancelled/ticket', payload)
+  return alovaInstance.Post<any>(`${OMS_API}.create_sales_order_ticket`, {
+    sales_order_name: payload.id,
+    subject: payload.subject,
+    message: payload.message,
+    priority: payload.priority,
+    company: payload.company,
+  })
 }
