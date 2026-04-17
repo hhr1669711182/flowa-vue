@@ -1,4 +1,6 @@
 import { alovaInstance } from '@/services/alova'
+import { OMS_API, OMS_API_FETCH, withApiBase } from '@/api/omsApiBase'
+import { parseFrappeErrorBody } from '@/utils/frappeError'
 
 export interface LoginPayload {
   email: string
@@ -50,8 +52,29 @@ export interface RegisterResponse {
   token?: string
 }
 
-export const login = (data: LoginPayload) => {
-  return alovaInstance.Post<LoginResponse | { ok: false; message: string }>('/api/auth/login', data)
+export interface CurrentUserInfo {
+  user_id: string
+  full_name: string
+  avatar?: string
+  company: string
+  companies?: string[]
+  roles?: string[]
+}
+
+const useMock = (import.meta as any).env?.VITE_USE_MOCK === 'true'
+
+export const login = async (data: LoginPayload): Promise<any> => {
+  if (useMock) {
+    return alovaInstance.Post<LoginResponse | { ok: false; message: string }>('/api/auth/login', {
+      email: data.email,
+      password: data.password,
+    })
+  }
+
+  return alovaInstance.Post<any>('/api/method/login', {
+    usr: data.email,
+    pwd: data.password
+  })
 }
 
 export const loginOutApi = (): Promise<IResponse> => {
@@ -72,5 +95,31 @@ export const resendEmailCode = (data: ResetPayload) => {
 
 export const registerAccount = (data: RegisterPayload) => {
   return alovaInstance.Post<RegisterResponse>('/api/auth/register', data)
+}
+
+export const getLoggedUser = () => {
+  return alovaInstance.Get<{ message?: string }>('/api/method/frappe.auth.get_logged_user')
+}
+
+export const getCurrentUserInfo = () => {
+  return alovaInstance.Get<{ message: CurrentUserInfo }>(`${OMS_API}.get_current_user_info`)
+}
+
+export const getFrappeCsrfTokenApi = () => {
+  return alovaInstance.Get<{ message?: string }>(`${OMS_API_FETCH}.get_csrf_token`)
+}
+
+export const logout = async (): Promise<{ ok: true }> => {
+  if (useMock) {
+    localStorage.removeItem('token')
+    return { ok: true }
+  }
+  
+  await alovaInstance.Post<any>(withApiBase('/api/method/logout'))
+  return { ok: true }
+}
+
+export const unifiedRegister = async (payload: { email: string; password: string; full_name: string }): Promise<any> => {
+  return alovaInstance.Post<any>(`${OMS_API_FETCH}.unified_register`, payload)
 }
 

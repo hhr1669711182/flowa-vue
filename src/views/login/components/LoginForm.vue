@@ -34,8 +34,7 @@
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
-import { login } from '@/api/auth'
-import { useRequest } from 'alova/client'
+import { useAuthStore } from '@/store/modules/auth'
 import {
   saveRememberCredentials,
   loadRememberCredentials,
@@ -50,10 +49,16 @@ const emit = defineEmits<{
 }>()
 const formRef = ref()
 const userStore = useUserStore()
-const { send: sendLogin, loading } = useRequest(
-  (payload: { email: string; password: string; remember?: boolean }) => login(payload),
-  { immediate: false }
-)
+const authStore = useAuthStore()
+const loading = ref(false)
+const sendLogin = async (payload: { email: string; password: string; remember?: boolean }) => {
+  loading.value = true
+  try {
+    return await authStore.login(payload)
+  } finally {
+    loading.value = false
+  }
+}
 const form = reactive({
   email: '',
   password: '',
@@ -68,41 +73,43 @@ const submit = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
-    try {
+    // try {
       const res = await sendLogin({ email: form.email, password: form.password, remember: form.remember })
-      if ('token' in res) {
-        localStorage.setItem('token', res.token)
-        userStore.setToken(res.token)
+      console.log(122, res)
+      if (res && res.ok) {
+        const authUser = authStore.user
+        if (authStore.token) {
+          userStore.setToken(authStore.token)
+        }
         userStore.setRememberMe(!!form.remember)
         userStore.setLoginInfo({ username: form.email, password: form.password })
-        userStore.setUserInfo({
-          id: res.user.id,
-          name: res.user.name,
-          email: res.user.email,
-          username: res.user.name || form.email,
-          password: '',
-          role: res.user.role,
-          roleId: res.user.role
-        })
+        if (authUser) {
+          userStore.setUserInfo({
+            id: authUser.id,
+            name: authUser.name,
+            email: authUser.email,
+            username: authUser.name || form.email,
+            password: '',
+            role: authUser.role,
+            roleId: authUser.role
+          })
+        }
         if (form.remember) {
-          await saveRememberCredentials({ email: form.email, password: form.password })
           await tryBrowserCredentialStore(form.email, form.password)
-        } else {
-          await clearRememberCredentials()
         }
         errorTip.value = ''
         ElMessage.success('Login successfully')
         window.location.href = '#/'
       } else {
         errorTip.value =
-          res.message ||
+          (res as any)?.message ||
           'Incorrect email or password. Try again, or contact the Flowa Support Team.'
       }
-    } catch (e: any) {
-      errorTip.value =
-        e?.message ||
-        'Login failed due to a network or system issue. Please try again later.'
-    }
+    // } catch (e: any) {
+    //   errorTip.value =
+    //     e?.message ||
+    //     'Login failed due to a network or system issue. Please try again later.'
+    // }
   })
 }
 

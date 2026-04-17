@@ -19,6 +19,18 @@ export const routes: Array<any> = [
     meta: { hidden: true }
   },
   {
+    path: '/tms_tracking',
+    name: 'TmsPublicTracking',
+    component: () => import('../views/order/CustomerTracking.vue'),
+    meta: { hidden: true }
+  },
+  {
+    path: '/customer-track',
+    name: 'CustomerTrackLegacy',
+    component: () => import('../views/order/CustomerTracking.vue'),
+    meta: { hidden: true }
+  },
+  {
     path: '/',
     component: () => import('../components/layout/MainLayout.vue'),
     redirect: '/dashboard',
@@ -107,6 +119,12 @@ export const routes: Array<any> = [
             name: 'Cancelled',
             component: () => import('../views/order/Cancelled/index.vue'),
             meta: { title: 'Cancelled' }
+          },
+          {
+            path: 'tracking',
+            name: 'Tracking',
+            component: () => import('../views/order/Tracking.vue'),
+            meta: { title: 'Tracking' }
           }
         ]
       },
@@ -125,6 +143,12 @@ export const routes: Array<any> = [
             name: 'Outbound',
             component: () => import('../views/Billing/outbound/index.vue'),
             meta: { title: 'Outbound' }
+          },
+          {
+            path: 'recharge',
+            name: 'Recharge',
+            component: () => import('../views/Billing/Recharge.vue'),
+            meta: { title: 'Recharge' }
           },
           {
             path: 'Exception',

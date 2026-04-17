@@ -332,6 +332,15 @@
 import { ref, onMounted, nextTick } from "vue";
 import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/modules/auth";
+import {
+  flowaOrderActionApprove,
+  flowaOrderActionBlock,
+  flowaOrderActionCancel,
+  flowaOrderActionDuplicateOrder,
+  extractFlowaOrderActionResult,
+} from "@/api/order/omsActions";
 import {
   createOrderTicket,
   getOrderDetail,
@@ -357,6 +366,10 @@ const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
 const showCards = ref(true);
 const dateRange = ref("");
+
+const isMock = (import.meta as any).env?.VITE_USE_MOCK === "true";
+const router = useRouter();
+const authStore = useAuthStore();
 
 const handleAddProduct = () => {
   currentProductId.value = undefined;
@@ -433,6 +446,40 @@ const btnItems = [
     label: "View Details",
     icon: "svg-icon:eye",
     tone: "primary",
+  },
+  {
+    key: "track",
+    label: "Tracking",
+    icon: "svg-icon:location-arrow",
+    tone: "primary",
+  },
+  {
+    key: "approve",
+    label: "Approve",
+    icon: "svg-icon:check",
+    tone: "primary",
+    disabled: isMock,
+  },
+  {
+    key: "cancel",
+    label: "Cancel",
+    icon: "svg-icon:ban",
+    tone: "danger",
+    disabled: isMock,
+  },
+  {
+    key: "block",
+    label: "Block",
+    icon: "svg-icon:ban",
+    tone: "danger",
+    disabled: isMock,
+  },
+  {
+    key: "duplicate",
+    label: "Duplicate",
+    icon: "svg-icon:copy",
+    tone: "primary",
+    disabled: isMock,
   },
   {
     key: "support",
@@ -563,6 +610,82 @@ const handleRowAction = (action: string, row: any) => {
   switch (action) {
     case "view":
       handleViewDetail(row);
+      break;
+    case "track": {
+      const kw = (row?.orderId || row?.id || "").toString().trim();
+      router.push({ path: "/orders/tracking", query: kw ? { kw } : {} });
+      break;
+    }
+    case "approve":
+      flowaOrderActionApprove({
+        sales_order_name: String(row?.id || ""),
+        company: (authStore as any).currentCompany ?? undefined,
+      })
+        .then((raw) => {
+          const parsed = extractFlowaOrderActionResult(raw);
+          if (!parsed.ok) throw new Error(parsed.error || "Failed");
+          ElMessage.success(parsed.message || "Approved");
+          fetchData();
+        })
+        .catch((e: any) => {
+          ElMessage.error(e?.message || "Failed");
+        });
+      break;
+    case "block":
+      flowaOrderActionBlock({
+        sales_order_name: String(row?.id || ""),
+        company: (authStore as any).currentCompany ?? undefined,
+      })
+        .then((raw) => {
+          const parsed = extractFlowaOrderActionResult(raw);
+          if (!parsed.ok) throw new Error(parsed.error || "Failed");
+          ElMessage.success(parsed.message || "Blocked");
+          fetchData();
+        })
+        .catch((e: any) => {
+          ElMessage.error(e?.message || "Failed");
+        });
+      break;
+    case "duplicate":
+      flowaOrderActionDuplicateOrder({
+        sales_order_name: String(row?.id || ""),
+        company: (authStore as any).currentCompany ?? undefined,
+      })
+        .then((raw) => {
+          const parsed = extractFlowaOrderActionResult(raw);
+          if (!parsed.ok) throw new Error(parsed.error || "Failed");
+          ElMessage.success(parsed.message || "Duplicated");
+          fetchData();
+        })
+        .catch((e: any) => {
+          ElMessage.error(e?.message || "Failed");
+        });
+      break;
+    case "cancel":
+      ElMessageBox.prompt("Please enter cancel reason", "Cancel Order", {
+        confirmButtonText: "Confirm",
+        cancelButtonText: "Close",
+        inputPlaceholder: "Reason",
+      })
+        .then((res: any) => {
+          const reason = String(res?.value || "").trim();
+          if (!reason) throw new Error("Cancel reason is required");
+          return flowaOrderActionCancel({
+            sales_order_name: String(row?.id || ""),
+            company: (authStore as any).currentCompany ?? undefined,
+            cancel_reason: reason,
+          });
+        })
+        .then((raw) => {
+          const parsed = extractFlowaOrderActionResult(raw);
+          if (!parsed.ok) throw new Error(parsed.error || "Failed");
+          ElMessage.success(parsed.message || "Cancelled");
+          fetchData();
+        })
+        .catch((e: any) => {
+          if (e === "cancel") return;
+          ElMessage.error(e?.message || "Failed");
+        });
       break;
     case "await":
       updateOrderStatus({
