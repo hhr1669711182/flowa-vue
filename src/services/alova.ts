@@ -9,7 +9,7 @@ import { parseFrappeErrorBody } from '@/utils/frappeError';
 
 const useMock = (import.meta as any).env?.VITE_USE_MOCK === 'true';
 const baseURL = (import.meta as any).env?.VITE_API_BASE_URL || '';
-const linkURL = '/api/method/upsystem.upsystem.api_oms_ui';
+const linkURL = '/api/method/';
 
 let requestAdapter: any;
 if (useMock) {
@@ -40,9 +40,25 @@ export const alovaInstance = createAlova({
   requestAdapter,
   async beforeRequest(method) {
     (method.config as any).credentials = 'include';
-    
-    const isAuthReq = method.url.includes('/login') || method.url.includes('unified_register')
-    
+
+    method.config.headers ||= {};
+
+    const authMethods = ['login', 'unified_register'];
+
+    const endpointName = (() => {
+      if (typeof method.url !== 'string') return '';
+      let u = method.url;
+      const qIndex = u.indexOf('?');
+      if (qIndex >= 0) u = u.slice(0, qIndex);
+      const lastSlash = u.lastIndexOf('/');
+      if (lastSlash >= 0) u = u.slice(lastSlash + 1);
+      const lastDot = u.lastIndexOf('.');
+      if (lastDot >= 0) u = u.slice(lastDot + 1);
+      return u;
+    })();
+
+    const isAuthReq = authMethods.includes(endpointName);
+
     if (!isAuthReq) {
       const token = localStorage.getItem('token');
       if (token) {
@@ -55,10 +71,7 @@ export const alovaInstance = createAlova({
       method.config.headers['X-Frappe-CSRF-Token'] = csrf;
     }
 
-    // Auto-convert specific Frappe requests to application/x-www-form-urlencoded
-    const needsUrlEncoded = method.url.includes('/api/method/login') || 
-                            method.url.includes('unified_register') || 
-                            method.url.includes('create_recharge');
+    const needsUrlEncoded = ['login', 'unified_register', 'create_recharge'].includes(endpointName);
                             
     if (needsUrlEncoded && method.data && typeof method.data === 'object' && !(method.data instanceof FormData) && !(method.data instanceof URLSearchParams)) {
       method.config.headers['Content-Type'] = 'application/x-www-form-urlencoded';

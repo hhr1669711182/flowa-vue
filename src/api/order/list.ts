@@ -1,5 +1,4 @@
 import { alovaInstance } from '@/services/alova'
-import { OMS_API } from '@/api/omsApiBase'
 
 export const getOrders = (
   params: {
@@ -13,7 +12,7 @@ export const getOrders = (
     page_size?: number
   } = {}
 ) => {
-  return alovaInstance.Post<any>(`${OMS_API}.flowa_list_sales_orders`, {
+  return alovaInstance.Post<any>('flowa_list_sales_orders', {
     page: params.page ?? 1,
     page_size: params.page_size ?? 20,
     ...params,
@@ -21,6 +20,5 @@ export const getOrders = (
 }
 
 export const getOrderStats = (company?: string) => {
-  return alovaInstance.Post<any>(`${OMS_API}.get_sales_order_counts`, company ? { company } : {})
+  return alovaInstance.Post<any>('get_sales_order_counts', company ? { company } : {})
 }
-

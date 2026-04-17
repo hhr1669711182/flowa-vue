@@ -4,10 +4,11 @@ import { setCssVar, humpToUnderline } from '@/utils'
 import { colorIsDark, hexToRGB, lighten, mix } from '@/utils/color'
 import { ElMessage, ComponentSize } from 'element-plus'
 import { useCssVar } from '@vueuse/core'
-import { unref } from 'vue'
+import { computed, reactive, toRefs, unref } from 'vue'
 import { useDark } from '@vueuse/core'
 
 interface AppState {
+  useMock: boolean
   breadcrumb: boolean
   breadcrumbIcon: boolean
   collapse: boolean
@@ -36,280 +37,209 @@ interface AppState {
   fixedMenu: boolean
 }
 
-export const useAppStore = defineStore('app', {
-  state: (): AppState => {
-    return {
+export const useAppStore = defineStore(
+  'app',
+  () => {
+    const state = reactive<AppState>({
+      useMock: (import.meta as any).env?.VITE_USE_MOCK === 'true',
       sizeMap: ['default', 'large', 'small'],
-      mobile: false, // 是否是移动端
-      title: import.meta.env.VITE_APP_TITLE, // 标题
-      pageLoading: false, // 路由跳转loading
-      breadcrumb: true, // 面包屑
-      breadcrumbIcon: true, // 面包屑图标
-      collapse: false, // 折叠菜单
-      uniqueOpened: false, // 是否只保持一个子菜单的展开
-      hamburger: true, // 折叠图标
-      schemeConfig: true, // 主题配置图标
-      screenfull: true, // 全屏图标
-      size: true, // 尺寸图标
-      locale: true, // 多语言图标
-      tagsView: true, // 标签页
-      tagsViewIcon: true, // 是否显示标签图标
-      logo: true, // logo
-      fixedHeader: true, // 固定toolheader
-      footer: false, // 显示页脚
-      greyMode: false, // 是否开始灰色模式，用于特殊悼念日
-      dynamicRouter: false, // 是否动态路由
-      serverDynamicRouter: true, // 是否服务端渲染动态路由
-      fixedMenu: false, // 是否固定菜单
-
-      layout: 'classic', // layout布局
-      isDark: true, // 是否是暗黑模式
-      currentSize: 'default', // 组件尺寸
+      mobile: false,
+      title: import.meta.env.VITE_APP_TITLE,
+      pageLoading: false,
+      breadcrumb: true,
+      breadcrumbIcon: true,
+      collapse: false,
+      uniqueOpened: false,
+      hamburger: true,
+      schemeConfig: true,
+      screenfull: true,
+      size: true,
+      locale: true,
+      tagsView: true,
+      tagsViewIcon: true,
+      logo: true,
+      fixedHeader: true,
+      footer: false,
+      greyMode: false,
+      dynamicRouter: false,
+      serverDynamicRouter: true,
+      fixedMenu: false,
+      layout: 'classic',
+      isDark: true,
+      currentSize: 'default',
       theme: {
-        // 主题色
         elColorPrimary: '#409eff',
-        // 左侧菜单边框颜色
         leftMenuBorderColor: 'inherit',
-        // 左侧菜单背景颜色
         leftMenuBgColor: '#001529',
-        // 左侧菜单浅色背景颜色
         leftMenuBgLightColor: '#0f2438',
-        // 左侧菜单选中背景颜色
         leftMenuBgActiveColor: 'var(--el-color-primary)',
-        // 左侧菜单收起选中背景颜色
         leftMenuCollapseBgActiveColor: 'var(--el-color-primary)',
-        // 左侧菜单字体颜色
         leftMenuTextColor: '#bfcbd9',
-        // 左侧菜单选中字体颜色
         leftMenuTextActiveColor: '#fff',
-        // logo字体颜色
         logoTitleTextColor: '#fff',
-        // logo边框颜色
         logoBorderColor: 'inherit',
-        // 头部背景颜色
         topHeaderBgColor: '#fff',
-        // 头部字体颜色
         topHeaderTextColor: 'inherit',
-        // 头部悬停颜色
         topHeaderHoverColor: '#f6f6f6',
-        // 头部边框颜色
         topToolBorderColor: '#eee'
       } as ThemeTypes
+    })
+
+    const getUseMock = computed(() => state.useMock)
+    const getBreadcrumb = computed(() => state.breadcrumb)
+    const getBreadcrumbIcon = computed(() => state.breadcrumbIcon)
+    const getCollapse = computed(() => state.collapse)
+    const getUniqueOpened = computed(() => state.uniqueOpened)
+    const getHamburger = computed(() => state.hamburger)
+    const getSchemeConfig = computed(() => state.schemeConfig)
+    const getScreenfull = computed(() => state.screenfull)
+    const getSize = computed(() => state.size)
+    const getLocale = computed(() => state.locale)
+    const getTagsView = computed(() => state.tagsView)
+    const getTagsViewIcon = computed(() => state.tagsViewIcon)
+    const getLogo = computed(() => state.logo)
+    const getFixedHeader = computed(() => state.fixedHeader)
+    const getGreyMode = computed(() => state.greyMode)
+    const getDynamicRouter = computed(() => state.dynamicRouter)
+    const getServerDynamicRouter = computed(() => state.serverDynamicRouter)
+    const getFixedMenu = computed(() => state.fixedMenu)
+    const getPageLoading = computed(() => state.pageLoading)
+    const getLayout = computed(() => state.layout)
+    const getTitle = computed(() => state.title)
+    const getIsDark = computed(() => state.isDark)
+    const getCurrentSize = computed(() => state.currentSize)
+    const getSizeMap = computed(() => state.sizeMap)
+    const getMobile = computed(() => state.mobile)
+    const getTheme = computed(() => state.theme)
+    const getFooter = computed(() => state.footer)
+
+    const setBreadcrumb = (breadcrumb: boolean) => {
+      state.breadcrumb = breadcrumb
     }
-  },
-  getters: {
-    getBreadcrumb(): boolean {
-      return this.breadcrumb
-    },
-    getBreadcrumbIcon(): boolean {
-      return this.breadcrumbIcon
-    },
-    getCollapse(): boolean {
-      return this.collapse
-    },
-    getUniqueOpened(): boolean {
-      return this.uniqueOpened
-    },
-    getHamburger(): boolean {
-      return this.hamburger
-    },
-    getSchemeConfig(): boolean {
-      return this.schemeConfig
-    },
-    getScreenfull(): boolean {
-      return this.screenfull
-    },
-    getSize(): boolean {
-      return this.size
-    },
-    getLocale(): boolean {
-      return this.locale
-    },
-    getTagsView(): boolean {
-      return this.tagsView
-    },
-    getTagsViewIcon(): boolean {
-      return this.tagsViewIcon
-    },
-    getLogo(): boolean {
-      return this.logo
-    },
-    getFixedHeader(): boolean {
-      return this.fixedHeader
-    },
-    getGreyMode(): boolean {
-      return this.greyMode
-    },
-    getDynamicRouter(): boolean {
-      return this.dynamicRouter
-    },
-    getServerDynamicRouter(): boolean {
-      return this.serverDynamicRouter
-    },
-    getFixedMenu(): boolean {
-      return this.fixedMenu
-    },
-    getPageLoading(): boolean {
-      return this.pageLoading
-    },
-    getLayout(): LayoutType {
-      return this.layout
-    },
-    getTitle(): string {
-      return this.title
-    },
-    getIsDark(): boolean {
-      return this.isDark
-    },
-    getCurrentSize(): ComponentSize {
-      return this.currentSize
-    },
-    getSizeMap(): ComponentSize[] {
-      return this.sizeMap
-    },
-    getMobile(): boolean {
-      return this.mobile
-    },
-    getTheme(): ThemeTypes {
-      return this.theme
-    },
-    getFooter(): boolean {
-      return this.footer
+    const setBreadcrumbIcon = (breadcrumbIcon: boolean) => {
+      state.breadcrumbIcon = breadcrumbIcon
     }
-  },
-  actions: {
-    setBreadcrumb(breadcrumb: boolean) {
-      this.breadcrumb = breadcrumb
-    },
-    setBreadcrumbIcon(breadcrumbIcon: boolean) {
-      this.breadcrumbIcon = breadcrumbIcon
-    },
-    setCollapse(collapse: boolean) {
-      this.collapse = collapse
-    },
-    setUniqueOpened(uniqueOpened: boolean) {
-      this.uniqueOpened = uniqueOpened
-    },
-    setHamburger(hamburger: boolean) {
-      this.hamburger = hamburger
-    },
-    setScreenfull(screenfull: boolean) {
-      this.screenfull = screenfull
-    },
-    setSize(size: boolean) {
-      this.size = size
-    },
-    setLocale(locale: boolean) {
-      this.locale = locale
-    },
-    setTagsView(tagsView: boolean) {
-      this.tagsView = tagsView
-    },
-    setTagsViewIcon(tagsViewIcon: boolean) {
-      this.tagsViewIcon = tagsViewIcon
-    },
-    setLogo(logo: boolean) {
-      this.logo = logo
-    },
-    setFixedHeader(fixedHeader: boolean) {
-      this.fixedHeader = fixedHeader
-    },
-    setGreyMode(greyMode: boolean) {
-      this.greyMode = greyMode
-    },
-    setDynamicRouter(dynamicRouter: boolean) {
-      this.dynamicRouter = dynamicRouter
-    },
-    setServerDynamicRouter(serverDynamicRouter: boolean) {
-      this.serverDynamicRouter = serverDynamicRouter
-    },
-    setFixedMenu(fixedMenu: boolean) {
-      this.fixedMenu = fixedMenu
-    },
-    setPageLoading(pageLoading: boolean) {
-      this.pageLoading = pageLoading
-    },
-    setLayout(layout: LayoutType) {
-      if (this.mobile && layout !== 'classic') {
+    const setCollapse = (collapse: boolean) => {
+      state.collapse = collapse
+    }
+    const setUniqueOpened = (uniqueOpened: boolean) => {
+      state.uniqueOpened = uniqueOpened
+    }
+    const setHamburger = (hamburger: boolean) => {
+      state.hamburger = hamburger
+    }
+    const setScreenfull = (screenfull: boolean) => {
+      state.screenfull = screenfull
+    }
+    const setSize = (size: boolean) => {
+      state.size = size
+    }
+    const setLocale = (locale: boolean) => {
+      state.locale = locale
+    }
+    const setTagsView = (tagsView: boolean) => {
+      state.tagsView = tagsView
+    }
+    const setTagsViewIcon = (tagsViewIcon: boolean) => {
+      state.tagsViewIcon = tagsViewIcon
+    }
+    const setLogo = (logo: boolean) => {
+      state.logo = logo
+    }
+    const setFixedHeader = (fixedHeader: boolean) => {
+      state.fixedHeader = fixedHeader
+    }
+    const setGreyMode = (greyMode: boolean) => {
+      state.greyMode = greyMode
+    }
+    const setDynamicRouter = (dynamicRouter: boolean) => {
+      state.dynamicRouter = dynamicRouter
+    }
+    const setServerDynamicRouter = (serverDynamicRouter: boolean) => {
+      state.serverDynamicRouter = serverDynamicRouter
+    }
+    const setFixedMenu = (fixedMenu: boolean) => {
+      state.fixedMenu = fixedMenu
+    }
+    const setPageLoading = (pageLoading: boolean) => {
+      state.pageLoading = pageLoading
+    }
+    const setLayout = (layout: LayoutType) => {
+      if (state.mobile && layout !== 'classic') {
         ElMessage.warning('移动端模式下不支持切换其它布局')
         return
       }
-      this.layout = layout
-    },
-    setTitle(title: string) {
-      this.title = title
-    },
-    setIsDark(isDark: boolean) {
-      this.isDark = isDark
-      if (this.isDark) {
+      state.layout = layout
+    }
+    const setTitle = (title: string) => {
+      state.title = title
+    }
+    const setCurrentSize = (currentSize: ComponentSize) => {
+      state.currentSize = currentSize
+    }
+    const setMobile = (mobile: boolean) => {
+      state.mobile = mobile
+    }
+    const setTheme = (theme: ThemeTypes) => {
+      state.theme = Object.assign(state.theme, theme)
+    }
+    const setFooter = (footer: boolean) => {
+      state.footer = footer
+    }
+
+    const setPrimaryLight = () => {
+      if (!state.theme.elColorPrimary) return
+      const elColorPrimary = state.theme.elColorPrimary
+      const color = state.isDark ? '#000000' : '#ffffff'
+      const lightList = [3, 5, 7, 8, 9]
+      lightList.forEach((v) => {
+        setCssVar(`--el-color-primary-light-${v}`, mix(color, elColorPrimary, v / 10))
+      })
+      setCssVar('--el-color-primary-dark-2', mix(color, elColorPrimary, 0.2))
+    }
+
+    const setCssVarTheme = () => {
+      for (const key in state.theme) {
+        setCssVar(`--${humpToUnderline(key)}`, state.theme[key as keyof ThemeTypes])
+      }
+      setPrimaryLight()
+    }
+
+    const setIsDark = (isDark: boolean) => {
+      state.isDark = isDark
+      if (state.isDark) {
         document.documentElement.classList.add('dark')
         document.documentElement.classList.remove('light')
       } else {
         document.documentElement.classList.add('light')
         document.documentElement.classList.remove('dark')
       }
-      this.setPrimaryLight()
-    },
-    setCurrentSize(currentSize: ComponentSize) {
-      this.currentSize = currentSize
-    },
-    setMobile(mobile: boolean) {
-      this.mobile = mobile
-    },
-    setTheme(theme: ThemeTypes) {
-      this.theme = Object.assign(this.theme, theme)
-    },
-    setCssVarTheme() {
-      for (const key in this.theme) {
-        setCssVar(`--${humpToUnderline(key)}`, this.theme[key as keyof ThemeTypes])
-      }
-      this.setPrimaryLight()
-    },
-    setFooter(footer: boolean) {
-      this.footer = footer
-    },
-    setPrimaryLight() {
-      if (this.theme.elColorPrimary) {
-        const elColorPrimary = this.theme.elColorPrimary
-        const color = this.isDark ? '#000000' : '#ffffff'
-        const lightList = [3, 5, 7, 8, 9]
-        lightList.forEach((v) => {
-          setCssVar(`--el-color-primary-light-${v}`, mix(color, elColorPrimary, v / 10))
-        })
-        setCssVar(`--el-color-primary-dark-2`, mix(color, elColorPrimary, 0.2))
-      }
-    },
-    setMenuTheme(color: string) {
+      setPrimaryLight()
+    }
+
+    const setMenuTheme = (color: string) => {
       const primaryColor = useCssVar('--el-color-primary', document.documentElement)
       const isDarkColor = colorIsDark(color)
       const theme: Recordable = {
-        // 左侧菜单边框颜色
         leftMenuBorderColor: isDarkColor ? 'inherit' : '#eee',
-        // 左侧菜单背景颜色
         leftMenuBgColor: color,
-        // 左侧菜单浅色背景颜色
         leftMenuBgLightColor: isDarkColor ? lighten(color!, 6) : color,
-        // 左侧菜单选中背景颜色
         leftMenuBgActiveColor: isDarkColor
           ? 'var(--el-color-primary)'
           : hexToRGB(unref(primaryColor) as string, 0.1),
-        // 左侧菜单收起选中背景颜色
         leftMenuCollapseBgActiveColor: isDarkColor
           ? 'var(--el-color-primary)'
           : hexToRGB(unref(primaryColor) as string, 0.1),
-        // 左侧菜单字体颜色
         leftMenuTextColor: isDarkColor ? '#bfcbd9' : '#333',
-        // 左侧菜单选中字体颜色
         leftMenuTextActiveColor: isDarkColor ? '#fff' : 'var(--el-color-primary)',
-        // logo字体颜色
         logoTitleTextColor: isDarkColor ? '#fff' : 'inherit',
-        // logo边框颜色
         logoBorderColor: isDarkColor ? color : '#eee'
       }
-      this.setTheme(theme)
-      this.setCssVarTheme()
-    },
-    setHeaderTheme(color: string) {
+      setTheme(theme)
+      setCssVarTheme()
+    }
+
+    const setHeaderTheme = (color: string) => {
       const isDarkColor = colorIsDark(color)
       const textColor = isDarkColor ? '#fff' : 'inherit'
       const textHoverColor = isDarkColor ? lighten(color!, 6) : '#f6f6f6'
@@ -317,28 +247,91 @@ export const useAppStore = defineStore('app', {
       setCssVar('--top-header-bg-color', color)
       setCssVar('--top-header-text-color', textColor)
       setCssVar('--top-header-hover-color', textHoverColor)
-      this.setTheme({
+      setTheme({
         topHeaderBgColor: color,
         topHeaderTextColor: textColor,
         topHeaderHoverColor: textHoverColor,
         topToolBorderColor
       })
-      if (this.getLayout === 'top') {
-        this.setMenuTheme(color)
+      if (getLayout.value === 'top') {
+        setMenuTheme(color)
       }
-    },
-    initTheme() {
+    }
+
+    const initTheme = () => {
       const isDark = useDark({
         valueDark: 'dark',
         valueLight: 'light'
       })
-      isDark.value = this.getIsDark
+      isDark.value = getIsDark.value
       const newTitle = import.meta.env.VITE_APP_TITLE
-      newTitle !== this.getTitle && this.setTitle(newTitle)
+      if (newTitle !== getTitle.value) setTitle(newTitle)
+    }
+
+    return {
+      ...toRefs(state),
+      getUseMock,
+      getBreadcrumb,
+      getBreadcrumbIcon,
+      getCollapse,
+      getUniqueOpened,
+      getHamburger,
+      getSchemeConfig,
+      getScreenfull,
+      getSize,
+      getLocale,
+      getTagsView,
+      getTagsViewIcon,
+      getLogo,
+      getFixedHeader,
+      getGreyMode,
+      getDynamicRouter,
+      getServerDynamicRouter,
+      getFixedMenu,
+      getPageLoading,
+      getLayout,
+      getTitle,
+      getIsDark,
+      getCurrentSize,
+      getSizeMap,
+      getMobile,
+      getTheme,
+      getFooter,
+      setBreadcrumb,
+      setBreadcrumbIcon,
+      setCollapse,
+      setUniqueOpened,
+      setHamburger,
+      setScreenfull,
+      setSize,
+      setLocale,
+      setTagsView,
+      setTagsViewIcon,
+      setLogo,
+      setFixedHeader,
+      setGreyMode,
+      setDynamicRouter,
+      setServerDynamicRouter,
+      setFixedMenu,
+      setPageLoading,
+      setLayout,
+      setTitle,
+      setIsDark,
+      setCurrentSize,
+      setMobile,
+      setTheme,
+      setCssVarTheme,
+      setFooter,
+      setPrimaryLight,
+      setMenuTheme,
+      setHeaderTheme,
+      initTheme
     }
   },
-  persist: true
-})
+  {
+    persist: true
+  }
+)
 
 export const useAppStoreWithOut = () => {
   return useAppStore(store)

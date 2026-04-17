@@ -1,5 +1,4 @@
 import { alovaInstance } from '@/services/alova'
-import { OMS_API } from '@/api/omsApiBase'
 
 const TMS_TRACKING_API = '/api/method/upsystem.upsystem.api_tms_tracking'
 const API_BASE = '/api/method/upsystem.upsystem.api'
@@ -18,15 +17,14 @@ export function batchTracking(trackingNumbers: string[]) {
 }
 
 export function getTrackingBySalesOrders(params: { company: string; sales_orders: string[] }) {
-  return alovaInstance.Post<any>(`${OMS_API}.get_tracking_by_sales_orders`, {
+  return alovaInstance.Post<any>('get_tracking_by_sales_orders', {
     company: params.company?.trim() || '',
     sales_orders: params.sales_orders || [],
   })
 }
 
 export function getPublicTrackingByNumber(trackingOrWaybill: string) {
-  return alovaInstance.Post<any>(`${OMS_API}.get_public_tracking_by_number`, {
+  return alovaInstance.Post<any>('get_public_tracking_by_number', {
     tracking_or_waybill: String(trackingOrWaybill || '').trim(),
   })
 }
-

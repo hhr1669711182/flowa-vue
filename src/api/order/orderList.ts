@@ -1,8 +1,6 @@
 import { alovaInstance } from '@/services/alova'
-import { OMS_API } from '@/api/omsApiBase'
+import { useAppStoreWithOut } from '@/store/modules/app'
 import { parseFlowaListSalesOrdersResult, extractOmsSalesOrderDetail, unwrapFrappeMessage } from '@/utils/frappeResponse'
-
-const useMock = (import.meta as any).env?.VITE_USE_MOCK === 'true'
 
 export type OrderStage =
   | 'Review & Fix'
@@ -183,7 +181,7 @@ function mapOmsDocToOrderDetail(doc: Record<string, unknown>, idHint: string): O
 }
 
 export const getOrderList = async (params: OrderListParams): Promise<OrderListResponse> => {
-  if (useMock) {
+  if (useAppStoreWithOut().useMock) {
     const method = alovaInstance.Get<OrderListResponse>('/api/orders/order-list', { params })
     return (await (method as any)) as OrderListResponse
   }
@@ -195,7 +193,7 @@ export const getOrderList = async (params: OrderListParams): Promise<OrderListRe
     ...(params.status ? { status: params.status } : {}),
     menu_key: 'list',
   }
-  const raw = await (alovaInstance.Post<any>(`${OMS_API}.flowa_list_sales_orders`, body) as any)
+  const raw = await (alovaInstance.Post<any>('flowa_list_sales_orders', body) as any)
   const parsed = parseFlowaListSalesOrdersResult(raw)
   const list = parsed.data
     .filter((x) => x && typeof x === 'object')
@@ -204,7 +202,7 @@ export const getOrderList = async (params: OrderListParams): Promise<OrderListRe
 }
 
 export const getOrderDetail = async (id: string): Promise<OrderListRecord> => {
-  if (useMock) {
+  if (useAppStoreWithOut().useMock) {
     const method = alovaInstance.Get<OrderListRecord>('/api/orders/order-list/detail', { params: { id } })
     return (await (method as any)) as OrderListRecord
   }
@@ -216,7 +214,7 @@ export const getOrderDetail = async (id: string): Promise<OrderListRecord> => {
       return undefined
     }
   })()
-  const raw = await (alovaInstance.Post<any>(`${OMS_API}.get_sales_order_detail`, {
+  const raw = await (alovaInstance.Post<any>('get_sales_order_detail', {
     name: id,
     ...(cachedCompany ? { company: cachedCompany } : {}),
   }) as any)
@@ -229,7 +227,7 @@ export const getOrderDetail = async (id: string): Promise<OrderListRecord> => {
 }
 
 export const updateOrderStatus = async (payload: { id: string; status: OrderStatus }) => {
-  if (useMock) {
+  if (useAppStoreWithOut().useMock) {
     const method = alovaInstance.Post<{ success: boolean }>('/api/orders/order-list/status', payload)
     return (await (method as any)) as { success: boolean }
   }
@@ -254,7 +252,7 @@ export const createOrderTicket = async (payload: {
   message: string
   priority: 'High' | 'Medium' | 'Low'
 }) => {
-  if (useMock) {
+  if (useAppStoreWithOut().useMock) {
     const method = alovaInstance.Post<{ success: boolean }>('/api/orders/order-list/ticket', payload)
     return (await (method as any)) as { success: boolean }
   }
@@ -280,10 +278,9 @@ export const createOrderTicket = async (payload: {
 }
 
 export const deleteOrderItem = async (payload: { id: string; itemId: string }) => {
-  if (useMock) {
+  if (useAppStoreWithOut().useMock) {
     const method = alovaInstance.Post<{ success: boolean }>('/api/orders/order-list/item/delete', payload)
     return (await (method as any)) as { success: boolean }
   }
   throw new Error('This action is not supported in OMS mode yet.')
 }
-

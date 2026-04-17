@@ -1,5 +1,13 @@
+/*
+ * @Author: huanghuanrong
+ * @Date: 2026-04-08 11:36:55
+ * @LastEditTime: 2026-04-17 19:03:39
+ * @LastEditors: huanghuanrong
+ * @Description: 文件描述
+ * @FilePath: \flowa-vue\src\api\dashboard.ts
+ */
 import { alovaInstance } from '@/services/alova';
-import { OMS_API_FETCH } from '@/api/omsApiBase'
+import { useAppStoreWithOut } from '@/store/modules/app'
 
 export const getDashboardStats = () => {
   return alovaInstance.Get<any>('/api/dashboard/stats');
@@ -18,9 +26,8 @@ export const markNotificationAsRead = (id?: number) => {
 }
 
 export const createRechargePayment = async (params: { amount: number; company?: string }): Promise<any> => {
-  const useMock = (import.meta as any).env?.VITE_USE_MOCK === 'true'
-  if (useMock) {
+  if (useAppStoreWithOut().useMock) {
     return { success: true, data: { payment_url: 'https://example.com/pay' } }
   }
-  return alovaInstance.Post<any>(`${OMS_API_FETCH}.create_recharge`, params)
+  return alovaInstance.Post<any>('create_recharge', params)
 }
