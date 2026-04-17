@@ -8,6 +8,19 @@
   </head>
   <body>
     <div id="app"></div>
+    <!-- Hash router: support bare /tms_tracking?num= when the server still serves this index -->
+    <script>
+      (function () {
+        var p = location.pathname || ''
+        if (!/\/tms_tracking\/?$/.test(p)) return
+        var h = location.hash || ''
+        if (h.length > 1 && h.indexOf('tms_tracking') !== -1) return
+        var q = location.search || ''
+        var prefix = p.replace(/\/?tms_tracking\/?$/, '') || '/'
+        if (prefix.slice(-1) !== '/') prefix += '/'
+        location.replace(location.origin + prefix + '#/tms_tracking' + q)
+      })()
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
