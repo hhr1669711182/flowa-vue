@@ -23,7 +23,7 @@ function pathResolve(dir: string) {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const useMock = env.VITE_USE_MOCK === 'true'
-  const proxyTarget = env.VITE_PROXY_TARGET || 'http://localhost:8888'
+  const proxyTarget = env.VITE_PROXY_TARGET 
 
   return {
     base: './',
@@ -76,6 +76,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      host: '0.0.0.0',
+      allowedHosts: ['erpapi.device.wenhq.top'],
       proxy: useMock
         ? undefined
         : {
@@ -83,7 +85,13 @@ export default defineConfig(({ mode }) => {
             target: proxyTarget,
             changeOrigin: true,
             secure: false,
-            rewrite: (path) => path.replace(/^\/api/, ''),
+            // 不重写 path，保证请求正确发到 Frappe 的 /api/method/...
+          },
+          // 附件/图片代理到后端，解决 ERP 上传图片无法展示
+          '/files': {
+            target: proxyTarget,
+            changeOrigin: true,
+            secure: false,
           },
         },
     },
