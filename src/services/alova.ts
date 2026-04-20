@@ -35,7 +35,7 @@ if (useMock) {
 }
 
 export const alovaInstance = createAlova({
-  baseURL: baseURL + linkURL,
+  baseURL: useMock ? baseURL : baseURL + linkURL,
   statesHook: VueHook,
   requestAdapter,
   async beforeRequest(method) {
@@ -45,34 +45,34 @@ export const alovaInstance = createAlova({
 
     const authMethods = ['login', 'unified_register'];
 
-    const endpointName = (() => {
-      if (typeof method.url !== 'string') return '';
-      let u = method.url;
-      const qIndex = u.indexOf('?');
-      if (qIndex >= 0) u = u.slice(0, qIndex);
-      const lastSlash = u.lastIndexOf('/');
-      if (lastSlash >= 0) u = u.slice(lastSlash + 1);
-      const lastDot = u.lastIndexOf('.');
-      if (lastDot >= 0) u = u.slice(lastDot + 1);
-      return u;
-    })();
+    // const endpointName = (() => {
+    //   if (typeof method.url !== 'string') return '';
+    //   let u = method.url;
+    //   const qIndex = u.indexOf('?');
+    //   if (qIndex >= 0) u = u.slice(0, qIndex);
+    //   const lastSlash = u.lastIndexOf('/');
+    //   if (lastSlash >= 0) u = u.slice(lastSlash + 1);
+    //   const lastDot = u.lastIndexOf('.');
+    //   if (lastDot >= 0) u = u.slice(lastDot + 1);
+    //   return u;
+    // })();
 
-    const isAuthReq = authMethods.includes(endpointName);
+    const isAuthReq = authMethods.includes(method.url);
+    console.log("🚀 ~ method.url:", method.url)
 
     if (!isAuthReq) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        method.config.headers['Authorization'] = `Bearer ${token}`;
+      // const token = localStorage.getItem('token');
+      // if (token) {
+      //   method.config.headers['Authorization'] = `Bearer ${token}`;
+      // }
+      const csrf = localStorage.getItem('frappe_csrf_token');
+      if (csrf) {
+        method.config.headers['X-Frappe-CSRF-Token'] = csrf;
       }
     }
 
-    const csrf = localStorage.getItem('frappe_csrf_token');
-    if (csrf) {
-      method.config.headers['X-Frappe-CSRF-Token'] = csrf;
-    }
+    const needsUrlEncoded = ['login', 'unified_register', 'create_recharge'].includes(method.url);
 
-    const needsUrlEncoded = ['login', 'unified_register', 'create_recharge'].includes(endpointName);
-                            
     if (needsUrlEncoded && method.data && typeof method.data === 'object' && !(method.data instanceof FormData) && !(method.data instanceof URLSearchParams)) {
       method.config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
       const urlParams = new URLSearchParams();

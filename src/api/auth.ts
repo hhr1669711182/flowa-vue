@@ -1,6 +1,6 @@
 import { alovaInstance } from '@/services/alova'
-import { useAppStoreWithOut } from '@/store/modules/app'
-import { parseFrappeErrorBody } from '@/utils/frappeError'
+import { useAppStoreWithOut as store } from '@/store/modules/app'
+import { site } from '@/api/useAddress'
 
 export interface LoginPayload {
   email: string
@@ -62,14 +62,14 @@ export interface CurrentUserInfo {
 }
 
 export const login = async (data: LoginPayload): Promise<any> => {
-  if (useAppStoreWithOut().useMock) {
+  if (store().useMock) {
     return alovaInstance.Post<LoginResponse | { ok: false; message: string }>('/api/auth/login', {
       email: data.email,
       password: data.password,
     })
   }
 
-  return alovaInstance.Post<any>('/api/method/login', {
+  return alovaInstance.Post<any>('login', {
     usr: data.email,
     pwd: data.password
   })
@@ -80,7 +80,13 @@ export const loginOutApi = (): Promise<IResponse> => {
 }
 
 export const requestPasswordReset = (data: ResetPayload) => {
-  return alovaInstance.Post<ResetResponse>('/api/auth/reset', data)
+  const url = store().useMock ? '/api/auth/reset' : 'frappe.core.doctype.user.user.reset_password'
+  return alovaInstance.Post<any>(url, data)
+}
+
+export const updatePassword = async (key: string, newPassword: string, logoutAllSessions = false): Promise<any> => {
+  const url = store().useMock ? '/api/auth/update_password' : 'frappe.core.doctype.user.user.update_password'
+  return alovaInstance.Post<any>(url, { key, newPassword, logoutAllSessions })
 }
 
 export const verifyEmailCode = (data: VerifyPayload) => {
@@ -92,7 +98,12 @@ export const resendEmailCode = (data: ResetPayload) => {
 }
 
 export const registerAccount = (data: RegisterPayload) => {
-  return alovaInstance.Post<RegisterResponse>('/api/auth/register', data)
+  const url = store().useMock ? '/api/auth/register' : site.UU_API_OMS_UI + '.unified_register'
+  return alovaInstance.Post<any>(url, {
+    email: data.email,
+    password: data.password,
+    full_name: data.fullName
+  })
 }
 
 export const getLoggedUser = () => {
@@ -100,23 +111,24 @@ export const getLoggedUser = () => {
 }
 
 export const getCurrentUserInfo = () => {
-  return alovaInstance.Get<{ message: CurrentUserInfo }>('get_current_user_info')
+  return alovaInstance.Get<any>( site.UU_API_OMS_UI + '.get_current_user_info')
 }
 
 export const getFrappeCsrfTokenApi = () => {
-  return alovaInstance.Get<{ message?: string }>('get_csrf_token')
+  return alovaInstance.Get<{ message?: string }>(site.UU_API_OMS_UI + '.get_csrf_token')
 }
 
 export const logout = async (): Promise<{ ok: true }> => {
-  if (useAppStoreWithOut().useMock) {
+  if (store().useMock) {
     localStorage.removeItem('token')
     return { ok: true }
   }
-  
+
   await alovaInstance.Post<any>('logout')
+  localStorage.removeItem('token')
   return { ok: true }
 }
 
 export const unifiedRegister = async (payload: { email: string; password: string; full_name: string }): Promise<any> => {
-  return alovaInstance.Post<any>('unified_register', payload)
+  return alovaInstance.Post<any>(site.UU_API_OMS_UI + '.unified_register', payload)
 }
