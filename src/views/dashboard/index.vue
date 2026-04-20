@@ -130,7 +130,7 @@
     </div>
     <el-row
       :gutter="16"
-      class="rounded-xl overflow-hidden animate__animated animate__fadeInUp"
+      class="flex-1 min-h-0 rounded-xl overflow-hidden animate__animated animate__fadeInUp"
       style="animation-delay: 0.6s"
     >
       <el-col :xs="24" :sm="12" :lg="9">
@@ -175,8 +175,8 @@
           </div>
         </div>
       </el-col>
-      <el-col :xs="24" :sm="12" :lg="15">
-        <div class="bg-white rounded-xl action-table overflow-auto box-border">
+      <el-col class="flex-1 min-h-0" :xs="24" :sm="12" :lg="15">
+        <div class="flex-1 bg-white rounded-xl action-table overflow-auto box-border">
           <div class="flex items-center justify-between p-2">
             <div class="text-lg font-bold text-#000 text-16px">
               Action Required
@@ -196,6 +196,7 @@
             :data="recentOrders"
             :columns="recentOrderColumns"
             :pagination="false"
+            class="h-full flex-1 max-h-40vh overflow-auto"
           >
             <template #order="{ row }">
               <div class="flex items-center gap-3">

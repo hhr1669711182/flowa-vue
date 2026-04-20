@@ -11,7 +11,7 @@
       v-bind="$attrs"
       :height="resolvedHeight"
       :expand-row-keys="expandRowKeys"
-      class="base-table w-full h-auto"
+      class="base-table w-full"
       @expand-change="handleExpandChange"
     >
       <template v-for="col in columns" :key="col.prop">
@@ -303,5 +303,9 @@ const resolvedHeaderCellStyle = computed(() => {
 
 .base-table :deep(.el-button) {
   border-radius: 6px !important;
+}
+
+.base-table :deep(.el-table__empty-block) {
+  height: 100% !important;
 }
 </style>

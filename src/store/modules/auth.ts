@@ -62,8 +62,6 @@ interface AuthState {
   companies: string[]
 }
 
-const FRAPPE_SESSION = 'frappe-session'
-
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => {
     const token = localStorage.getItem('token')
@@ -89,28 +87,12 @@ export const useAuthStore = defineStore('auth', {
         const csrf = typeof csrfRes?.message === 'string' ? csrfRes.message : (csrfRes as unknown as string)
         if (csrf) localStorage.setItem('frappe_csrf_token', csrf.trim())
       } catch (e) {
-        // 如果获取 csrf 失败忽略即可
-        console.warn('Failed to fetch CSRF token before login', e)
+        return console.warn('Failed to fetch CSRF token before login', e)
       }
 
       // 2. 发起登录请求
       const res = await apiLogin(payload)
-      if ('token' in res) {
-        this.token = res.token
-        this.user = res.user as AuthUser
-        localStorage.setItem('token', res.token)
-        if (payload.remember) {
-          await saveRememberCredentials({ email: payload.email, password: payload.password })
-          this.remember = true
-        } else {
-          await clearRememberCredentials()
-          this.remember = false
-        }
-        return { ok: true }
-      }
-      if (res && !('ok' in res && (res as any).ok === false)) {
-        this.token = FRAPPE_SESSION
-        localStorage.setItem('token', FRAPPE_SESSION)
+      if (res && res.message === 'Logged In') {
         if (payload.remember) {
           await saveRememberCredentials({ email: payload.email, password: payload.password })
           this.remember = true
@@ -121,7 +103,6 @@ export const useAuthStore = defineStore('auth', {
         await this.fetchUserInfo(payload.email)
         return { ok: true }
       }
-      return { ok: false, message: (res as any)?.message || 'Login failed' }
     },
     async fetchUserInfo(email?: string) {
       try {

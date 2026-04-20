@@ -98,7 +98,7 @@ export const alovaInstance = createAlova({
         }
         if (response.status === 401) {
           ElMessage.error('Session expired, please login again');
-          localStorage.removeItem('token');
+          localStorage.removeItem('frappe_csrf_token');
           router.push('/login');
           throw new Error('Unauthorized');
         }

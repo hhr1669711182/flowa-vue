@@ -73,9 +73,8 @@ const submit = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid: boolean) => {
     if (!valid) return
-    // try {
+    try {
       const res = await sendLogin({ email: form.email, password: form.password, remember: form.remember })
-      console.log(122, res)
       if (res && res.ok) {
         const authUser = authStore.user
         if (authStore.token) {
@@ -105,11 +104,11 @@ const submit = async () => {
           (res as any)?.message ||
           'Incorrect email or password. Try again, or contact the Flowa Support Team.'
       }
-    // } catch (e: any) {
-    //   errorTip.value =
-    //     e?.message ||
-    //     'Login failed due to a network or system issue. Please try again later.'
-    // }
+    } catch (e: any) {
+      errorTip.value =
+        e?.message ||
+        'Login failed due to a network or system issue. Please try again later.'
+    }
   })
 }
 

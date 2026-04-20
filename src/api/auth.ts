@@ -71,7 +71,7 @@ export const login = async (data: LoginPayload): Promise<any> => {
 
   return alovaInstance.Post<any>('login', {
     usr: data.email,
-    pwd: data.password
+    pwd: data.password,
   })
 }
 
@@ -107,11 +107,11 @@ export const registerAccount = (data: RegisterPayload) => {
 }
 
 export const getLoggedUser = () => {
-  return alovaInstance.Get<{ message?: string }>('/api/method/frappe.auth.get_logged_user')
+  return alovaInstance.Get<{ message?: string }>('frappe.auth.get_logged_user')
 }
 
 export const getCurrentUserInfo = () => {
-  return alovaInstance.Get<any>( site.UU_API_OMS_UI + '.get_current_user_info')
+  return alovaInstance.Get<any>(site.UU_API_OMS_UI + '.get_current_user_info')
 }
 
 export const getFrappeCsrfTokenApi = () => {
