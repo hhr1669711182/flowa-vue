@@ -56,7 +56,7 @@ export const getUnreadTroubleTickets = (
   company?: string
 ) => {
   if (useAppStoreWithOut().useMock) {
-    return alovaInstance.Get<any>('/api/dashboard/unread-tickets', {
+    return alovaInstance.Get<UnreadTroubleTicket[]>('/api/dashboard/unread-tickets', {
       params: { company },
     })
   }
@@ -66,16 +66,27 @@ export const getUnreadTroubleTickets = (
     payload.company = company.trim()
   }
 
-  return alovaInstance.Post<any>(`${site.UU_API_OMS_UI}.get_unread_trouble_tickets`, payload, {
+  return alovaInstance.Post<UnreadTroubleTicket[]>(`${site.UU_API_OMS_UI}.get_unread_trouble_tickets`, payload, {
     transform: (raw: any) => {
       const msg = raw?.message ?? raw
-      if (msg && typeof msg === 'object' && msg.ok) {
-        return {
-          total_unread: msg.data?.total_unread || 0,
-          list: Array.isArray(msg.data?.list) ? msg.data.list : [],
-        }
+      if (!msg || typeof msg !== 'object') {
+        return []
       }
-      return { total_unread: 0, list: [] }
+
+      // 明确处理两种可能的响应结构
+      if (Array.isArray(msg)) {
+        return msg.filter(item => item && typeof item === 'object')
+      }
+
+      if (msg.data && Array.isArray(msg.data.list)) {
+        return msg.data.list.filter((item: any) => item && typeof item === 'object')
+      }
+
+      if (msg.message && Array.isArray(msg.message)) {
+        return msg.message.filter((item: any) => item && typeof item === 'object')
+      }
+
+      return []
     }
   })
 }

@@ -178,7 +178,7 @@ const columns = [
 ];
 
 const fetchData = async () => {
-  const company = selectedCompany.value || authStore.currentCompany || "";
+  const company = selectedCompany.value || authStore.currentCompany || "UU";
   if (!company) {
     tableData.value = [];
     total.value = 0;

@@ -78,7 +78,7 @@ const doDownloadTable = async () => {
       company: "UU",
       ...params,
     });
-    const res = await method;
+    const res = await method.send();
     if (res?.url) {
       window.open(res.url, '_blank');
       ElMessage.success('Export started successfully');

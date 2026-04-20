@@ -52,13 +52,14 @@ function defaultPeriod(): [string, string] {
 
 const getSearchParams = () => {
   const [period_start, period_end] = Array.isArray(filters.range) && filters.range.length === 2 ? filters.range : defaultPeriod()
-  return { ...searchForm, ...filters, period_start, period_end, company: props.company }
+  return { ...searchForm, ...filters, period_start, period_end, company: props.company || "UU" }
 }
 
 const handleSearch = () => emit('search', getSearchParams())
 
 const doDownloadTable = async () => {
-  if (!props.company) {
+  const company = props.company || "UU"
+  if (!company) {
     ElMessage.warning('Please ensure company is set (login or refresh).')
     return
   }
@@ -66,7 +67,7 @@ const doDownloadTable = async () => {
     const params = getSearchParams()
     const [period_start, period_end] = Array.isArray(filters.range) && filters.range.length === 2 ? filters.range : defaultPeriod()
     const res = await exportInboundBilling({
-      company: props.company,
+      company,
       period_start: params.period_start || period_start,
       period_end: params.period_end || period_end,
     }).send()

@@ -2,7 +2,7 @@
   <div class="product-filter">
     <div class="py-2 flex items-center gap-3">
       <el-input
-        v-model="searchForm.sku"
+        v-model="searchForm.search"
         placeholder="Search by Order ID, Platform ID, SKU..."
         clearable
         class="!w-80"
@@ -50,7 +50,7 @@ import { ElMessage } from 'element-plus'
 const emit = defineEmits(['search'])
 
 const searchForm = reactive({
-  sku: "",
+  search: "",
 })
 
 const filters = reactive({
@@ -61,6 +61,7 @@ const getSearchParams = () => {
   return {
     ...searchForm,
     ...filters,
+    company: "UU"
   }
 }
 

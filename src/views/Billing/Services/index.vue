@@ -319,7 +319,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from "vue";
+import { ref, onMounted, reactive, onBeforeUnmount, nextTick, markRaw } from "vue";
 import { useRequest } from "alova/client";
 import {
   Plus,
@@ -375,37 +375,29 @@ const getIconComponent = (type: string) => {
   };
   return markRaw(map[type] || Message);
 };
-const { send: sendLoadData, onSuccess: onLoadDataSuccess, onError: onLoadDataError } = useRequest(
-  () => Promise.all([
-    getOutboundStats(),
-    getBillingNotifications(),
-    getBillingRecentOrders(),
-  ]),
-  { immediate: false }
-);
+const loadData = async () => {
+  try {
+    const [statsRes, notifRes, ordersRes] = await Promise.all([
+      getOutboundStats().send(),
+      getBillingNotifications().send(),
+      getBillingRecentOrders().send(),
+    ]);
 
-onLoadDataSuccess(({ data }) => {
-  const [statsRes, notifRes, ordersRes] = data as any;
-  price.value = statsRes.price;
-  progressItems.value = statsRes.progressItems;
+    price.value = statsRes.price;
+    progressItems.value = statsRes.progressItems;
 
-  notifications.value = notifRes.map((n: any) => ({
-    ...n,
-    icon: getIconComponent(n.iconType),
-  }));
+    notifications.value = notifRes.map((n: any) => ({
+      ...n,
+      icon: getIconComponent(n.iconType),
+    }));
 
-  recentOrders.value = ordersRes.list.map((o: any) => ({
-    ...o,
-    image: o.image.includes("placeholder") ? productImage : o.image,
-  }));
-});
-
-onLoadDataError(({ error }) => {
-  console.error("Failed to load dashboard data:", error);
-});
-
-const loadData = () => {
-  sendLoadData();
+    recentOrders.value = ordersRes.list.map((o: any) => ({
+      ...o,
+      image: o.image.includes("placeholder") ? productImage : o.image,
+    }));
+  } catch (error) {
+    console.error("Failed to load dashboard data:", error);
+  }
 };
 
 const handleViewDetail = (row: any) => {

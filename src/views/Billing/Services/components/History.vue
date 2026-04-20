@@ -157,7 +157,7 @@ const fetchData = async () => {
       pageSize: limit.value,
       search: search.value,
       type: selectedType.value,
-    });
+    }).send();
     tableData.value = res.list;
     total.value = res.total;
   } catch (error) {

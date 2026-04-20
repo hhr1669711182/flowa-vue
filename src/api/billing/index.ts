@@ -1,3 +1,11 @@
+/*
+ * @Author: hhr
+ * @Date: 2026-04-08 11:36:55
+ * @LastEditTime: 2026-04-20 20:04:01
+ * @LastEditors: hhr
+ * @Description: 文件描述
+ * @FilePath: \flowa-vue\src\api\billing\index.ts
+ */
 export * from './outbound';
 export * from './notifications';
 export * from './orders';
@@ -26,7 +34,7 @@ export const triggerBillingDownload = (
   fileContentBase64?: string | null
 ) => {
   const name = fileName || fileUrl?.split('/').pop()?.split('?')[0] || 'download.xlsx';
-  
+
   if (fileContentBase64) {
     const bin = atob(fileContentBase64);
     const len = bin.length;
@@ -44,18 +52,13 @@ export const triggerBillingDownload = (
     URL.revokeObjectURL(url);
     return;
   }
-  
+
   if (!fileUrl) return;
-  
+
   const base = (import.meta as any).env?.VITE_API_BASE_URL || window.location.origin;
   const href = fileUrl.startsWith('http') ? fileUrl : `${base.replace(/\/$/, '')}${fileUrl.startsWith('/') ? fileUrl : '/' + fileUrl}`;
-  
-  alovaInstance.Get(href, {
-    responseType: 'blob',
-    withCredentials: true,
-    transform: (raw: any) => raw
-  }).then((blob: any) => {
-    const url = URL.createObjectURL(blob);
+
+  const downloadFile = (url: string) => {
     const a = document.createElement('a');
     a.href = url;
     a.download = name;
@@ -63,14 +66,18 @@ export const triggerBillingDownload = (
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  };
+
+  alovaInstance.Get<Blob>(href, {
+    meta: {
+      responseType: 'blob',
+      withCredentials: true,
+    }
+  }).then((blob) => {
+    const url = URL.createObjectURL(blob);
+    downloadFile(url);
     URL.revokeObjectURL(url);
   }).catch(() => {
-    const a = document.createElement('a');
-    a.href = href;
-    a.download = name;
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    downloadFile(href);
   });
 };

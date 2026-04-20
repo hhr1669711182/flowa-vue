@@ -86,8 +86,21 @@ export const alovaInstance = createAlova({
     }
   },
   responded: {
-    onSuccess: async (response) => {
+    onSuccess: async (response, method) => {
       if (response instanceof Response) {
+        if (method.meta?.responseType === 'blob') {
+          if (response.status !== 200) {
+            const text = await response.text();
+            try {
+              const json = JSON.parse(text);
+              throw new Error(parseFrappeErrorBody(json));
+            } catch {
+              throw new Error(text || 'Download failed');
+            }
+          }
+          return response.blob();
+        }
+
         let json: any;
         try {
           const text = await response.text();

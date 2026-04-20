@@ -318,7 +318,7 @@ const addCreditVisible = ref(false);
 const progressItems = ref<any[]>([]);
 
 const { send: loadData } = useRequest(
-  () => getExceptionStats(),
+  () => getExceptionStats({ company: "UU" }),
   { immediate: false }
 ).onSuccess((event) => {
   const statsRes = event.data;
@@ -336,12 +336,6 @@ const handleAddCredit = () => {
 // Filter State
 const filterRef = ref();
 const currentFilters = ref({});
-
-const handleFilterSearch = (params: any) => {
-  currentFilters.value = params;
-  page.value = 1;
-  fetchData();
-};
 
 const columns = [
   { type: "selection", width: 50 },
@@ -465,6 +459,7 @@ const { loading, send: fetchData } = useRequest(
   () => getExceptionList({
     page: page.value,
     pageSize: limit.value,
+    company: "UU",
     ...currentFilters.value,
   }),
   { immediate: false }
@@ -478,6 +473,12 @@ const { loading, send: fetchData } = useRequest(
 }).onError((event) => {
   console.error("Failed to fetch list:", event.error);
 });
+
+const handleFilterSearch = (params: any) => {
+  currentFilters.value = params;
+  page.value = 1;
+  fetchData();
+};
 
 onMounted(() => {
   nextTick(() => {
