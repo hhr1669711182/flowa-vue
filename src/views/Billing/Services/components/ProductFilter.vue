@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { exportOutboundBilling } from '@/api/billing/outbound'
+import { exportServicesBilling } from '@/api/billing/services'
 import { ElMessage } from 'element-plus'
 
 const emit = defineEmits(['search'])
@@ -73,7 +73,12 @@ const handleSearch = () => {
 
 const doDownloadTable = async () => {
   try {
-    const res = await exportOutboundBilling(getSearchParams());
+    const params = getSearchParams();
+    const method = exportServicesBilling({
+      company: "UU",
+      ...params,
+    });
+    const res = await method;
     if (res?.url) {
       window.open(res.url, '_blank');
       ElMessage.success('Export started successfully');

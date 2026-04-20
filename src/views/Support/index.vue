@@ -261,6 +261,7 @@ import {
   Delete,
 } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { useRequest } from "alova/client";
 import SupportFilter from "./components/SupportFilter.vue";
 import TicketDetail from "./components/TicketDetail.vue";
 import TicketCreate from "./components/TicketCreate.vue";
@@ -278,7 +279,6 @@ import {
 } from "@/api/support";
 
 const tickets = ref<Ticket[]>([]);
-const loading = ref(false);
 const total = ref(0);
 const stats = reactive<TicketsStats>({ High: 0, Medium: 0, Low: 0 });
 const activePriority = ref<TicketPriority>("High");
@@ -326,23 +326,27 @@ const columns = [
   },
 ];
 
-const fetchTickets = async () => {
-  loading.value = true;
-  try {
-    const res = await getTickets({
-      ...currentFilters,
-      priority: activePriority.value,
-      page: pagination.page,
-      pageSize: pagination.pageSize,
-    });
-    tickets.value = res.list;
-    total.value = res.total;
-    stats.High = res.stats.High;
-    stats.Medium = res.stats.Medium;
-    stats.Low = res.stats.Low;
-  } finally {
-    loading.value = false;
-  }
+const { loading, send: sendFetchTickets, onSuccess: onFetchTicketsSuccess } = useRequest(
+  () => getTickets({
+    ...currentFilters,
+    priority: activePriority.value,
+    page: pagination.page,
+    pageSize: pagination.pageSize,
+  }),
+  { immediate: false }
+);
+
+onFetchTicketsSuccess((event) => {
+  const res = event.data;
+  tickets.value = res.list;
+  total.value = res.total;
+  stats.High = res.stats.High;
+  stats.Medium = res.stats.Medium;
+  stats.Low = res.stats.Low;
+});
+
+const fetchTickets = () => {
+  sendFetchTickets();
 };
 
 onMounted(() => {

@@ -1,4 +1,7 @@
 import { alovaInstance } from '@/services/alova'
+import { site } from '@/api/useAddress'
+
+const OMS_API = site.UU_API_OMS_UI
 
 export type BlockedOrderStage =
   | 'Manual Hold'
@@ -53,7 +56,9 @@ export interface BlockedOrderRecord {
   carrier?: string
   method?: string
   itemQuantity?: string
-  chargingWeight?: string
+  chargingWeight?: number
+  customerCountry?: string
+  [key: string]: any
 }
 
 export interface BlockedOrderListParams {
@@ -79,25 +84,35 @@ export interface BlockedOrderListResponse {
   }
 }
 
-export const getBlockedOrderList = (params: BlockedOrderListParams) => {
-  return alovaInstance.Get<BlockedOrderListResponse>('/api/orders/blocked', { params })
-}
-
-export const getBlockedOrderDetail = (id: string) => {
-  return alovaInstance.Get<BlockedOrderRecord>('/api/orders/blocked/detail', {
-    params: { id }
+export const getBlockedOrderList = (params: BlockedOrderListParams & { company?: string }) => {
+  return alovaInstance.Post<any>(`${OMS_API}.flowa_list_sales_orders`, {
+    company: params.company,
+    page: params.page ?? 1,
+    page_size: params.pageSize ?? 20,
+    order_no: params.keyword || undefined,
+    menu_key: 'blocked',
+    status: params.status || undefined,
   })
 }
 
-export const reactivateBlockedOrder = (payload: { id: string; note: string }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/blocked/reactivate', payload)
+export const getBlockedOrderDetail = (id: string, company?: string) => {
+  return alovaInstance.Post<any>(`${OMS_API}.get_sales_order_detail`, { name: id, company })
 }
 
-export const updateBlockedOrderStatus = (payload: {
-  id: string
-  status: BlockedOrderStatus
-}) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/blocked/status', payload)
+export const reactivateBlockedOrder = (payload: { id: string; note: string; company?: string }) => {
+  return alovaInstance.Post<any>(`${OMS_API}.update_sales_order_fields`, {
+    name: payload.id,
+    remarks: payload.note,
+    company: payload.company,
+  })
+}
+
+export const updateBlockedOrderStatus = (payload: { id: string; status: BlockedOrderStatus; company?: string }) => {
+  return alovaInstance.Post<any>(`${OMS_API}.update_sales_order_fields`, {
+    name: payload.id,
+    status: payload.status,
+    company: payload.company,
+  })
 }
 
 export const createBlockedSupportTicket = (payload: {
@@ -105,6 +120,13 @@ export const createBlockedSupportTicket = (payload: {
   subject: string
   message: string
   priority: 'High' | 'Medium' | 'Low'
+  company?: string
 }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/blocked/ticket', payload)
+  return alovaInstance.Post<any>(`${OMS_API}.create_sales_order_ticket`, {
+    sales_order_name: payload.id,
+    subject: payload.subject,
+    message: payload.message,
+    priority: payload.priority,
+    company: payload.company,
+  })
 }

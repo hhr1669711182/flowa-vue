@@ -223,22 +223,25 @@ import { ref, onMounted, nextTick } from "vue";
 import ProductFilter from "./components/ProductFilter.vue";
 import ProductDetail from "./components/productDetail.vue";
 import {
-  approveRequiredOrder,
   createRequiredSupportTicket,
   getRequiredOrderDetail,
   getRequiredOrderList,
+  submitRequiredReview,
   updateRequiredOrderStatus,
   type RequiredOrderListParams,
   type RequiredOrderStage,
   type RequiredOrderStatus,
   type RequiredInventoryStatus,
 } from "@/api/order/required";
+import { extractOmsSalesOrderDetail, parseFlowaListSalesOrdersResult } from "@/utils/frappeResponse";
+import { mapRowToInProgressRecord, patchRowFromSalesOrderDoc } from "@/utils/flowaSalesOrderRowMap";
+import { useAuthStore } from "@/store/modules/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
-import { Steps, type StepItem } from "@/components/base/Steps";
-// ----------------- 临时数据
-import productImage from "@/views/icon/yf.png";
-// -----------------
+// import { orderRowStatusTagClass, orderRowStatusText } from "@/utils/orderRowStatusDisplay";
+import { useRequest } from "alova/client";
+
+const authStore = useAuthStore();
 
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
@@ -377,18 +380,20 @@ const buildParams = (): RequiredOrderListParams => {
   };
 };
 
-const fetchData = async () => {
-  loading.value = true;
-  try {
-    const res = await getRequiredOrderList(buildParams());
-    tableData.value = res.list;
-    total.value = res.total;
-    await nextTick();
-  } catch (error) {
-    console.error("Failed to fetch products:", error);
-  } finally {
-    loading.value = false;
-  }
+const { loading, send: sendFetchData, onSuccess: onFetchDataSuccess } = useRequest(
+  () => getRequiredOrderList(buildParams()),
+  { immediate: false }
+);
+
+onFetchDataSuccess((event) => {
+  const res = event.data;
+  const { data: rows, total: n } = parseFlowaListSalesOrdersResult(res);
+  tableData.value = rows.map((o: unknown) => mapRowToInProgressRecord(o as Record<string, unknown>));
+  total.value = n;
+});
+
+const fetchData = () => {
+  sendFetchData();
 };
 
 const handleExpandChange = async (row: any, expanded: any[]) => {
@@ -398,8 +403,10 @@ const handleExpandChange = async (row: any, expanded: any[]) => {
   if (expandDetailMap.value[row.id]) return;
   expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: true };
   try {
-    const res = await getRequiredOrderDetail(row.id);
-    expandDetailMap.value = { ...expandDetailMap.value, [row.id]: res };
+    const raw = await getRequiredOrderDetail(row.id, authStore.company ?? undefined);
+    const doc = extractOmsSalesOrderDetail(raw);
+    const detail = doc ? patchRowFromSalesOrderDoc(row, doc) : row;
+    expandDetailMap.value = { ...expandDetailMap.value, [row.id]: detail };
   } catch (error) {
     console.error("Failed to fetch required order detail:", error);
   } finally {
@@ -414,29 +421,31 @@ const getExpandRow = (row: any) => {
 
 const handleNeedAction = (row: any) => {
   if (!row?.id) return;
-  approveRequiredOrder({
+  submitRequiredReview({
     id: row.id,
+    issueType: "Address Error",
     note: "Order reviewed and moved to in-review stage.",
-    targetStage: "Review & Fix",
+    dueDate: new Date().toISOString().slice(0, 10),
+    company: authStore.company ?? undefined,
   }).then(() => {
     ElMessage.success("Moved to In Review");
     fetchData();
   });
 };
 
-const handleSupport = async (row: any) => {
+const handleSupport = (row: any) => {
   if (!row?.id) return;
-  try {
-    await createRequiredSupportTicket({
-      id: row.id,
-      subject: `Order support: ${row.orderId}`,
-      message: "Need help with this required-action order.",
-      priority: "High",
-    });
+  createRequiredSupportTicket({
+    id: row.id,
+    subject: `Order support: ${row.orderId}`,
+    message: "Need help with this required-action order.",
+    priority: "High",
+    company: authStore.company ?? undefined,
+  }).then(() => {
     ElMessage.success("Support ticket created");
-  } catch (error) {
+  }).catch(() => {
     ElMessage.error("Failed to create ticket");
-  }
+  });
 };
 
 const handleRowAction = (action: string, row: any) => {
@@ -445,10 +454,12 @@ const handleRowAction = (action: string, row: any) => {
       // handleViewDetail(row);
       break;
     case "approve":
-      approveRequiredOrder({
+      submitRequiredReview({
         id: row.id,
+        issueType: "Address Error",
         note: "Order reviewed and moved to in-review stage.",
-        targetStage: "Review & Fix",
+        dueDate: new Date().toISOString().slice(0, 10),
+        company: authStore.company ?? undefined,
       }).then(() => {
         ElMessage.success("Moved to In Review");
         fetchData();
@@ -458,6 +469,7 @@ const handleRowAction = (action: string, row: any) => {
       updateRequiredOrderStatus({
         id: row.id,
         status: "Need Attention",
+        company: authStore.company ?? undefined,
       }).then(() => {
         ElMessage.success("Status updated");
         fetchData();
@@ -469,6 +481,7 @@ const handleRowAction = (action: string, row: any) => {
         subject: `Order support: ${row.orderId}`,
         message: "Need help with this required-action order.",
         priority: "High",
+        company: authStore.company ?? undefined,
       }).then(() => {
         ElMessage.success("Support ticket created");
       });

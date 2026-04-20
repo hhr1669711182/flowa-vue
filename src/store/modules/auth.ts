@@ -104,6 +104,11 @@ export const useAuthStore = defineStore('auth', {
         return { ok: true }
       }
     },
+    async ensureCompany() {
+      if (this.currentCompany) return this.currentCompany;
+      await this.fetchUserInfo();
+      return this.currentCompany;
+    },
     async fetchUserInfo(email?: string) {
       try {
         const infoRes = await getCurrentUserInfo().send()

@@ -180,10 +180,9 @@ function mapOmsDocToOrderDetail(doc: Record<string, unknown>, idHint: string): O
   }
 }
 
-export const getOrderList = async (params: OrderListParams): Promise<OrderListResponse> => {
+export const getOrderList = (params: OrderListParams) => {
   if (useAppStoreWithOut().useMock) {
-    const method = alovaInstance.Get<OrderListResponse>('/api/orders/order-list', { params })
-    return (await (method as any)) as OrderListResponse
+    return alovaInstance.Get<OrderListResponse>('/api/orders/order-list', { params })
   }
 
   const body: Record<string, unknown> = {
@@ -193,18 +192,20 @@ export const getOrderList = async (params: OrderListParams): Promise<OrderListRe
     ...(params.status ? { status: params.status } : {}),
     menu_key: 'list',
   }
-  const raw = await (alovaInstance.Post<any>('flowa_list_sales_orders', body) as any)
-  const parsed = parseFlowaListSalesOrdersResult(raw)
-  const list = parsed.data
-    .filter((x) => x && typeof x === 'object')
-    .map((x) => mapOmsRowToOrderListRecord(x as Record<string, unknown>))
-  return { total: parsed.total, list }
+  return alovaInstance.Post<OrderListResponse>('flowa_list_sales_orders', body, {
+    transform: (raw: any) => {
+      const parsed = parseFlowaListSalesOrdersResult(raw)
+      const list = parsed.data
+        .filter((x) => x && typeof x === 'object')
+        .map((x) => mapOmsRowToOrderListRecord(x as Record<string, unknown>))
+      return { total: parsed.total, list }
+    }
+  })
 }
 
-export const getOrderDetail = async (id: string): Promise<OrderListRecord> => {
+export const getOrderDetail = (id: string) => {
   if (useAppStoreWithOut().useMock) {
-    const method = alovaInstance.Get<OrderListRecord>('/api/orders/order-list/detail', { params: { id } })
-    return (await (method as any)) as OrderListRecord
+    return alovaInstance.Get<OrderListRecord>('/api/orders/order-list/detail', { params: { id } })
   }
   const cachedCompany = (() => {
     try {
@@ -214,24 +215,26 @@ export const getOrderDetail = async (id: string): Promise<OrderListRecord> => {
       return undefined
     }
   })()
-  const raw = await (alovaInstance.Post<any>('get_sales_order_detail', {
+  return alovaInstance.Post<OrderListRecord>('get_sales_order_detail', {
     name: id,
     ...(cachedCompany ? { company: cachedCompany } : {}),
-  }) as any)
-  const doc = extractOmsSalesOrderDetail(raw)
-  if (!doc) {
-    const msg = unwrapFrappeMessage(raw) as any
-    throw new Error(String(msg?.error || msg?.message || 'Failed to load detail'))
-  }
-  return mapOmsDocToOrderDetail(doc, id)
+  }, {
+    transform: (raw: any) => {
+      const doc = extractOmsSalesOrderDetail(raw)
+      if (!doc) {
+        const msg = unwrapFrappeMessage(raw) as any
+        throw new Error(String(msg?.error || msg?.message || 'Failed to load detail'))
+      }
+      return mapOmsDocToOrderDetail(doc, id)
+    }
+  })
 }
 
-export const updateOrderStatus = async (payload: { id: string; status: OrderStatus }) => {
+export const updateOrderStatus = (payload: { id: string; status: OrderStatus }) => {
   if (useAppStoreWithOut().useMock) {
-    const method = alovaInstance.Post<{ success: boolean }>('/api/orders/order-list/status', payload)
-    return (await (method as any)) as { success: boolean }
+    return alovaInstance.Post<{ success: boolean }>('/api/orders/order-list/status', payload)
   }
-  const { flowaOrderActionMarkPending, extractFlowaOrderActionResult } = await import('@/api/order/omsActions')
+  
   const cachedCompany = (() => {
     try {
       const s = localStorage.getItem('oms_cached_company')
@@ -240,23 +243,30 @@ export const updateOrderStatus = async (payload: { id: string; status: OrderStat
       return undefined
     }
   })()
-  const raw = await (flowaOrderActionMarkPending({ sales_order_name: payload.id, company: cachedCompany }) as any)
-  const parsed = extractFlowaOrderActionResult(raw)
-  if (!parsed.ok) throw new Error(parsed.error || 'Failed')
-  return { success: true }
+  
+  return alovaInstance.Post<{ success: boolean }>('flowa_oms_ui.api.sales_order.flowa_order_action_mark_pending', {
+    sales_order_name: payload.id,
+    company: cachedCompany
+  }, {
+    transform: (raw: any) => {
+      const msg = raw?.message ?? raw;
+      if (!msg || typeof msg !== 'object') throw new Error('Invalid response')
+      if (msg.ok === false) throw new Error(msg.error || msg.message || 'Failed')
+      return { success: true }
+    }
+  })
 }
 
-export const createOrderTicket = async (payload: {
+export const createOrderTicket = (payload: {
   id: string
   subject: string
   message: string
   priority: 'High' | 'Medium' | 'Low'
 }) => {
   if (useAppStoreWithOut().useMock) {
-    const method = alovaInstance.Post<{ success: boolean }>('/api/orders/order-list/ticket', payload)
-    return (await (method as any)) as { success: boolean }
+    return alovaInstance.Post<{ success: boolean }>('/api/orders/order-list/ticket', payload)
   }
-  const { flowaOrderActionContactSupport, extractFlowaOrderActionResult } = await import('@/api/order/omsActions')
+  
   const cachedCompany = (() => {
     try {
       const s = localStorage.getItem('oms_cached_company')
@@ -265,22 +275,26 @@ export const createOrderTicket = async (payload: {
       return undefined
     }
   })()
-  const raw = await (flowaOrderActionContactSupport({
+  
+  return alovaInstance.Post<{ success: boolean }>('flowa_oms_ui.api.sales_order.flowa_order_action_contact_support', {
     sales_order_name: payload.id,
     company: cachedCompany,
     subject: payload.subject,
     message: payload.message,
     priority: payload.priority,
-  }) as any)
-  const parsed = extractFlowaOrderActionResult(raw)
-  if (!parsed.ok) throw new Error(parsed.error || 'Failed')
-  return { success: true }
+  }, {
+    transform: (raw: any) => {
+      const msg = raw?.message ?? raw;
+      if (!msg || typeof msg !== 'object') throw new Error('Invalid response')
+      if (msg.ok === false) throw new Error(msg.error || msg.message || 'Failed')
+      return { success: true }
+    }
+  })
 }
 
-export const deleteOrderItem = async (payload: { id: string; itemId: string }) => {
+export const deleteOrderItem = (payload: { id: string; itemId: string }) => {
   if (useAppStoreWithOut().useMock) {
-    const method = alovaInstance.Post<{ success: boolean }>('/api/orders/order-list/item/delete', payload)
-    return (await (method as any)) as { success: boolean }
+    return alovaInstance.Post<{ success: boolean }>('/api/orders/order-list/item/delete', payload)
   }
   throw new Error('This action is not supported in OMS mode yet.')
 }

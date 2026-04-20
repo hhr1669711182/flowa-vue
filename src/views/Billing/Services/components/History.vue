@@ -152,6 +152,7 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const res = await getBillingTransactions({
+      company: "UU",
       page: page.value,
       pageSize: limit.value,
       search: search.value,

@@ -53,6 +53,7 @@
       <!-- Profile Details Card -->
       <div
         v-if="activeTab === 'Profile'"
+        v-loading="profileLoading"
         class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
       >
         <!-- Card Header -->
@@ -217,6 +218,7 @@
           <el-button
             type="primary"
             class="!px-8 !bg-primary"
+            :loading="profileSaving"
             @click="saveProfile"
             >Save</el-button
           >
@@ -359,7 +361,15 @@
             ></template>
           </el-input>
         </el-form-item>
-        <el-form-item label="New Password">
+        <el-form-item label="Current Password" required>
+          <el-input
+            v-model="passwordForm.oldPassword"
+            type="password"
+            show-password
+            placeholder="Enter your current password"
+          />
+        </el-form-item>
+        <el-form-item label="New Password" required>
           <el-input
             v-model="passwordForm.newPassword"
             type="password"
@@ -367,7 +377,7 @@
             placeholder="................"
           />
         </el-form-item>
-        <el-form-item label="Confirm New Password">
+        <el-form-item label="Confirm New Password" required>
           <el-input
             v-model="passwordForm.confirmPassword"
             type="password"
@@ -385,6 +395,7 @@
           <el-button
             type="primary"
             class="!px-6 !bg-primary"
+            :loading="passwordChanging"
             @click="handlePasswordChange"
             >Save New Password</el-button
           >
@@ -427,10 +438,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, onMounted, watch } from "vue";
+import { computed, ref, reactive, onMounted, onActivated, watch } from "vue";
 import { useRoute } from "vue-router";
 import ExceptionPage from "@/components/common/ExceptionPage.vue";
 import BaseTable from "@/components/common/BaseTable.vue";
+import { useRequest } from "alova/client";
 import {
   Search,
   Edit,
@@ -447,6 +459,9 @@ import {
   updateGeneralSetting,
   uploadProfileAvatar,
   getOperationLogs,
+  getProfile,
+  updateProfile,
+  changePassword,
   type GeneralSetting,
   type OperationLog,
 } from "@/api/settings";
@@ -466,15 +481,20 @@ const showPasswordDialog = ref(false);
 const showSuccessDialog = ref(false);
 
 // --- Profile Data ---
+const { loading: profileLoading, send: sendFetchProfile, onSuccess: onFetchProfileSuccess, onError: onFetchProfileError } = useRequest(getProfile, { immediate: false });
+const { loading: profileSaving, send: sendUpdateProfile, onSuccess: onUpdateProfileSuccess, onError: onUpdateProfileError } = useRequest((data: Parameters<typeof updateProfile>[0]) => updateProfile(data), { immediate: false });
+const { loading: passwordChanging, send: sendChangePassword, onSuccess: onChangePasswordSuccess, onError: onChangePasswordError } = useRequest((data: Parameters<typeof changePassword>[0]) => changePassword(data), { immediate: false });
+
 const formData = reactive({
-  name: "Evan Su",
-  account: "Evansu@email.com",
-  department: "Management",
-  role: "Owner",
-  email: "email@address.com",
+  name: "",
+  account: "",
+  department: "",
+  role: "",
+  email: "",
   countryCode: "+01",
-  phone: "000 000 000 000",
-  password: "password123",
+  phone: "",
+  password: "**********",
+  user_image: "",
 });
 
 const defaultAvatarImg = new URL("./icons/avator.png", import.meta.url).href;
@@ -488,6 +508,7 @@ watch(
 );
 
 const passwordForm = reactive({
+  oldPassword: "",
   newPassword: "",
   confirmPassword: "",
 });
@@ -497,7 +518,6 @@ const generalSettings = ref<GeneralSetting[]>([]);
 
 // --- Logs Data ---
 const operationLogs = ref<OperationLog[]>([]);
-const logsLoading = ref(false);
 const totalLogs = ref(0);
 const logFilters = reactive({
   search: "",
@@ -508,6 +528,22 @@ const logFilters = reactive({
 const pagination = reactive({
   currentPage: 1,
   pageSize: 10,
+});
+
+const { loading: logsLoading, send: sendFetchLogs, onSuccess: onFetchLogsSuccess } = useRequest(
+  () => getOperationLogs({
+    search: logFilters.search,
+    operator: logFilters.operator,
+    page: pagination.currentPage,
+    pageSize: pagination.pageSize,
+  }),
+  { immediate: false }
+);
+
+onFetchLogsSuccess((event) => {
+  const res = event.data as any;
+  operationLogs.value = res.list;
+  totalLogs.value = res.total;
 });
 
 const logColumns = [
@@ -541,10 +577,12 @@ onMounted(() => {
   userStore.fetchAvatarImg();
 
   activeTab.value = (route.query.tab as string) || "Profile";
+  if (activeTab.value === "Profile") fetchProfile();
 });
 
 onActivated(() => {
   activeTab.value = (route.query.tab as string) || "Profile";
+  if (activeTab.value === "Profile") fetchProfile();
 });
 
 watch(activeTab, (val) => {
@@ -558,36 +596,36 @@ watch(activeTab, (val) => {
 // --- Methods ---
 
 // General Settings
-const fetchGeneralSettings = async () => {
-  generalSettings.value = await getGeneralSettings();
+const { loading: generalSettingsLoading, send: sendFetchGeneralSettings, onSuccess: onFetchGeneralSettingsSuccess } = useRequest(getGeneralSettings, { immediate: false });
+const { loading: generalSettingUpdating, send: sendUpdateGeneralSetting, onSuccess: onUpdateGeneralSettingSuccess, onError: onUpdateGeneralSettingError } = useRequest((key: string, val: boolean) => updateGeneralSetting(key, val), { immediate: false });
+
+onFetchGeneralSettingsSuccess((event) => {
+  generalSettings.value = event.data;
+});
+
+const fetchGeneralSettings = () => {
+  sendFetchGeneralSettings();
 };
 
-const handleSettingChange = async (key: string, val: boolean) => {
-  const success = await updateGeneralSetting(key, val);
-  if (success) {
+onUpdateGeneralSettingSuccess((event) => {
+  if (event.data) {
     ElMessage.success("Setting updated");
   } else {
     ElMessage.error("Failed to update setting");
-    // Revert change locally if needed, but for mock assume success
   }
+});
+
+onUpdateGeneralSettingError(() => {
+  ElMessage.error("Failed to update setting");
+});
+
+const handleSettingChange = (key: string, val: boolean) => {
+  sendUpdateGeneralSetting(key, val);
 };
 
 // Logs
-const fetchLogs = async () => {
-  logsLoading.value = true;
-  try {
-    const res = await getOperationLogs({
-      search: logFilters.search,
-      operator: logFilters.operator,
-      page: pagination.currentPage,
-      pageSize: pagination.pageSize,
-      // date range logic would go here
-    });
-    operationLogs.value = res.list;
-    totalLogs.value = res.total;
-  } finally {
-    logsLoading.value = false;
-  }
+const fetchLogs = () => {
+  sendFetchLogs();
 };
 
 const handleLogsFilterChange = () => {
@@ -604,6 +642,32 @@ const handleSearch = () => {
 };
 
 // Profile Methods
+onFetchProfileSuccess((event) => {
+  const res = event.data;
+  const msg = (res as any)?.message ?? res;
+  const d = msg?.success === true ? msg.data : msg?.data;
+  if (d && typeof d === "object" && !d.error) {
+    formData.name = d.name ?? "";
+    formData.account = d.account ?? "";
+    formData.department = d.department ?? "";
+    const roleParts = Array.isArray(d.roles) ? d.roles.filter(Boolean) : [];
+    formData.role =
+      roleParts.length > 0 ? roleParts.join(", ") : String(d.role ?? "");
+    formData.email = d.email ?? "";
+    formData.phone = d.phone ?? "";
+    formData.user_image = d.user_image ?? "";
+  }
+});
+
+onFetchProfileError((event) => {
+  console.error(event.error);
+  ElMessage.error("Failed to load profile");
+});
+
+const fetchProfile = () => {
+  sendFetchProfile();
+};
+
 const fileToDataUrl = (raw: File) => {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -644,25 +708,68 @@ const cancelEdit = () => {
   isEditing.value = false;
 };
 
+onUpdateProfileSuccess((event) => {
+  const res = event.data;
+  const msg = (res as any)?.message ?? res;
+  const ok = msg?.success === true || msg?.ok === true;
+  if (ok) {
+    isEditing.value = false;
+    ElMessage.success("Profile updated successfully");
+    fetchProfile();
+  } else {
+    ElMessage.error(msg?.error || msg?.message || "Update failed");
+  }
+});
+
+onUpdateProfileError((event) => {
+  ElMessage.error(event.error?.message || "Failed to update profile");
+});
+
 const saveProfile = () => {
-  isEditing.value = false;
-  ElMessage.success("Profile updated successfully");
+  sendUpdateProfile({
+    full_name: formData.name || undefined,
+    department: formData.department || undefined,
+    phone: formData.phone || undefined,
+    mobile_no: formData.phone || undefined,
+  });
 };
 
+onChangePasswordSuccess((event) => {
+  const res = event.data;
+  const msg = (res as any)?.message ?? res;
+  const ok = msg?.success === true;
+  if (ok) {
+    showPasswordDialog.value = false;
+    showSuccessDialog.value = true;
+    passwordForm.oldPassword = "";
+    passwordForm.newPassword = "";
+    passwordForm.confirmPassword = "";
+  } else {
+    ElMessage.error(msg?.error || msg?.message || "Failed to change password");
+  }
+});
+
+onChangePasswordError((event) => {
+  ElMessage.error(event.error?.message || "Failed to change password");
+});
+
 const handlePasswordChange = () => {
+  if (!passwordForm.oldPassword?.trim()) {
+    ElMessage.error("Please enter your current password");
+    return;
+  }
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    ElMessage.error("Passwords do not match");
+    ElMessage.error("New passwords do not match");
     return;
   }
   if (passwordForm.newPassword.length < 6) {
     ElMessage.warning("Password is too short");
     return;
   }
-
-  showPasswordDialog.value = false;
-  showSuccessDialog.value = true;
-  passwordForm.newPassword = "";
-  passwordForm.confirmPassword = "";
+  sendChangePassword({
+    old_password: passwordForm.oldPassword,
+    new_password: passwordForm.newPassword,
+  });
 };
 </script>
 

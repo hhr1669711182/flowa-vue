@@ -29,61 +29,76 @@ export const getItemListWithWdtStock = (params: {
 }
 
 /** 商品列表：GET /api/resource/Item 或 get_item_list_with_wdt_stock（当传入 company 时）。filters=[[Item, disabled, =, 0]]。 */
-export const getInventoryProducts = async (params: {
+export const getInventoryProducts = (params: {
   page?: number
   pageSize?: number
-  limit_page_length?: number
-  limit_start?: number
-  order_by?: string
-  fields?: string[]
-  name?: string
-  item_group?: string
-  item_code?: string
   keyword?: string
-  sku?: string
   search?: string
   status?: string
+  inventory?: string
+  dateRange?: [string, string] | null
+  item_group?: string
   company?: string
 }) => {
-  const p = params || {}
-  const page = Number(p.page) || 1
-  const pageSize = Number(p.pageSize) || p.limit_page_length || 10
-  const kw = (p.search || p.keyword || '').trim()
-  const name = kw ? '' : (p.name || '').trim()
-  const item_group = (p.item_group || '').trim()
-  const item_code = kw ? '' : (p.item_code || p.sku || '').trim()
-  
-  if (!useAppStoreWithOut().useMock) {
-    const res = await getItemListWithWdtStock({
-      company: p.company || undefined,
-      page,
-      page_size: pageSize,
-      search: kw || undefined,
-      name: name || undefined,
-      item_group: item_group || undefined,
-      item_code: item_code || undefined,
-    }).send()
-    const msg = (res as any)?.message ?? res
-    const data = msg?.data ?? []
-    const total = typeof msg?.total === 'number' ? msg.total : 0
-    return {
-      list: Array.isArray(data) ? data : [],
-      total,
-      page,
-      pageSize,
-    }
+  if (useAppStoreWithOut().useMock) {
+    return alovaInstance.Get<any>('/api/inventory/products', {
+      params: {
+        page: params.page,
+        pageSize: params.pageSize,
+        keyword: params.keyword || params.search,
+        status: params.status,
+        inventory: params.inventory,
+        item_group: params.item_group,
+      },
+    })
   }
 
-  const res = await alovaInstance.Get<any>('/api/inventory/products', {
-    params: { page: String(page), pageSize: String(pageSize), keyword: name, status: p.status }
-  }).send()
-  const msg = (res as any)?.message ?? res
-  return {
-    list: msg?.list ?? msg?.data ?? [],
-    total: msg?.total ?? 0,
-    page,
-    pageSize,
+  // 真实接口逻辑
+  const payload: any = {
+    company: params.company,
+    search: params.search ?? params.keyword,
+    item_group: params.item_group,
+    page: params.page ?? 1,
+    page_size: params.pageSize ?? 20,
   }
+
+  return alovaInstance.Post<any>(`${OMS_API}.flowa_list_items`, payload, {
+    transform: (raw: any) => {
+      const msg = raw?.message ?? raw
+      const itemsRaw = msg?.data ?? []
+      const total = msg?.total ?? 0
+
+      const stats: any = {
+        Total: msg?.stats?.Total ?? 0,
+        InStock: msg?.stats?.InStock ?? 0,
+        LowStock: msg?.stats?.LowStock ?? 0,
+        OutofStock: msg?.stats?.OutofStock ?? 0,
+      }
+
+      const list: any[] = Array.isArray(itemsRaw)
+        ? itemsRaw.map((x: any) => ({
+            id: String(x.name ?? ''),
+            sku: String(x.item_code ?? x.name ?? ''),
+            name: String(x.item_name ?? ''),
+            brand: String(x.brand ?? ''),
+            group: String(x.item_group ?? ''),
+            description: String(x.description ?? ''),
+            status: Number(x.actual_qty ?? 0) > 0 ? 'Active' : 'Inactive',
+            inventoryStatus: Number(x.actual_qty ?? 0) > 0 ? 'In Stock' : 'Out of Stock',
+            stock: Number(x.actual_qty ?? 0),
+            price: Number(x.standard_rate ?? 0),
+            currency: 'USD',
+            category: String(x.item_group ?? ''),
+            warehouse: 'Default',
+            image: String(x.image ?? ''),
+            createDate: String(x.creation ?? ''),
+            lastUpdate: String(x.modified ?? ''),
+          }))
+        : []
+
+      return { total, stats, list }
+    }
+  })
 }
 
 export const getInventoryStats = (company?: string) => {

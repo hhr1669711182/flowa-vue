@@ -191,7 +191,8 @@ import { ref, watch, nextTick } from 'vue'
 import { Drawer } from '@/components/base/Drawer'
 import { Back, MoreFilled, Clock, Files, Paperclip, Position } from '@element-plus/icons-vue'
 import type { Ticket, ChatMessage } from '@/api/support'
-import { sendMessage } from '@/api/support'
+import { sendMessage, getTicketReplies } from '@/api/support'
+import { useRequest } from 'alova/client'
 
 const props = defineProps<{
   modelValue: boolean
@@ -205,18 +206,35 @@ const newMessage = ref('')
 const messages = ref<ChatMessage[]>([])
 const chatContainer = ref<HTMLElement | null>(null)
 
+const { loading: loadingMessages, send: sendLoadMessages, onSuccess: onLoadMessagesSuccess, onError: onLoadMessagesError } = useRequest(
+  () => getTicketReplies(props.ticket!.id),
+  { immediate: false }
+)
+
+onLoadMessagesSuccess((event) => {
+  messages.value = event.data
+  scrollToBottom()
+})
+
+onLoadMessagesError((event) => {
+  console.error('Failed to load messages', event.error)
+})
+
+const loadMessages = () => {
+  if (!props.ticket) return
+  sendLoadMessages()
+}
+
 watch(() => props.modelValue, (val) => {
   visible.value = val
   if (val && props.ticket) {
-    messages.value = props.ticket.messages || []
-    scrollToBottom()
+    loadMessages()
   }
 })
 
 watch(() => props.ticket, (val) => {
   if (visible.value && val) {
-    messages.value = val.messages || []
-    scrollToBottom()
+    loadMessages()
   }
 })
 
@@ -233,26 +251,36 @@ const handleCommand = (command: string) => {
   emit('command', command, props.ticket)
 }
 
-const handleSend = async () => {
+const { loading: sendingMessage, send: sendMsgRequest, onSuccess: onSendMsgSuccess, onError: onSendMsgError } = useRequest(
+  (ticketId: string, content: string) => sendMessage(ticketId, content),
+  { immediate: false }
+)
+
+onSendMsgSuccess(() => {
+  loadMessages()
+})
+
+onSendMsgError((event) => {
+  console.error('Failed to send message', event.error)
+  // Note: we might want to remove the optimistically added message here
+})
+
+const handleSend = () => {
   if (!newMessage.value.trim() || !props.ticket) return
   
+  const content = newMessage.value
+  newMessage.value = ''
   const tempMsg: ChatMessage = {
-    id: Date.now(),
-    sender: 'support',
+    id: String(Date.now()),
+    sender: 'user',
     senderName: 'You',
-    content: newMessage.value,
+    content: content,
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
   messages.value.push(tempMsg)
-  const content = newMessage.value
-  newMessage.value = ''
   scrollToBottom()
 
-  try {
-    await sendMessage(props.ticket.id, content)
-  } catch (error) {
-    messages.value = messages.value.filter((m) => m.id !== tempMsg.id)
-  }
+  sendMsgRequest(props.ticket.id, content)
 }
 
 const startConversation = async () => {

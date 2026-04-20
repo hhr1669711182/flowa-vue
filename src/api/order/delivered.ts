@@ -1,4 +1,7 @@
 import { alovaInstance } from '@/services/alova'
+import { site } from '@/api/useAddress'
+
+const OMS_API = site.UU_API_OMS_UI
 
 export type DeliveredOrderStage =
   | 'Review & Fix'
@@ -42,11 +45,15 @@ export interface DeliveredOrderRecord {
   method?: string
   trackingNo?: string
   itemQuantity?: string
-  chargingWeight?: string
+  chargingWeight?: number
+  quantity?: number
+  inventoryStatus?: string
   destination?: string
   etaText?: string
   arrivalAtText?: string
   items?: DeliveredOrderItem[]
+  customerCountry?: string
+  [key: string]: any
 }
 
 export interface DeliveredOrderListParams {
@@ -70,25 +77,39 @@ export interface DeliveredOrderListResponse {
   }
 }
 
-export const getDeliveredOrderList = (params: DeliveredOrderListParams) => {
-  return alovaInstance.Get<DeliveredOrderListResponse>('/api/orders/delivered', { params })
-}
-
-export const getDeliveredOrderDetail = (id: string) => {
-  return alovaInstance.Get<DeliveredOrderRecord>('/api/orders/delivered/detail', {
-    params: { id }
+export const getDeliveredOrderList = (params: DeliveredOrderListParams & { company?: string }) => {
+  return alovaInstance.Post<any>(`${OMS_API}.flowa_list_sales_orders`, {
+    company: params.company,
+    page: params.page ?? 1,
+    page_size: params.pageSize ?? 20,
+    order_no: params.keyword || undefined,
+    menu_key: 'delivered',
+    status: params.status || undefined,
   })
 }
 
-export const updateDeliveredOrderNote = (payload: { id: string; note: string }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/delivered/note', payload)
+export const getDeliveredOrderDetail = (id: string, company?: string) => {
+  return alovaInstance.Post<any>(`${OMS_API}.get_sales_order_detail`, { name: id, company })
+}
+
+export const updateDeliveredOrderNote = (payload: { id: string; note: string; company?: string }) => {
+  return alovaInstance.Post<any>(`${OMS_API}.update_sales_order_fields`, {
+    name: payload.id,
+    remarks: payload.note,
+    company: payload.company,
+  })
 }
 
 export const updateDeliveredOrderStatus = (payload: {
   id: string
   status: DeliveredOrderStatus
+  company?: string
 }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/delivered/status', payload)
+  return alovaInstance.Post<any>(`${OMS_API}.update_sales_order_fields`, {
+    name: payload.id,
+    status: payload.status,
+    company: payload.company,
+  })
 }
 
 export const createDeliveredSupportTicket = (payload: {
@@ -96,6 +117,13 @@ export const createDeliveredSupportTicket = (payload: {
   subject: string
   message: string
   priority: 'High' | 'Medium' | 'Low'
+  company?: string
 }) => {
-  return alovaInstance.Post<{ success: boolean }>('/api/orders/delivered/ticket', payload)
+  return alovaInstance.Post<any>(`${OMS_API}.create_sales_order_ticket`, {
+    sales_order_name: payload.id,
+    subject: payload.subject,
+    message: payload.message,
+    priority: payload.priority,
+    company: payload.company,
+  })
 }

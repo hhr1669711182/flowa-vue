@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="products h-full flex flex-col" v-show="!showHistory">
     <div class="flex justify-between items-center mb-4 flex-shrink-0">
       <div>
@@ -425,6 +425,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from "vue";
 import { useRouter } from "vue-router";
+import { useRequest } from "alova/client";
 import {
   Plus,
   Edit,
@@ -479,29 +480,37 @@ const getIconComponent = (type: string) => {
   };
   return markRaw(map[type] || Message);
 };
-const loadData = async () => {
-  try {
-    const [statsRes, notifRes, ordersRes] = await Promise.all([
-      getOutboundStats(),
-      getBillingNotifications(),
-      getBillingRecentOrders(),
-    ]);
+const { send: sendLoadData, onSuccess: onLoadDataSuccess, onError: onLoadDataError } = useRequest(
+  () => Promise.all([
+    getOutboundStats(),
+    getBillingNotifications(),
+    getBillingRecentOrders(),
+  ]),
+  { immediate: false }
+);
 
-    price.value = statsRes.price;
-    progressItems.value = statsRes.progressItems;
+onLoadDataSuccess(({ data }) => {
+  const [statsRes, notifRes, ordersRes] = data as any;
+  price.value = statsRes.price;
+  progressItems.value = statsRes.progressItems;
 
-    notifications.value = notifRes.map((n) => ({
-      ...n,
-      icon: getIconComponent(n.iconType),
-    }));
+  notifications.value = notifRes.map((n: any) => ({
+    ...n,
+    icon: getIconComponent(n.iconType),
+  }));
 
-    recentOrders.value = ordersRes.list.map((o) => ({
-      ...o,
-      image: o.image.includes("placeholder") ? productImage : o.image,
-    }));
-  } catch (error) {
-    console.error("Failed to load dashboard data:", error);
-  }
+  recentOrders.value = ordersRes.list.map((o: any) => ({
+    ...o,
+    image: o.image.includes("placeholder") ? productImage : o.image,
+  }));
+});
+
+onLoadDataError(({ error }) => {
+  console.error("Failed to load dashboard data:", error);
+});
+
+const loadData = () => {
+  sendLoadData();
 };
 
 const handleViewDetail = (row: any) => {
@@ -513,19 +522,27 @@ const handleAddCredit = () => {
   addCreditVisible.value = true;
 };
 
-const handleImport = async () => {
-  try {
-    const res = await exportInventoryProducts({});
-    if (res?.url) {
-      window.open(res.url, "_blank");
-      ElMessage.success("Export started successfully");
-    }
-  } catch (error) {
-    ElMessage.error("Export failed");
+const { send: sendImport, onSuccess: onImportSuccess, onError: onImportError } = useRequest(
+  () => exportInventoryProducts({}),
+  { immediate: false }
+);
+
+onImportSuccess(({ data: res }) => {
+  if (res?.url) {
+    window.open(res.url, "_blank");
+    ElMessage.success("Export started successfully");
   }
+});
+
+onImportError(() => {
+  ElMessage.error("Export failed");
+});
+
+const handleImport = () => {
+  sendImport();
 };
 
-const handleSaveProduct = async (data: any) => {
+const handleSaveProduct = (data: any) => {
   // Mock save logic
   console.log("Saved:", data);
   detailVisible.value = false;
@@ -582,14 +599,27 @@ const btnItems2 = [
   },
 ] as any;
 
-const handleRowAction = async (action: string, row: any) => {
+const { send: sendCreateTicket, onSuccess: onCreateTicketSuccess, onError: onCreateTicketError } = useRequest(
+  (data: any) => createTicket(data),
+  { immediate: false }
+);
+
+onCreateTicketSuccess(() => {
+  ElMessage.success("Support ticket created");
+});
+
+onCreateTicketError(() => {
+  ElMessage.error("Failed to create support ticket");
+});
+
+const handleRowAction = (action: string, row: any) => {
   const orderKeyword = row?.orderId || row?.title || "";
   switch (action) {
     case "view":
       handleViewDetail(row);
       return;
     case "order":
-      await router.push({
+      router.push({
         path: "/orders/list",
         query: {
           keyword: orderKeyword,
@@ -599,7 +629,7 @@ const handleRowAction = async (action: string, row: any) => {
       ElMessage.success("Redirected to All Orders");
       return;
     case "support":
-      await createTicket({
+      sendCreateTicket({
         stage: "Billing",
         stageDetail: row?.title || "Outbound Service",
         type: "Outbound Shipping Inquiry",
@@ -608,7 +638,6 @@ const handleRowAction = async (action: string, row: any) => {
         typeDetails: `Shipping ${row?.shipping || "-"}, Tax ${row?.tax || "-"}, Total ${row?.grandTotal || "-"}`,
         notes: "Need help to verify outbound billing line items and charge details.",
       });
-      ElMessage.success("Support ticket created");
       return;
     default:
       return;
@@ -617,7 +646,6 @@ const handleRowAction = async (action: string, row: any) => {
 
 // Data Logic
 const tableData = ref([]) as any;
-const loading = ref(false);
 const total = ref(0);
 const page = ref(1);
 const limit = ref(10);
@@ -807,31 +835,38 @@ const onResize = () => {
   if (valueChart) valueChart.resize();
 };
 
-const fetchData = async () => {
-  loading.value = true;
-  try {
-    const res = await getBillingRecentOrders({
-      page: page.value,
-      pageSize: limit.value,
-    });
-    tableData.value = res.list;
-    total.value = res.total;
-    await nextTick();
+const { loading, send: sendFetchData, onSuccess: onFetchDataSuccess, onError: onFetchDataError } = useRequest(
+  () => getBillingRecentOrders({
+    page: page.value,
+    pageSize: limit.value,
+  }),
+  { immediate: false }
+);
+
+onFetchDataSuccess(({ data: res }) => {
+  tableData.value = res.list;
+  total.value = res.total;
+  nextTick(() => {
     updateStatsAndChart();
-  } catch (error) {
-    console.error("Failed to fetch services:", error);
-  } finally {
-    loading.value = false;
-  }
+  });
+});
+
+onFetchDataError(({ error }) => {
+  console.error("Failed to fetch services:", error);
+});
+
+const fetchData = () => {
+  sendFetchData();
 };
 
-onMounted(async () => {
-  await nextTick();
-  if (filterRef.value) {
-    currentFilters.value = filterRef.value.getSearchParams();
-  }
-  loadData();
-  fetchData();
+onMounted(() => {
+  nextTick(() => {
+    if (filterRef.value) {
+      currentFilters.value = filterRef.value.getSearchParams();
+    }
+    loadData();
+    fetchData();
+  });
 });
 
 onBeforeUnmount(() => {

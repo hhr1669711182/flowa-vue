@@ -52,36 +52,54 @@ export interface UnreadTroubleTicket {
 }
 
 /** 首页未读工单：走 OMS 接口 get_unread_trouble_tickets。bypassCache=true 时禁用缓存，用于标记已读后局部刷新。 */
-export const getUnreadTroubleTickets = async (
-  company?: string,
-  limit = 20,
-  bypassCache = false
-): Promise<UnreadTroubleTicket[]> => {
-  if (!company?.trim()) {
-    return []
+export const getUnreadTroubleTickets = (
+  company?: string
+) => {
+  if (useAppStoreWithOut().useMock) {
+    return alovaInstance.Get<any>('/api/dashboard/unread-tickets', {
+      params: { company },
+    })
   }
-  const method = alovaInstance.Get<{ message?: UnreadTroubleTicket[] } | UnreadTroubleTicket[]>(
-    `${site.UU_API_OMS_UI}.get_unread_trouble_tickets`,
-    {
-      params: { company: company.trim(), limit: String(limit) },
-      ...(bypassCache ? { cacheFor: 0 } : {}),
+
+  const payload: any = {}
+  if (company && company.trim() !== '') {
+    payload.company = company.trim()
+  }
+
+  return alovaInstance.Post<any>(`${site.UU_API_OMS_UI}.get_unread_trouble_tickets`, payload, {
+    transform: (raw: any) => {
+      const msg = raw?.message ?? raw
+      if (msg && typeof msg === 'object' && msg.ok) {
+        return {
+          total_unread: msg.data?.total_unread || 0,
+          list: Array.isArray(msg.data?.list) ? msg.data.list : [],
+        }
+      }
+      return { total_unread: 0, list: [] }
     }
-  )
-  const res = await method.send()
-  const list = Array.isArray(res) ? res : (res as any)?.message
-  return Array.isArray(list) ? list : []
+  })
 }
 
 /** 工单标记已查看（单条）：POST mark_trouble_ticket_viewed，Body name + company。Frappe 返回在 message 里，此处解包为 { ok, message } */
-export const markTroubleTicketViewed = async (name: string, company: string) => {
-  const method = alovaInstance.Post<{ message?: { ok?: boolean; message?: string } | string; ok?: boolean }>(
-    `${site.UU_API_OMS_UI}.mark_trouble_ticket_viewed`,
-    { name, company }
-  )
-  const res = await method.send()
-  const inner = (res as any)?.message
-  if (inner && typeof inner === 'object' && 'ok' in inner) return { ok: !!inner.ok, message: inner.message }
-  return { ok: !!(res as any)?.ok, message: (res as any)?.message }
+export const markTroubleTicketViewed = (name: string, company: string) => {
+  if (useAppStoreWithOut().useMock) {
+    return alovaInstance.Post<{ success: boolean }>(`/api/dashboard/unread-tickets/${name}/read`)
+  }
+
+  const payload: any = { name }
+  if (company && company.trim() !== '') {
+    payload.company = company.trim()
+  }
+
+  return alovaInstance.Post<{ success: boolean }>(`${site.UU_API_OMS_UI}.mark_trouble_ticket_viewed`, payload, {
+    transform: (raw: any) => {
+      const msg = raw?.message ?? raw
+      if (msg && typeof msg === 'object' && msg.ok) {
+        return { success: true }
+      }
+      throw new Error(msg?.message || msg?.error || 'Failed to mark as viewed')
+    }
+  })
 }
 
 /** 全部工单标记已读：POST mark_all_trouble_tickets_viewed，Body company */
@@ -140,9 +158,11 @@ export interface CreateRechargePaymentResult {
   error?: string
 }
 
-export const createRechargePayment = async (params: { amount: number; company?: string }): Promise<any> => {
+export const createRechargePayment = (params: { amount: number; company?: string }) => {
   if (useAppStoreWithOut().useMock) {
-    return { success: true, data: { payment_url: 'https://example.com/pay' } }
+    return alovaInstance.Post<{ success: boolean; data: { payment_url: string } }>('/api/dashboard/recharge', params, {
+      transform: () => ({ success: true, data: { payment_url: 'https://example.com/pay' } })
+    })
   }
   return alovaInstance.Post<any>(`${site.UU_API_OMS_UI}.create_recharge`, params)
 }

@@ -1,3 +1,11 @@
+<!--
+ * @Author: hhr
+ * @Date: 2026-04-08 11:36:55
+ * @LastEditTime: 2026-04-20 19:30:25
+ * @LastEditors: hhr
+ * @Description: 文件描述
+ * @FilePath: \flowa\flowa-vue\src\views\Billing\outbound\components\ProductFilter.vue
+-->
 <template>
   <div class="product-filter">
     <div class="py-2 flex items-center gap-3">
@@ -76,7 +84,13 @@ const handleSearch = () => {
 
 const doDownloadTable = async () => {
   try {
-    const res = await exportOutboundBilling(getSearchParams());
+    const params = getSearchParams();
+    const method = exportOutboundBilling({
+      company: "UU", // Default to UU for now
+      sales_order: params.name || params.sku,
+      ...params,
+    } as any);
+    const res = await method;
     if (res?.url) {
       window.open(res.url, '_blank');
       ElMessage.success('Export started successfully');

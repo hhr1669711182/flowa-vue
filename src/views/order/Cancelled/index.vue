@@ -110,11 +110,11 @@
 
         <template #order="{ row }">
           <div class="flex items-center gap-3">
-            <img
+            <!-- <img
               :src="productImage"
               alt="Product Image"
               class="w-10 h-10 rounded-lg"
-            />
+            /> -->
             <div class="flex flex-col">
               <span class="text-sm font-medium text-gray-800">{{
                 row.orderId
@@ -232,12 +232,15 @@ import {
   type CancelledOrderStatus,
   type CancelledInventoryStatus,
 } from "@/api/order/cancelled";
+import { extractOmsSalesOrderDetail, parseFlowaListSalesOrdersResult } from "@/utils/frappeResponse";
+import { mapRowToInProgressRecord, patchRowFromSalesOrderDoc } from "@/utils/flowaSalesOrderRowMap";
+import { useAuthStore } from "@/store/modules/auth";
 import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
 import { Steps } from "@/components/base/Steps";
-// ----------------- 临时数据
-import productImage from "@/views/icon/yf.png";
-// -----------------
+import { useRequest } from "alova/client";
+
+const authStore = useAuthStore();
 // Product Detail State
 const detailVisible = ref(false);
 const currentProductId = ref<string | undefined>(undefined);
@@ -369,18 +372,20 @@ const buildParams = (): CancelledOrderListParams => {
   };
 };
 
-const fetchData = async () => {
-  loading.value = true;
-  try {
-    const res = await getCancelledOrderList(buildParams());
-    tableData.value = res.list;
-    total.value = res.total;
-    await nextTick();
-  } catch (error) {
-    console.error("Failed to fetch products:", error);
-  } finally {
-    loading.value = false;
-  }
+const { loading, send: sendFetchData, onSuccess: onFetchDataSuccess } = useRequest(
+  () => getCancelledOrderList(buildParams()),
+  { immediate: false }
+);
+
+onFetchDataSuccess((event) => {
+  const res = event.data;
+  const { data: rows, total: n } = parseFlowaListSalesOrdersResult(res);
+  tableData.value = rows.map((o: unknown) => mapRowToInProgressRecord(o as Record<string, unknown>));
+  total.value = n;
+});
+
+const fetchData = () => {
+  sendFetchData();
 };
 
 const handleExpandChange = async (row: any, expanded: any[]) => {
@@ -390,8 +395,10 @@ const handleExpandChange = async (row: any, expanded: any[]) => {
   if (expandDetailMap.value[row.id]) return;
   expandLoadingMap.value = { ...expandLoadingMap.value, [row.id]: true };
   try {
-    const res = await getCancelledOrderDetail(row.id);
-    expandDetailMap.value = { ...expandDetailMap.value, [row.id]: res };
+    const raw = await getCancelledOrderDetail(row.id, authStore.company ?? undefined);
+    const doc = extractOmsSalesOrderDetail(raw);
+    const detail = doc ? patchRowFromSalesOrderDoc(row, doc) : row;
+    expandDetailMap.value = { ...expandDetailMap.value, [row.id]: detail };
   } catch (error) {
     console.error("Failed to fetch cancelled order detail:", error);
   } finally {
@@ -412,6 +419,7 @@ const handleSupport = async (row: any) => {
       subject: `Order support: ${row.orderId}`,
       message: "Need help with this cancelled order.",
       priority: "High",
+      company: authStore.company ?? undefined,
     });
     ElMessage.success("Support ticket created");
   } catch (error) {
@@ -429,6 +437,7 @@ const handleRowAction = (action: string, row: any) => {
         id: row.id,
         note: "Manual reactivation requested.",
         targetStage: (row.stage || "Review and Fix") as CancelledOrderStage,
+        company: authStore.company ?? undefined,
       }).then(() => {
         ElMessage.success("Reactivation requested");
         fetchData();
@@ -438,6 +447,7 @@ const handleRowAction = (action: string, row: any) => {
       updateCancelledOrderStatus({
         id: row.id,
         status: "Archived",
+        company: authStore.company ?? undefined,
       }).then(() => {
         ElMessage.success("Status updated");
         fetchData();
@@ -449,6 +459,7 @@ const handleRowAction = (action: string, row: any) => {
         subject: `Order support: ${row.orderId}`,
         message: "Need help with this cancelled order.",
         priority: "High",
+        company: authStore.company ?? undefined,
       }).then(() => {
         ElMessage.success("Support ticket created");
       });

@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import { reactive } from "vue";
-import { exportOutboundBilling } from "@/api/billing/outbound";
+import { exportStorageBilling } from "@/api/billing/storage";
 import { ElMessage } from "element-plus";
 
 const emit = defineEmits(["search"]);
@@ -57,7 +57,7 @@ const searchForm = reactive({
 
 const filters = reactive({
   lastDays: "7",
-  range: "",
+  range: [] as [string, string] | [],
   stock: "all",
   qty: "all",
 });
@@ -75,7 +75,14 @@ const handleSearch = () => {
 
 const doDownloadTable = async () => {
   try {
-    const res = await exportOutboundBilling(getSearchParams());
+    const params = getSearchParams();
+    const exportParams = {
+      company: "UU",
+      name: params.name || params.sku,
+      period_start: params.range && params.range.length ? params.range[0] : undefined,
+      period_end: params.range && params.range.length ? params.range[1] : undefined,
+    };
+    const res = await exportStorageBilling(exportParams);
     if (res?.url) {
       window.open(res.url, "_blank");
       ElMessage.success("Export started successfully");

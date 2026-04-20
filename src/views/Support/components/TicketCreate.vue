@@ -90,10 +90,11 @@
 
     <template #footer>
       <div class="flex justify-between gap-3">
-        <el-button class="!px-8" @click="updateVisible(false)">Cancel</el-button>
+        <el-button class="!px-8" :disabled="submitting" @click="updateVisible(false)">Cancel</el-button>
         <el-button
           type="primary"
           class="!bg-[#16215B] !border-none !px-8"
+          :loading="submitting"
           @click="handleSubmit"
           >{{ mode === "edit" ? "Save Ticket" : "Create Ticket" }}</el-button
         >
@@ -114,8 +115,10 @@ import { createTicket, updateTicket, TicketStageOptions, type Ticket, type Ticke
 import { ElMessage } from 'element-plus'
 import { Close, Delete, Document, RefreshRight, UploadFilled } from '@element-plus/icons-vue'
 import TicketUploadFlowDialog from './TicketUploadFlowDialog.vue'
+import { useRequest } from 'alova/client'
 
 const props = defineProps<{
+  modelValue?: boolean
   visible: boolean
   mode?: 'create' | 'edit'
   ticket?: Ticket | null
@@ -191,20 +194,48 @@ watch(
   { immediate: true }
 )
 
-const handleSubmit = async () => {
-  form.stageDetail = form.typeId
-  if (mode.value === 'edit' && props.ticket?.id) {
-    await updateTicket(props.ticket.id, { ...form })
-    updateVisible(false)
-    ElMessage.success("Updated")
-    emit('success')
-    return
-  }
-  await createTicket({ ...form })
-  updateVisible(false)
-  ElMessage.success("Created")
-  emit('success')
-}
+const { loading: submitting, send: sendSubmitTicket, onSuccess: onSubmitSuccess, onError: onSubmitError } = useRequest(
+  (payload: any, isEdit: boolean, id?: string) => {
+    if (isEdit && id) {
+      return updateTicket(id, payload);
+    }
+    return createTicket(payload);
+  },
+  { immediate: false }
+);
+
+onSubmitSuccess((event) => {
+  updateVisible(false);
+  ElMessage.success(mode.value === 'edit' ? "Updated" : "Created");
+  emit('success');
+});
+
+onSubmitError((event) => {
+  ElMessage.error(event.error?.message || "Operation failed");
+});
+
+const handleSubmit = () => {
+  form.stageDetail = form.typeId;
+  const mappedPayload = {
+    subject: form.ticketId || "Support Ticket",
+    description: form.notes,
+    problem_category: "其他", // default
+    priority: form.priority,
+    reference_doctype: undefined as any,
+    reference_name: form.typeId,
+    stage: form.stage,
+    stageDetail: form.stageDetail,
+    type: form.type,
+  };
+
+  // Basic category mapping
+  if (form.stage === 'Order') mappedPayload.problem_category = '其他';
+  else if (form.stage === 'Inventory') mappedPayload.problem_category = '仓库';
+  else if (form.stage === 'Billing' || form.stage === 'Invoices') mappedPayload.problem_category = '账单';
+  else mappedPayload.problem_category = '其他';
+
+  sendSubmitTicket(mappedPayload, mode.value === 'edit', props.ticket?.id);
+};
 
 const handleUploadDone = (payload: { uploadId: string; fileName: string }) => {
   uploadProgress.value = 100

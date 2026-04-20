@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="products h-full flex flex-col" v-show="!showHistory">
     <div class="flex justify-between items-center mb-4 flex-shrink-0">
       <div>
@@ -323,7 +323,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, onBeforeUnmount, nextTick } from "vue";
+import { ref, onMounted, reactive, onBeforeUnmount, nextTick, markRaw } from "vue";
 import {
   Plus,
   Edit,
@@ -354,6 +354,7 @@ import { MoreFilled } from "@element-plus/icons-vue";
 import productImage from "@/views/icon/yf.png";
 import { createTicket } from "@/api";
 import rightButtons from "../components/rightButtons.vue";
+import { useRequest } from "alova/client";
 
 const price = ref("$0");
 const editVisible = ref(false);
@@ -379,29 +380,36 @@ const getIconComponent = (type: string) => {
   };
   return markRaw(map[type] || Message);
 };
-const loadData = async () => {
-  try {
-    const [statsRes, notifRes, ordersRes] = await Promise.all([
-      getOutboundStats(),
-      getBillingNotifications(),
-      getBillingRecentOrders(),
-    ]);
 
-    price.value = statsRes.price;
-    progressItems.value = statsRes.progressItems;
+const { send: loadStats } = useRequest(getOutboundStats, {
+  initialData: { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0 },
+}).onSuccess(({ data: statsRes }) => {
+  price.value = statsRes.price || "$0";
+  progressItems.value = statsRes.progressItems || [];
+});
 
-    notifications.value = notifRes.map((n) => ({
-      ...n,
-      icon: getIconComponent(n.iconType),
-    }));
+const { send: loadNotifications } = useRequest(getBillingNotifications, {
+  initialData: [],
+}).onSuccess(({ data: notifRes }) => {
+  notifications.value = (notifRes || []).map((n: any) => ({
+    ...n,
+    icon: getIconComponent(n.iconType),
+  }));
+});
 
-    recentOrders.value = ordersRes.list.map((o) => ({
-      ...o,
-      image: o.image.includes("placeholder") ? productImage : o.image,
-    }));
-  } catch (error) {
-    console.error("Failed to load dashboard data:", error);
-  }
+const { send: loadOrders } = useRequest(getBillingRecentOrders, {
+  initialData: { list: [], total: 0, page: 1, pageSize: 10 },
+}).onSuccess(({ data: ordersRes }) => {
+  recentOrders.value = (ordersRes.list || []).map((o: any) => ({
+    ...o,
+    image: o.image?.includes("placeholder") ? productImage : o.image,
+  }));
+});
+
+const loadData = () => {
+  loadStats();
+  loadNotifications();
+  loadOrders();
 };
 
 const handleViewDetail = (row: any) => {
@@ -418,19 +426,22 @@ const handleAddCredit = () => {
   addCreditVisible.value = true;
 };
 
-const handleImport = async () => {
-  try {
-    const res = await exportInventoryProducts({});
-    if (res?.url) {
-      window.open(res.url, "_blank");
-      ElMessage.success("Export started successfully");
-    }
-  } catch (error) {
-    ElMessage.error("Export failed");
+const { send: exportProducts } = useRequest(() => exportInventoryProducts({}), {
+  immediate: false,
+}).onSuccess(({ data: res }) => {
+  if (res?.url) {
+    window.open(res.url, "_blank");
+    ElMessage.success("Export started successfully");
   }
+}).onError(() => {
+  ElMessage.error("Export failed");
+});
+
+const handleImport = () => {
+  exportProducts();
 };
 
-const handleSaveProduct = async (data: any) => {
+const handleSaveProduct = (data: any) => {
   // Mock save logic
   console.log("Saved:", data);
   detailVisible.value = false;
@@ -464,11 +475,16 @@ const columns = [
   },
 ];
 
-const handleRowAction = async (action: string, row: any) => {
+const { send: sendCreateTicket } = useRequest((params: any) => createTicket(params), { immediate: false })
+  .onSuccess(() => {
+    ElMessage.success("Support ticket created");
+  });
+
+const handleRowAction = (action: string, row: any) => {
   const orderKeyword = row?.orderId || row?.title || "";
   switch (action) {
     case "support":
-      await createTicket({
+      sendCreateTicket({
         stage: "Billing",
         stageDetail: row?.title || "Outbound Service",
         type: "Outbound Shipping Inquiry",
@@ -478,7 +494,6 @@ const handleRowAction = async (action: string, row: any) => {
         notes:
           "Need help to verify outbound billing line items and charge details.",
       });
-      ElMessage.success("Support ticket created");
       return;
     default:
       return;
@@ -486,8 +501,7 @@ const handleRowAction = async (action: string, row: any) => {
 };
 
 // Data Logic
-const tableData = ref([]) as any;
-const loading = ref(false);
+const tableData = ref<any[]>([]);
 const total = ref(0);
 const page = ref(1);
 const limit = ref(10);
@@ -677,32 +691,31 @@ const onResize = () => {
   if (valueChart) valueChart.resize();
 };
 
-const fetchData = async () => {
-  loading.value = true;
-  try {
-    const res = await getStorageList({
-      page: page.value,
-      pageSize: limit.value,
-      ...currentFilters.value,
-    });
-    tableData.value = res.list;
-    total.value = res.total;
-    await nextTick();
+const { loading, send: fetchData } = useRequest(
+  () => getStorageList({
+    company: "UU",
+    page: page.value,
+    pageSize: limit.value,
+    ...(currentFilters.value as any),
+  }),
+  { immediate: false }
+).onSuccess(({ data: res }) => {
+  tableData.value = res.list;
+  total.value = res.total;
+  nextTick(() => {
     updateStatsAndChart();
-  } catch (error) {
-    console.error("Failed to fetch storage list:", error);
-  } finally {
-    loading.value = false;
-  }
-};
+  });
+}).onError((error) => {
+  console.error("Failed to fetch storage list:", error);
+});
 
-onMounted(async () => {
-  await nextTick();
-  if (filterRef.value) {
-    currentFilters.value = filterRef.value.getSearchParams();
-  }
-  loadData();
-  fetchData();
+onMounted(() => {
+  nextTick(() => {
+    if (filterRef.value) {
+      currentFilters.value = filterRef.value.getSearchParams();
+    }
+    fetchData();
+  });
 });
 
 onBeforeUnmount(() => {

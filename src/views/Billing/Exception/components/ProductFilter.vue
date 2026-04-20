@@ -44,6 +44,7 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 import { exportExceptionBilling } from '@/api/billing/exception'
+import { triggerBillingDownload } from '@/api/billing'
 import { ElMessage } from 'element-plus'
 
 const emit = defineEmits(['search'])
@@ -69,10 +70,16 @@ const handleSearch = () => {
 
 const doDownloadTable = async () => {
   try {
-    const res = await exportExceptionBilling(getSearchParams());
-    if (res?.url) {
-      window.open(res.url, '_blank');
+    const res = await exportExceptionBilling(getSearchParams()).send();
+    const msg = (res as any)?.message ?? res;
+    if (msg?.success && (msg?.file_url || msg?.file_content_base64)) {
+      triggerBillingDownload(msg.file_url, msg.file_name, msg.file_content_base64);
       ElMessage.success('Export started successfully');
+    } else if (msg?.url) {
+      window.open(msg.url, '_blank');
+      ElMessage.success('Export started successfully');
+    } else {
+      ElMessage.error(msg?.error || 'Export failed');
     }
   } catch (error) {
     console.error('Export failed:', error);

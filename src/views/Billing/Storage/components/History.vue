@@ -16,7 +16,7 @@
       <div class="flex items-center gap-3">
         <el-button @click="$emit('close')" class="w-11 !h-11 !p-0" size="large" type="default">
           <!-- <Icon icon="svg-icon:xmark" color="#16215B" size="22px" /> -->
-          <Icon icon="formkit:close" size="22px"  style="color: #16215B" />
+          <Icon icon="formkit:close" :size="6"  style="color: #16215B" />
         </el-button>
       </div>
     </div>
@@ -131,7 +131,7 @@ import BaseTable from "@/components/common/BaseTable.vue";
 defineEmits(["close"]);
 
 const search = ref("");
-const dateRange = ref([]);
+const dateRange = ref<string[]>([]);
 const selectedType = ref("");
 const tableData = ref<any[]>([]);
 const loading = ref(false);
@@ -152,10 +152,12 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const res = await getBillingTransactions({
+      company: "UU",
       page: page.value,
       pageSize: limit.value,
       search: search.value,
       type: selectedType.value,
+      dateRange: dateRange.value.length ? dateRange.value : undefined,
     });
     tableData.value = res.list;
     total.value = res.total;

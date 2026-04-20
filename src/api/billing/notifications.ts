@@ -1,4 +1,7 @@
 import { alovaInstance } from '@/services/alova';
+import { site } from '@/api/useAddress';
+
+const OMS_API = site.UU_API_OMS_UI;
 
 export interface BillingNotification {
   id: number;
@@ -9,10 +12,15 @@ export interface BillingNotification {
   unread: boolean;
 }
 
+/** 暂无后端接口，返回空数组避免 404 */
 export const getBillingNotifications = () => {
-  return alovaInstance.Get<BillingNotification[]>('/api/billing/notifications');
+  return alovaInstance.Post<BillingNotification[]>(`${OMS_API}.get_billing_notifications`, {}, {
+    transform: () => []
+  });
 }
 
 export const markBillingNotificationAsRead = (id?: number) => {
-  return alovaInstance.Post('/api/billing/notifications/read', { id });
+  return alovaInstance.Post<void>(`${OMS_API}.mark_billing_notification_read`, { id }, {
+    transform: () => {}
+  });
 }

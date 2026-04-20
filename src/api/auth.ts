@@ -61,18 +61,19 @@ export interface CurrentUserInfo {
   roles?: string[]
 }
 
-export const login = async (data: LoginPayload): Promise<any> => {
+export const login = (data: LoginPayload) => {
   if (store().useMock) {
-    return alovaInstance.Post<LoginResponse | { ok: false; message: string }>('/api/auth/login', {
-      email: data.email,
-      password: data.password,
+    return alovaInstance.Post<any>('/api/auth/login', data, {
+      transform: () => ({ ok: true, message: 'Mock logged in' })
     })
   }
 
-  return alovaInstance.Post<any>('login', {
+  const payload: any = {
     usr: data.email,
     pwd: data.password,
-  })
+  }
+
+  return alovaInstance.Post<any>('login', payload)
 }
 
 export const loginOutApi = (): Promise<IResponse> => {
@@ -84,9 +85,12 @@ export const requestPasswordReset = (data: ResetPayload) => {
   return alovaInstance.Post<any>(url, data)
 }
 
-export const updatePassword = async (key: string, newPassword: string, logoutAllSessions = false): Promise<any> => {
-  const url = store().useMock ? '/api/auth/update_password' : 'frappe.core.doctype.user.user.update_password'
-  return alovaInstance.Post<any>(url, { key, newPassword, logoutAllSessions })
+export const updatePassword = (key: string, newPassword: string, logoutAllSessions = false) => {
+  return alovaInstance.Post<any>('frappe.core.doctype.user.user.update_password', {
+    new_password: newPassword,
+    logout_all_sessions: logoutAllSessions ? 1 : 0,
+    key
+  })
 }
 
 export const verifyEmailCode = (data: VerifyPayload) => {
@@ -118,17 +122,16 @@ export const getFrappeCsrfTokenApi = () => {
   return alovaInstance.Get<{ message?: string }>(site.UU_API_OMS_UI + '.get_csrf_token')
 }
 
-export const logout = async (): Promise<{ ok: true }> => {
+export const logout = () => {
   if (store().useMock) {
-    localStorage.removeItem('token')
-    return { ok: true }
+    return alovaInstance.Post<{ ok: true }>('/api/auth/logout', {}, {
+      transform: () => ({ ok: true })
+    })
   }
 
-  await alovaInstance.Post<any>('logout')
-  localStorage.removeItem('token')
-  return { ok: true }
+  return alovaInstance.Post<any>('logout', {})
 }
 
-export const unifiedRegister = async (payload: { email: string; password: string; full_name: string }): Promise<any> => {
+export const unifiedRegister = (payload: { email: string; password: string; full_name: string }) => {
   return alovaInstance.Post<any>(site.UU_API_OMS_UI + '.unified_register', payload)
 }
