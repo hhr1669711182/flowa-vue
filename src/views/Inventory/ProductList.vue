@@ -344,6 +344,7 @@ import {
   getInventoryProducts,
   getProductDetail,
   removeProductVirtualName,
+  getInventoryStats,
 } from "@/api/inventory";
 import { ElMessage } from "element-plus";
 import { createHeaderHintRenderer } from "@/components/common/TableHeaderHint";
@@ -674,12 +675,17 @@ const fetchData = async () => {
       pageSize: limit.value,
       ...currentFilters.value,
     });
-    tableData.value = res.list;
-    total.value = res.total;
+    tableData.value = res.list || [];
+    total.value = res.total || 0;
     await nextTick();
     updateStatsAndChart();
+    
+    // fetch stats
+    const statsRes = await getInventoryStats();
+    totalInventory.value = typeof statsRes === 'number' ? statsRes : (statsRes as any)?.message ?? 0;
   } catch (error) {
     console.error("Failed to fetch products:", error);
+    ElMessage.error("Failed to load product data");
   } finally {
     loading.value = false;
   }

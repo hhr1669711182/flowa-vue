@@ -1,4 +1,5 @@
 import { alovaInstance } from '@/services/alova';
+import { useAppStoreWithOut } from '@/store/modules/app'
 
 export interface SearchResult {
   id: number
@@ -10,7 +11,12 @@ export interface SearchResult {
 }
 
 export const getSearchResults = (query: string) => {
-  return alovaInstance.Get<SearchResult[]>('/api/search', {
-    params: { q: query }
-  });
+  if (useAppStoreWithOut().useMock) {
+    return alovaInstance.Get<SearchResult[]>('/api/search', {
+      params: { q: query }
+    });
+  }
+  return alovaInstance.Get<any>('frappe.desk.search.search_widget', {
+    params: { txt: query }
+  })
 }

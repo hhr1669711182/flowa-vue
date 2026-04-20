@@ -131,10 +131,10 @@ import {
 import messageAll from "./messageAll.vue";
 import SearchPopover from "../common/searchPopover.vue";
 import { getSearchResults, type SearchResult } from "@/api/common";
-import { useUserStore } from "@/store/modules/user";
+import { useAuthStore } from '@/store/modules/auth'
 
 const router = useRouter();
-const userStore = useUserStore();
+const authStore = useAuthStore()
 const searchText = ref("");
 const searchVisible = ref(false);
 const searchResults = ref<SearchResult[]>([]);
@@ -143,16 +143,16 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
 const drawerVisible = ref(false);
 const displayName = computed(() => {
-  return userStore.getUserInfo?.name || userStore.getUserInfo?.username || "Admin User";
+  return authStore.user?.name || "Admin User";
 });
 const displayEmail = computed(() => {
-  return userStore.getUserInfo?.email || userStore.getLoginInfo?.username || "admin@flowa.com";
+  return authStore.user?.email || "admin@flowa.com";
 });
 const displayRole = computed(() => {
-  return userStore.getUserInfo?.role || "Administrator";
+  return authStore.user?.role || "Administrator";
 });
 const avatarImg = computed(() => {
-  return userStore.getAvatarImg || "";
+  return "" // 可选：后续从 authStore 补充
 });
 const avatarInitial = computed(() => {
   const name = displayName.value || "";
@@ -199,8 +199,9 @@ const handleCommand = (command: string) => {
   }
 };
 
-const logout = () => {
-  userStore.logout();
+const logout = async () => {
+  await authStore.logout();
+  router.push('/login')
 };
 
 const onShowDrawer = () => {
@@ -208,7 +209,7 @@ const onShowDrawer = () => {
 };
 
 onMounted(() => {
-  userStore.fetchAvatarImg();
+  // userStore.fetchAvatarImg();
 });
 
 defineEmits(["toggle-drawer"]);

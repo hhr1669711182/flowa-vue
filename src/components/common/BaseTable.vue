@@ -266,7 +266,7 @@ const resolvedHeaderCellStyle = computed(() => {
 });
 </script>
 
-<style scoped>
+<style scoped lang="less">
 :deep(.el-table__inner-wrapper::before) {
   display: none;
 }
@@ -306,6 +306,13 @@ const resolvedHeaderCellStyle = computed(() => {
 }
 
 .base-table :deep(.el-table__empty-block) {
-  height: 100% !important;
+  // height: 100% !important;
+  // max-height: 40vh !important;
+
+  .el-table__empty-text {
+    height: inherit !important;
+    display: grid;
+    place-items: center;
+  }
 }
 </style>

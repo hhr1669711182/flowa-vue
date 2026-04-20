@@ -1,13 +1,13 @@
 <template>
   <div class="dashboard flex flex-col gap-4">
-    <div>
+    <div class="flex-shrink-0">
       <div class="flex flex-col gap-2">
         <div class="flex justify-between w-full h-17 items-center">
           <div>
             <div
               class="text-2xl font-700 font-bold text-gray-800 tracking-tight"
             >
-              Welcome Evan
+              Welcome {{ welcomeName }}
             </div>
             <div class="text-gray-500 mt-1 text-sm font-500">
               View and manage all your individual products and their stock
@@ -74,6 +74,7 @@
                 type="primary"
                 size="large"
                 class="!w-[128px] !rounded-2"
+                @click="handleRecharge"
               >
                 <template #icon>
                   <Icon
@@ -122,7 +123,7 @@
             style="animation-delay: 0.5s"
           >
             <div class="flex-1 w-full min-h-0">
-              <CategoryChart />
+              <CategoryChart :order-stats="orderStatsForChart" />
             </div>
           </div>
         </el-col>
@@ -130,7 +131,7 @@
     </div>
     <el-row
       :gutter="16"
-      class="flex-1 min-h-0 rounded-xl overflow-hidden animate__animated animate__fadeInUp"
+      class="!flex !min-h-0 rounded-xl overflow-hidden animate__animated animate__fadeInUp"
       style="animation-delay: 0.6s"
     >
       <el-col :xs="24" :sm="12" :lg="9">
@@ -175,8 +176,8 @@
           </div>
         </div>
       </el-col>
-      <el-col class="flex-1 min-h-0" :xs="24" :sm="12" :lg="15">
-        <div class="flex-1 bg-white rounded-xl action-table overflow-auto box-border">
+      <el-col class="h-full max-h-40vh" :xs="24" :sm="12" :lg="15">
+        <div class="h-full bg-white rounded-xl action-table overflow-auto box-border">
           <div class="flex items-center justify-between p-2">
             <div class="text-lg font-bold text-#000 text-16px">
               Action Required
@@ -196,7 +197,7 @@
             :data="recentOrders"
             :columns="recentOrderColumns"
             :pagination="false"
-            class="h-full flex-1 max-h-40vh overflow-auto"
+            class="h-full max-h-40vh w-full box-border"
           >
             <template #order="{ row }">
               <div class="flex items-center gap-3">
@@ -224,7 +225,7 @@
                 >
                   {{ row.status }}
                 </el-tag>
-                <span class="text-xs text-gray-400">{{ row.statusNote }}</span>
+                <span class="text-xs text-gray-400">{{ row.subject }}</span>
               </div>
             </template>
             <template #actions="{ row }">
@@ -256,7 +257,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, markRaw, onMounted } from "vue";
+import { ref, reactive, computed, markRaw, onMounted, onUnmounted } from "vue";
+import { useRouter } from 'vue-router'
 import CategoryChart from "@/components/dashboard/CategoryChart.vue";
 import BaseTable from "@/components/common/BaseTable.vue";
 import EditPopover from "./components/editPopover.vue";
@@ -278,10 +280,24 @@ import {
   getDashboardNotifications,
   getDashboardRecentOrders,
   markNotificationAsRead,
+  getUnreadTroubleTickets,
+  markTroubleTicketViewed,
+  markAllTroubleTicketsViewed,
+  getActionRequiredSalesOrders,
+  getSalesOrderCounts,
+  getItemAvailableCount,
+  type UnreadTroubleTicket,
+  type HomeStats
 } from "@/api/dashboard";
 import { ElMessage } from "element-plus";
+import { useAuthStore } from '@/store/modules/auth'
 
-const price = ref("$0");
+const authStore = useAuthStore()
+const router = useRouter()
+const currentCompany = computed(() => authStore.currentCompany ?? '')
+const welcomeName = computed(() => authStore.user?.name || 'Evan')
+
+const price = computed(() => `$${stats.value.balance ?? 0}`);
 const editVisible = ref(false);
 const dataVisibility = reactive({
   totalInventory: true,
@@ -351,7 +367,26 @@ const hideAll = () => {
     dataVisibility[typedKey] = false;
   });
 };
-const progressItems = ref<any[]>([]);
+const progressItems = computed(() => [
+  {
+    label: "Review & Fix",
+    value: orderStatsForChart.value.ReviewAndFix ?? 0,
+    color: "#ef4444",
+    percent: 100,
+  },
+  {
+    label: "In Progress",
+    value: orderStatsForChart.value.InProgress ?? 0,
+    color: "#3b82f6",
+    percent: 100,
+  },
+  {
+    label: "Delivered",
+    value: orderStatsForChart.value.Delivered ?? 0,
+    color: "#22c55e",
+    percent: 100,
+  },
+]);
 
 const notifications = ref<any[]>([]);
 
@@ -381,30 +416,73 @@ const getStatusType = (status: string) => {
   }
 };
 
-const loadData = async () => {
+const loading = ref(false);
+const stats = ref<any>({});
+const orderStatsForChart = ref<any>({});
+
+const fetchDashboardData = async () => {
+  loading.value = true;
   try {
-    const [statsRes, notifRes, ordersRes] = await Promise.all([
-      getDashboardStats(),
-      getDashboardNotifications(),
-      getDashboardRecentOrders(),
-    ]);
+    const c = currentCompany.value
+    const [statsRes, notificationsRes, ordersRes, salesOrderCountRes, itemCountRes] =
+      await Promise.all([
+        getDashboardStats(c),
+        getUnreadTroubleTickets(c),
+        getActionRequiredSalesOrders(c),
+        getSalesOrderCounts(c),
+        getItemAvailableCount(c)
+      ]);
 
-    price.value = statsRes.price;
-    progressItems.value = statsRes.progressItems;
+    const homeStats = statsRes as HomeStats;
+    stats.value = {
+      balance: homeStats.balance ?? 0,
+      totalOrders: homeStats.orders_all ?? 0,
+      activeProducts: (itemCountRes as any) ?? 0,
+      openTickets: Array.isArray(notificationsRes) ? notificationsRes.length : 0,
+      estimatedOrders: homeStats.estimated_orders_affordable ?? 0,
+    };
+    
+    orderStatsForChart.value = {
+      ReviewAndFix: (salesOrderCountRes as any)?.message?.['Review & Fix'] ?? homeStats.orders_action_required ?? 0,
+      Warehouse: (salesOrderCountRes as any)?.message?.['Warehouse'] ?? 0,
+      Export: (salesOrderCountRes as any)?.message?.['Export'] ?? 0,
+      InProgress: (salesOrderCountRes as any)?.message?.['In Progress'] ?? homeStats.orders_in_progress ?? 0,
+      Delivered: (salesOrderCountRes as any)?.message?.['Delivered'] ?? homeStats.orders_delivered ?? 0,
+      Blocked: (salesOrderCountRes as any)?.message?.['Blocked'] ?? homeStats.orders_blocked ?? 0,
+      Cancelled: (salesOrderCountRes as any)?.message?.['Cancelled'] ?? homeStats.orders_cancelled ?? 0,
+    }
 
-    // Process notifications icons
-    notifications.value = notifRes.map((n) => ({
-      ...n,
-      icon: getIconComponent(n.iconType),
-    }));
+    notifications.value = Array.isArray(notificationsRes)
+      ? notificationsRes.map((t, idx) => ({
+          id: idx + 1,
+          title: t.subject_en || t.subject || t.name,
+          time: formatTimeAgo(t?.created_at) || 'Just now',
+          isRead: false,
+          rawName: t.name,
+          icon: getIconComponent('Message')
+        }))
+      : [];
 
-    // Process orders images
-    recentOrders.value = ordersRes.map((o) => ({
-      ...o,
-      image: o.image.includes("placeholder") ? productImage : o.image,
-    }));
+    const orderData = (ordersRes as any)?.data || (ordersRes as any)?.message?.data || []
+    recentOrders.value = Array.isArray(orderData)
+      ? orderData.map((o: any) => ({
+          ...o,
+          id: o.name,
+          image: productImage,
+          title: o.name,
+          code: o.name,
+          action: 'Review & Fix',
+          date: o.transaction_date || o.creation || '-',
+          status: o.status || 'Pending',
+          amount: o.grand_total || 0,
+          customer: o.customer_name || o.customer || '-',
+        }))
+      : [];
   } catch (error) {
-    console.error("Failed to load dashboard data:", error);
+    console.error("Failed to fetch dashboard data:", error);
+    ElMessage.error("Failed to load dashboard data");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -421,14 +499,36 @@ const getIconComponent = (type: string) => {
 };
 
 const markAllAsRead = async () => {
+  if (notifications.value.length === 0) return
+  const loading = ElMessage.success('Marking as read...')
   try {
-    await markNotificationAsRead();
-    notifications.value.forEach((n) => (n.unread = false));
-    ElMessage.success("All notifications marked as read");
-  } catch (error) {
-    ElMessage.error("Failed to update notifications");
+    const c = currentCompany.value
+    await markAllTroubleTicketsViewed(c)
+    notifications.value = notifications.value.map(n => ({ ...n, isRead: true }))
+    // refresh list
+    await fetchDashboardData()
+    ElMessage.success('All marked as read')
+  } catch (err: any) {
+    ElMessage.error(err.message || 'Failed to mark as read')
   }
-};
+}
+
+const formatTimeAgo = (creation: string | undefined) => {
+  try {
+    if (!creation) return ""
+    const d = new Date(creation);
+    const diff = (Date.now() - d.getTime()) / 3600000;
+    if (diff < 1) return "Just now";
+    if (diff < 24) return `${Math.floor(diff)} hours ago`;
+    return `${Math.floor(diff / 24)} days ago`;
+  } catch {
+    return "";
+  }
+}
+
+const handleRecharge = () => {
+  router.push('/billing/recharge')
+}
 
 const handleReview = (row: any) => {
   ElMessage.info(`Reviewing order ${row.code}`);
@@ -438,12 +538,21 @@ const handleView = (row: any) => {
   ElMessage.info(`Viewing details for ${row.code}`);
 };
 
+let refreshTimer: ReturnType<typeof setInterval> | null = null
+
 onMounted(() => {
-  loadData();
+  fetchDashboardData();
+  refreshTimer = setInterval(() => {
+    fetchDashboardData()
+  }, 60000) // 1 分钟自动刷新
 });
+
+onUnmounted(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
+})
 </script>
 
-<style scoped>
+<style scoped lang="less">
 .shadow-card {
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
 }
@@ -525,5 +634,15 @@ onMounted(() => {
 
 .action-table :deep(.el-table__body tr:last-child .el-table__cell) {
   border-bottom: 0;
+}
+
+.action-table :deep(.el-table__empty-block) {
+  height: 100% !important;
+
+  .el-table__empty-text {
+    height: inherit !important;
+    display: grid;
+    place-items: center;
+  }
 }
 </style>
