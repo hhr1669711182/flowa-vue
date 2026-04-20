@@ -180,7 +180,7 @@ const columns = [
 ];
 
 const fetchData = async () => {
-  const company = "UU"; // selectedCompany.value || authStore.currentCompany || "UU";
+  const company = selectedCompany.value || authStore.currentCompany || "";
   loading.value = true;
   try {
     const res = await getBillingTransactions({

@@ -436,7 +436,7 @@ const getIconComponent = (type: string) => {
 };
 const { send: sendStats } = useRequest(
   () => {
-    const company = authStore.currentCompany ?? "UU";
+    const company = authStore.currentCompany ?? "";
     const f = currentFilters.value as Record<string, any>;
     const [period_start, period_end] =
       f?.period_start && f?.period_end
@@ -748,7 +748,7 @@ const onResize = () => {
 
 const { loading, send: sendFetchData } = useRequest(
   () => {
-    const company = (currentFilters.value as any)?.company ?? authStore.currentCompany ?? "UU";
+    const company = (currentFilters.value as any)?.company ?? authStore.currentCompany ?? "";
     return getInboundList({
       company,
       page: page.value,
@@ -792,7 +792,7 @@ const { loading, send: sendFetchData } = useRequest(
 
 const fetchData = () => {
   authStore.ensureCompany().then((c) => {
-    const company = (currentFilters.value as any)?.company ?? authStore.currentCompany ?? c ?? "UU";
+    const company = (currentFilters.value as any)?.company ?? authStore.currentCompany ?? c ?? "";
     if (!company) {
       tableData.value = [];
       total.value = 0;

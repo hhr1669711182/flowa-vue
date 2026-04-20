@@ -58,7 +58,7 @@ const getSearchParams = () => {
 const handleSearch = () => emit('search', getSearchParams())
 
 const doDownloadTable = async () => {
-  const company = props.company || "UU"
+  const company = props.company || ""
   if (!company) {
     ElMessage.warning('Please ensure company is set (login or refresh).')
     return
