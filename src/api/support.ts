@@ -557,6 +557,9 @@ export const updateTicket = (id: string, payload: any) => {
   if (useAppStoreWithOut().useMock) {
     return alovaInstance.Put<any>(`/api/resource/Trouble Ticket/${id}`, payload);
   }
+
+  // 假接口
+  return alovaInstance.Put<any>(`/api/resource/Trouble Ticket/${id}`, payload);
 };
 
 export interface TicketUploadPayload {

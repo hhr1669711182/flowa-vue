@@ -351,7 +351,7 @@ import productImage from "@/views/icon/yf.png";
 import { createTicket } from "@/api";
 import rightButtons from "../components/rightButtons.vue";
 
-const price = ref("$0");
+const price = ref<any>("$0");
 const editVisible = ref(false);
 const progressItems = ref<any[]>([]);
 const notifications = ref<any[]>([]);
@@ -384,7 +384,7 @@ const loadData = async () => {
     ]);
 
     price.value = statsRes.price;
-    progressItems.value = statsRes.progressItems;
+    progressItems.value = statsRes.progressItems || [];
 
     notifications.value = notifRes.map((n: any) => ({
       ...n,

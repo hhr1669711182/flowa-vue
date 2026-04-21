@@ -240,6 +240,8 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import rightButtons from "./components/rightButtons.vue";
 // import { orderRowStatusTagClass, orderRowStatusText } from "@/utils/orderRowStatusDisplay";
 import { useRequest } from "alova/client";
+import { StepItem } from "@/components/base/Steps";
+import productImage from "@/views/icon/yf.png";
 
 const authStore = useAuthStore();
 
@@ -321,7 +323,6 @@ const btnItems = [
 ] as any;
 
 const tableData = ref<any>([]);
-const loading = ref(false);
 const total = ref(0);
 const page = ref(1);
 const limit = ref(10);

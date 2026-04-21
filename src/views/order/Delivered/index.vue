@@ -269,6 +269,7 @@ import { Steps } from "@/components/base/Steps";
 import BaseTable from "@/components/common/BaseTable.vue";
 import { StepItem } from "@/components/base/Steps/src/Steps.vue";
 import { useRequest } from "alova/client";
+import productImage from "@/views/icon/yf.png";
 
 const authStore = useAuthStore();
 // Product Detail State
@@ -354,7 +355,7 @@ const btnItems = [
 
 // Data Logic
 const tableData = ref<any>([]);
-const loading = ref(false);
+// const loading = ref(false);
 const total = ref(0);
 const page = ref(1);
 const limit = ref(10);

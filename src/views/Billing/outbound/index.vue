@@ -455,7 +455,7 @@ import { createTicket } from "@/api/support";
 import productImage from "@/views/icon/yf.png";
 import rightButtons from "../components/rightButtons.vue";
 
-const price = ref("$0");
+const price = ref<any>("$0");
 const editVisible = ref(false);
 const progressItems = ref<any[]>([]);
 const notifications = ref<any[]>([]);
@@ -480,37 +480,30 @@ const getIconComponent = (type: string) => {
   };
   return markRaw(map[type] || Message);
 };
-const { send: sendLoadData, onSuccess: onLoadDataSuccess, onError: onLoadDataError } = useRequest(
-  () => Promise.all([
-    getOutboundStats(),
-    getBillingNotifications(),
-    getBillingRecentOrders(),
-  ]),
-  { immediate: false }
-);
 
-onLoadDataSuccess(({ data }) => {
-  const [statsRes, notifRes, ordersRes] = data as any;
-  price.value = statsRes.price;
-  progressItems.value = statsRes.progressItems;
+const loadData = async () => {
+  try {
+    const [statsRes, notifRes, ordersRes] = await Promise.all([
+      getOutboundStats().send(),
+      getBillingNotifications().send(),
+      getBillingRecentOrders().send(),
+    ]);
 
-  notifications.value = notifRes.map((n: any) => ({
-    ...n,
-    icon: getIconComponent(n.iconType),
-  }));
+    price.value = statsRes.price;
+    progressItems.value = statsRes.progressItems  || [];
 
-  recentOrders.value = ordersRes.list.map((o: any) => ({
-    ...o,
-    image: o.image.includes("placeholder") ? productImage : o.image,
-  }));
-});
+    notifications.value = notifRes.map((n: any) => ({
+      ...n,
+      icon: getIconComponent(n.iconType),
+    }));
 
-onLoadDataError(({ error }) => {
-  console.error("Failed to load dashboard data:", error);
-});
-
-const loadData = () => {
-  sendLoadData();
+    recentOrders.value = ordersRes.list.map((o: any) => ({
+      ...o,
+      image: o.image.includes("placeholder") ? productImage : o.image,
+    }));
+  } catch (error) {
+    console.error("Failed to load dashboard data:", error);
+  }
 };
 
 const handleViewDetail = (row: any) => {

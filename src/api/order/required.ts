@@ -8,8 +8,9 @@ export type RequiredOrderStage =
   | 'Warehouse Processing'
   | 'Labeling'
   | 'Export Processing'
+  | 'Local Delivery'
 
-export type RequiredOrderStatus = 'Awaiting Approval' | 'Need Attention' | 'Processing' | 'Blocked'
+export type RequiredOrderStatus = 'Awaiting Approval' | 'Need Attention' | 'Processing' | 'Blocked' | 'In Review'
 
 export type RequiredIssueType =
   | 'Address Error'
